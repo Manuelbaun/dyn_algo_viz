@@ -6,7 +6,7 @@
   export let min: number | string;
   export let max: number | string;
   export let step: number | string;
-
+  export let unit: string = "";
   let range: HTMLInputElement;
   let tooltip: HTMLDivElement;
 
@@ -41,7 +41,7 @@
       bind:this={tooltip}
       transition:fade={{ duration: 200 }}
     >
-      <span>{value}</span>
+      <span>{value.toFixed(2)} {unit}</span>
     </div>
   {/if}
   <input
@@ -99,11 +99,12 @@
 
   .range-value {
     position: absolute;
-    top: -100%;
+    top: -120%;
   }
 
   .range-value span {
-    min-width: 3em;
+    min-width: 4em;
+    width: auto;
     height: 24px;
     line-height: 24px;
     text-align: center;

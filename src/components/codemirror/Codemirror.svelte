@@ -13,9 +13,8 @@
   });
 
   // lable to auto subscribe markedNode changes
-  $: {
-    codemirror?.markNode($markedNode);
-  }
+  $: codemirror?.markNode($markedNode);
+  
 </script>
 
 <div class="editor">
