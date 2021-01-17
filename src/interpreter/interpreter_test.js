@@ -187,22 +187,26 @@ export async function testAlgo(svgjs) {
 
   const run = () => {
     const code = editorController.getCurrentSourceCode();
-    console.log(code);
+
     const interpreter = new Interpreter(code, interpreterInitFunctions);
 
+    const globalKeys = Object.keys(interpreter.globalObject.properties);
     const processLocalScope = (scope) => {
       const keys = Object.keys(scope.object.properties);
+
+      const difference = keys.filter(
+        (x) => !globalKeys.includes(x) && x != "arguments"
+      );
+
       const obj = {};
 
-      for (const k of keys) {
-        if (!globalToIgnore[k]) {
-          const prop = scope.object.properties[k];
+      for (const k of difference) {
+        const prop = scope.object.properties[k];
 
-          if (prop instanceof Interpreter.Object) {
-            obj[k] = interpreter.pseudoToNative(prop);
-          } else {
-            obj[k] = prop;
-          }
+        if (prop instanceof Interpreter.Object) {
+          obj[k] = interpreter.pseudoToNative(prop);
+        } else {
+          obj[k] = prop;
         }
       }
 

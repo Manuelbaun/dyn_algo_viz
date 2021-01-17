@@ -7,18 +7,18 @@
 
 <div class="container">
   <div class="columns">
-    <div class="columns col-6">
+    <div class="column col-6">
       <SvgDraw />
     </div>
-    <div class="columns col-6">
+    <div class="column col-6">
       <Codemirror />
     </div>
   </div>
   <div class="columns">
-    <div class="columns col-6">
+    <div class="column col-6">
       <Controller />
     </div>
-    <div class="columns col-6">
+    <div class="column col-6">
       <JsonViewer />
     </div>
   </div>

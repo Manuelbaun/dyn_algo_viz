@@ -58,7 +58,7 @@ export class CodeMirrorWrapper {
       theme: "dracula",
     });
 
-    // this.editor.setSize('100%', '100%');
+    this.editor.setSize('100%', '100%');
     this.editor.setValue(editorController.getCurrentSourceCode());
 
     this.editor.on("change", (instance) => {
