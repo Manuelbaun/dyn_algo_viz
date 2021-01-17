@@ -224,54 +224,77 @@ export async function testAlgo(svgjs) {
       }
     });
 
-    appController.event.subscribe((event) => {
-      if (event == "STEP" || event == "STEPIN") {
-        const paused = interpreter.paused_;
-        interpreter.paused_ = false;
-        const res = interpreter.step();
-        interpreter.paused_ = paused;
+    function handleStepAndStepIn(event) {
+      if (event == "STEPIN" || event == "STEP") {
         const state = interpreter.stateStack.getTop();
         const node = state.node;
 
-        editorController.markNode(node, "#ffaafa");
-        processLocalScope(state.scope);
-        // instanceof Interpreter.Object
-        // ExpressionStatement
-      }
-    });
+        if (event == "STEP") {
+          // walks only editor line by editor line
+          lastLine = node.loc.start.line;
 
-    const containsBreakPoints = (line) => {
-      return interpreterController.getBreakPoints().includes(line);
-    };
+          const paused = interpreter.paused_;
+          interpreter.paused_ = false;
+
+          while (!interpreter.paused_ && interpreter.step()) {
+            const state = interpreter.stateStack.getTop();
+            console.log(state);
+            const node = state.node;
+            const line = node.loc.start.line;
+            const lineEnd = node.loc.end.line;
+            if (lastLine != line && line == lineEnd) {
+              break;
+            }
+          }
+
+          interpreter.paused_ = paused;
+
+          editorController.markNode(node, "#ffaafa");
+          processLocalScope(state.scope);
+        } else {
+          // will walk every node in the tree
+          const paused = interpreter.paused_;
+          interpreter.paused_ = false;
+          const res = interpreter.step();
+          interpreter.paused_ = paused;
+
+          editorController.markNode(node, "#ffaafa");
+          processLocalScope(state.scope);
+        }
+      }
+    }
 
     let lastBreakPoint = -1;
     let lastLine = -1;
-    interpreter.onStep = (top) => {
+    function handleBreakPoints(top) {
       const line = top.node.loc.start.line;
       const lineEnd = top.node.loc.end.line;
+      // checks breakpoints
+      const isBreakPoint = interpreterController
+        .getBreakPoints()
+        .includes(line);
 
-      if (containsBreakPoints(line) && lastLine != line && line == lineEnd) {
+      if (isBreakPoint && lastLine != line && line == lineEnd) {
         lastLine = line;
+
         interpreter.setPause();
+        appController.pause();
 
-        actions.setControlState("PAUSE");
-
+        // deffer unset => otherwise the interpreter will not pause since other functions
+        // will trigge continue
         setTimeout(() => {
-          console.log(line);
-          console.log(top);
           interpreter.unsetPause();
           lastBreakPoint = -1;
-          // editorController.markNode(undefined, '#ffaaaaaa');
         }, 200);
 
         editorController.markNode(top.node, "#ffaaaaaa");
       }
-    };
+    }
+
+    appController.event.subscribe((event) => handleStepAndStepIn(event));
+    interpreter.onStep = (top) => handleBreakPoints(line, lineEnd);
 
     return () => {
-      sub1$.end(true);
-      sub2$.end(true);
-
       animationController.dispose();
     };
   };
