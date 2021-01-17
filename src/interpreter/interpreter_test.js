@@ -3,7 +3,6 @@ import ComparisonSorts from "../algorithms/comparison";
 import AnimationController from "../animation/animation_controller";
 import { appController } from "../service/app_controller";
 
-import { globalToIgnore } from "./parser_helper_func";
 import { editorController } from "../service/editor_controller";
 import { interpreterController } from "../service/interpreter_controller";
 
@@ -230,27 +229,26 @@ export async function testAlgo(svgjs) {
         const node = state.node;
 
         if (event == "STEP") {
-          // walks only editor line by editor line
-          lastLine = node.loc.start.line;
-
-          const paused = interpreter.paused_;
-          interpreter.paused_ = false;
-
-          while (!interpreter.paused_ && interpreter.step()) {
-            const state = interpreter.stateStack.getTop();
-            console.log(state);
-            const node = state.node;
-            const line = node.loc.start.line;
-            const lineEnd = node.loc.end.line;
-            if (lastLine != line && line == lineEnd) {
-              break;
-            }
-          }
-
-          interpreter.paused_ = paused;
-
-          editorController.markNode(node, "#ffaafa");
-          processLocalScope(state.scope);
+          // // walks only editor line by editor line
+          // const startLine = node.loc.start.line;
+          // interpreterController.toggleBreakPointsToIgnore(startLine);
+          // console.log("StartLine:", startLine);
+          // const paused = interpreter.paused_;
+          // interpreter.paused_ = false;
+          // while (!interpreter.paused_ && interpreter.step()) {
+          //   const state = interpreter.stateStack.getTop();
+          //   const node = state.node;
+          //   const line = node.loc.start.line;
+          //   const lineEnd = node.loc.end.line;
+          //   if (startLine != line && line == lineEnd) {
+          //     console.log("exitline", line, line == lineEnd);
+          //     break;
+          //   }
+          // }
+          // interpreterController.toggleBreakPointsToIgnore(startLine);
+          // interpreter.paused_ = paused;
+          // editorController.markNode(node, "#ffaafa");
+          // processLocalScope(state.scope);
         } else {
           // will walk every node in the tree
           const paused = interpreter.paused_;
@@ -264,35 +262,35 @@ export async function testAlgo(svgjs) {
       }
     }
 
-    let lastBreakPoint = -1;
-    let lastLine = -1;
+    let lastBreakPoint = [];
     function handleBreakPoints(top) {
       const line = top.node.loc.start.line;
       const lineEnd = top.node.loc.end.line;
-      // checks breakpoints
-      const isBreakPoint = interpreterController
-        .getBreakPoints()
-        .includes(line);
 
-      if (isBreakPoint && lastLine != line && line == lineEnd) {
-        lastLine = line;
+      const isBreakPoint = interpreterController.isBreakPoint(line);
 
-        interpreter.setPause();
-        appController.pause();
-
-        // deffer unset => otherwise the interpreter will not pause since other functions
-        // will trigge continue
-        setTimeout(() => {
-          interpreter.unsetPause();
-          lastBreakPoint = -1;
-        }, 200);
+      if (isBreakPoint) {
+        if (!lastBreakPoint.includes(line)) {
+          lastBreakPoint.push(line);
+          interpreter.setPause();
+          appController.pause();
+          // deffer unset => otherwise the interpreter will not pause since other functions
+          // will trigge continue
+          setTimeout(() => {
+            interpreter.unsetPause();
+          }, 50);
+        }
 
         editorController.markNode(top.node, "#ffaaaaaa");
+      }
+
+      if (line != lineEnd) {
+        lastBreakPoint.pop();
       }
     }
 
     appController.event.subscribe((event) => handleStepAndStepIn(event));
-    interpreter.onStep = (top) => handleBreakPoints(line, lineEnd);
+    interpreter.onStep = handleBreakPoints;
 
     return () => {
       animationController.dispose();

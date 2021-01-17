@@ -7,6 +7,17 @@ function saveBreakPoints(breakPoints: number[]) {
   localStorage.setItem("breakPoints", JSON.stringify(breakPoints));
 }
 
+function togglePointInArray(oldArray: number[], line: number) {
+  const newArray = oldArray.filter((n) => n != line);
+
+  if (newArray.length == oldArray.length) {
+    newArray.push(line);
+    newArray.sort((a, b) => a - b);
+  }
+
+  return newArray;
+}
+
 export class InterpreterController {
   readonly localScope = writable<object>({});
   readonly errors = writable<object>({});
@@ -19,20 +30,19 @@ export class InterpreterController {
   }
 
   toggleBreakPoint(line: number) {
-    const old = this.getBreakPoints();
-    const breakPoints = old.filter((n) => n != line);
-
-    if (breakPoints.length == old.length) {
-      breakPoints.push(line);
-      breakPoints.sort((a, b) => a - b);
-    }
+    const breakPoints = togglePointInArray(get(this.breakPoints), line);
 
     this.breakPoints.set(breakPoints);
     saveBreakPoints(breakPoints);
   }
 
   getBreakPoints() {
-    return get(this.breakPoints);
+    const res = get(this.breakPoints);
+    return res;
+  }
+
+  isBreakPoint(line: number) {
+    return this.getBreakPoints().includes(line);
   }
 
   setLocalScope(localScope: object) {
