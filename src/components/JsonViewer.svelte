@@ -10,21 +10,21 @@
   const { breakPoints, localScope } = interpreterController;
 
   let jsonViewer: any;
-  onMount(() => jsonViewer.expand("**.control"));
+  onMount(() => jsonViewer.expand("**.localScope"));
 
   // init data
   let data: object = {};
 
   function jsonData() {
     data = {
+      localScope: $localScope,
+      breakPoints: $breakPoints,
       control: {
         progress: $progress,
         speed: $speed,
         state: $state,
         event: $event,
       },
-      localScope: $localScope,
-      breakPoints: $breakPoints,
     };
   }
   // autosubscribe and listen to data changes
