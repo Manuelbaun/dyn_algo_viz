@@ -1,5 +1,6 @@
 /**
  * INFO Write is modified, to allow the same value to be triggerd
+ * Use this store only, if you want to emit the same value multiple times
  */
 
 import {

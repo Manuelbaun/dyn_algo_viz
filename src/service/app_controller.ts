@@ -1,6 +1,6 @@
 // import { speed, progress, state, event } from "./store";
 import { derived, get, Writable, writable } from "svelte/store";
-import { writableModified } from "../utils/danger_store";
+import { writableModified } from "../utils/custom_store";
 import type { EVENTS, STATE } from "./store_types";
 
 export class AppController {

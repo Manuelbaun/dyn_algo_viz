@@ -1,8 +1,8 @@
 {
   "scripts": {
     "start": "snowpack dev",
-    "build": "snowpack build",
-    "build:roll": "rollup -c --environment NODE_ENV:production",
+    "build:snow": "snowpack build",
+    "build": "rollup -c --environment NODE_ENV:production",
     "test": "web-test-runner \"src/**/*.test.ts\""
   },
   "dependencies": {

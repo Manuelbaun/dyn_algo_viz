@@ -66,11 +66,16 @@ export class CodeMirrorWrapper {
       editorController.setSourceCode(instance.getValue());
     });
 
-    this.editor.on("gutterClick", function (cm, n) {
-      const info = cm.lineInfo(n);
+    this.editor.on("gutterClick", function (cm, line) {
+      const info = cm.lineInfo(line);
       const marker = info.gutterMarkers ? null : makeMarker();
-      cm.setGutterMarker(n, "breakpoints", marker);
+      cm.setGutterMarker(line, "breakpoints", marker);
       interpreterController.toggleBreakPoint(info.line + 1);
+    });
+
+    // if any breakpoints where set from before, apply them
+    interpreterController.getBreakPoints().forEach((l) => {
+      this.editor?.setGutterMarker(l - 1, "breakpoints", makeMarker());
     });
 
     // this.updateHints();

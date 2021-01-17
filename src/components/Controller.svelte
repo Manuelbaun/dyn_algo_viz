@@ -1,5 +1,6 @@
 <script lang="ts">
   import { appController } from "../service/app_controller";
+  import Slider from "./Slider.svelte";
   const { event, progress, speed, state } = appController;
 
   let mainButtonText = "Start";
@@ -29,22 +30,29 @@
   const reset = () => appController.reset();
 </script>
 
-<div>
-  <input step=".01" min="0" max="100" type="range" bind:value={$progress} />
-  {$progress}
-</div>
-<div>
-  <input step=".01" type="range" min="0" max="10" bind:value={$speed} />
-  {$speed}
-</div>
-<div>{$event}</div>
-<div>{$state}</div>
+<div class="container">
+  <div class="container">
+    <Slider step=".01" min="0" max="100" bind:value={$progress} />
+    <Slider step=".01" min="0" max="10" bind:value={$speed} />
 
-<button on:click={handleMainButton}> {mainButtonText} </button>
-<button on:click={step} disabled={$state != "PAUSED" && $state != "STEPPING"}>
-  STEP
-</button>
-<button on:click={stepIn} disabled={$state != "PAUSED" && $state != "STEPPING"}>
-  STEP IN
-</button>
-<button on:click={reset} disabled={$state == "INIT"}> RESET </button>
+    <div>{$event}</div>
+    <div>{$state}</div>
+  </div>
+
+  <div class="container">
+    <button class="btn" on:click={handleMainButton}>
+      {mainButtonText}
+    </button>
+    <button
+      class="btn"
+      on:click={step}
+      disabled={$state != "PAUSED" && $state != "STEPPING"}> STEP </button>
+    <button
+      class="btn"
+      on:click={stepIn}
+      disabled={$state != "PAUSED" && $state != "STEPPING"}> STEP IN </button>
+    <button class="btn" on:click={reset} disabled={$state == "INIT"}>
+      RESET
+    </button>
+  </div>
+</div>
