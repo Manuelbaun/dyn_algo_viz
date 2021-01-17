@@ -186,10 +186,9 @@ export async function testAlgo(svgjs) {
   };
 
   const run = () => {
-    const interpreter = new Interpreter(
-      editorController.sourceCode.currentValue,
-      interpreterInitFunctions
-    );
+    const code = editorController.getCurrentSourceCode();
+    console.log(code);
+    const interpreter = new Interpreter(code, interpreterInitFunctions);
 
     const processLocalScope = (scope) => {
       const keys = Object.keys(scope.object.properties);
@@ -221,7 +220,7 @@ export async function testAlgo(svgjs) {
       }
     });
 
-    appController.events.subscribe((event) => {
+    appController.event.subscribe((event) => {
       if (event == "STEP" || event == "STEPIN") {
         const paused = interpreter.paused_;
         interpreter.paused_ = false;
@@ -238,7 +237,7 @@ export async function testAlgo(svgjs) {
     });
 
     const containsBreakPoints = (line) => {
-      return states().interpreter.breakPoints.includes(line);
+      return interpreterController.getBreakPoints().includes(line);
     };
 
     let lastBreakPoint = -1;

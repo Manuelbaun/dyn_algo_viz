@@ -1,21 +1,16 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { Svg, SVG } from "@svgdotjs/svg.js";
-
   import panzoom from "panzoom";
+
   import { testAlgo } from "../interpreter/interpreter_test";
+  import { appController } from "../service/app_controller";
 
   let svgElement: SVGElement;
   onMount(async () => {
-    if (!svgElement) {
-      throw Error(
-        "A Fatal Error happend. The SVG element could not be found! This shoud not happen"
-      );
-    }
-
     const svgJS = SVG(svgElement) as Svg;
     // clear, if something was already drawn!
-    // svgJS.clear();
+    svgJS.clear();
 
     const viewBox = svgJS.viewbox();
     const panzoomNode = svgJS.group();
@@ -55,18 +50,22 @@
       zoomFit,
     });
 
-    // appController.events.subscribe((event) => {
-    //   if (event == "START") {
-    //     run();
-    //   }
-    // });
+    pann.centerOn(drawNode.node);
+
+    appController.event.subscribe((event) => {
+      if (event == "START") {
+        run();
+      }
+    });
   });
 </script>
 
-<svg
-  id="animejsID"
-  width="100%"
-  height="100%"
-  viewBox="0 0 600 400"
-  bind:this={svgElement}
-/>
+<svg id="animejsID" viewBox="0 0 600 400" bind:this={svgElement} />
+
+<style>
+  svg {
+    height: 100%;
+    width: 100%;
+    min-height: 500px;
+  }
+</style>

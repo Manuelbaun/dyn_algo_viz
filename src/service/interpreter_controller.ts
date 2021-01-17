@@ -34,6 +34,10 @@ export class InterpreterController {
   getBreakPoints() {
     return get(this.breakPoints);
   }
+
+  setLocalScope(localScope: object) {
+    this.localScope.set(localScope);
+  }
 }
 
 export const interpreterController = new InterpreterController();

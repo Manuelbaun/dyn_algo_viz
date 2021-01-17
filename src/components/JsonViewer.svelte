@@ -7,7 +7,7 @@
   import { interpreterController } from "../service/interpreter_controller";
 
   const { progress, speed, state, event } = appController;
-  const { breakPoints } = interpreterController;
+  const { breakPoints, localScope } = interpreterController;
 
   let jsonViewer: any;
   onMount(() => jsonViewer.expand("**.control"));
@@ -23,7 +23,7 @@
         state: $state,
         event: $event,
       },
-      localScope: {},
+      localScope: $localScope,
       breakPoints: $breakPoints,
     };
   }
