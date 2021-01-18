@@ -17,39 +17,38 @@ export default class AnimationController {
     duration: 200,
     autoplay: false,
     shouldReset: false,
-  });
+  },false);
 
-  algoTimeline = anime.timeline({
-    easing: "easeInOutQuad",
-    duration: 200,
-    autoplay: false,
-    shouldReset: false,
-    // update: (anim) => actions.setAnimationStatus("UPDATE"),
-    // begin: (anim) => actions.setAnimationStatus("BEGIN"),
-    // complete: (anim) => actions.setAnimationStatus("COMPLETE"),
-  });
+  algoTimeline = anime.timeline(
+    {
+      easing: "easeInOutQuad",
+      duration: 200,
+      autoplay: false,
+      shouldReset: false,
+      // update: (anim) => actions.setAnimationStatus("UPDATE"),
+      // begin: (anim) => actions.setAnimationStatus("BEGIN"),
+      // complete: (anim) => actions.setAnimationStatus("COMPLETE"),
+    },
+    true
+  );
 
   constructor() {
     this.algoTimeline.update = async ({ progress }) => {
       appController.setProgress(progress);
     };
-    const { progress, speed, state, event } = appController;
+
+    const { progress, speed, event } = appController;
 
     speed.subscribe((data) => this.setSpeed(data));
-
     progress.subscribe((data) => this.setProgress(data));
-
-    state.subscribe((data) => {
-      if (data == "PAUSED") this.pause();
-      if (data == "RUNNING") this.continue();
-    });
-
-    event.subscribe((data) => {
-      if (data == "RESET") {
+    event.subscribe((event) => {
+      if (event == "RESET") {
         // in theory should now reset! and clear all animation
-      }
-
-      if (data == "STEP") {
+      } else if (event == "PAUSE") {
+        this.pause();
+      } else if (event == "CONTINUE") {
+        this.continue();
+      } else if (event == "STEP") {
         this.algoTimeline.step();
       }
     });

@@ -94,9 +94,12 @@ module.exports = {
   },
   devOptions: {
     open: "none",
+    hmr: false,
+
     /* ... */
   },
   buildOptions: {
     /* ... */
+    clean: true,
   },
 };

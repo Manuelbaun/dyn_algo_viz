@@ -166,7 +166,12 @@ declare namespace anime {
   ): FunctionBasedParameter;
   function set(targets: AnimeTarget, value: { [AnyAnimatedProperty: string]: any }): void;
   // Timeline
-  function timeline(params?: AnimeParams | ReadonlyArray<AnimeInstance>): AnimeTimelineInstance;
+  /**
+   * 
+   * @param params 
+   * @param shouldUseDeltaTime will apply the the animation speed on 60 fps and add it to the instance current time
+   */
+  function timeline(params?: AnimeParams | ReadonlyArray<AnimeInstance>, shouldUseDeltaTime:boolean): AnimeTimelineInstance;
   function random(min: number, max: number): number;
 }
 

@@ -881,7 +881,11 @@ var engine = (function () {
         activeInstance.tick(t);
         i++;
       } else {
+        /// need to remeber, when it paused
         activeInstance.pausedCurrent = activeInstance.currentTime
+        activeInstance.pausedSpeed = anime.speed;
+        activeInstance.pausedAtNow = t;
+
         activeInstances.splice(i, 1);
         activeInstancesLength--;
       }
@@ -916,7 +920,7 @@ function isDocumentHidden() {
 
 // Public Instance
 
-function anime(params) {
+function anime(params, shouldUseDeltaTime = false) {
   if ( params === void 0 ) params = {};
 
 
@@ -931,6 +935,7 @@ function anime(params) {
   }
 
   var instance = createNewInstance(params);
+  instance.shouldUseDeltaTime = shouldUseDeltaTime;
   instance.pausedCurrent =0;
 
   var promise = makePromise(instance);
@@ -1144,15 +1149,27 @@ function anime(params) {
      * When the break function is hit, we need to reset the start time, so that the animation progress, continues
      * where it last stopped. Otherwise, the animation will "jump".
      * CurrentTime gives the time, of the animation timeline.
+     * 
+     * The shouldUseDeltaTime will apply the speed on the 1000/60 => 60 fps or 16.6 and adds it to the instance currentTime
+     * this way, we dont influence the progress, when we change the animation speed on the play!
+     * 
+     * 
+     * Also, when animaiton is paused, we dont get wired artifacts, when resume animation
+     * 
      */
-    if(this.hitBreak){
-      this.hitBreak = false;
-     
-      startTime =  now-instance.pausedCurrent;
+    if (instance.shouldUseDeltaTime) {
+      const progress = instance.currentTime + 16.6 * anime.speed;
+      setInstanceProgress(progress);
+    } else {
+      if (this.adjustTime) {
+        this.adjustTime = false;
+        startTime = now - instance.pausedCurrent;
+      }
+    
+      const progress = (now + (lastTime - startTime)) * anime.speed;
+    
+      setInstanceProgress(progress);
     }
-
-    const progress = (now + (lastTime - startTime)) * anime.speed;
-    setInstanceProgress(progress);
   };
 
   instance.seek = function(time) {
@@ -1177,16 +1194,16 @@ function anime(params) {
    * added by: Manuel Baun 
    * 
    * The break function, to distingues between the pause function.
-   * Use the hitBreak field, to indikate, the animation was stopped by the break function
+   * Use the adjustTime field, to indikate, the animation was stopped by the break function
    * and not by pause.
    * 
    * When break is set to true, the instance.tick function will unset it.
    * 
    */
-  instance.hitBreak = false;
+  instance.adjustTime = false;
   instance.break = function() {
     instance.paused = true;
-    instance.hitBreak = true;
+    instance.adjustTime = true;
   };
 
   /**
@@ -1343,11 +1360,15 @@ function stagger(val, params) {
  * with the new added continue() function.
  * When undefined, or set to true, it behaves, as before.
  * @param {*} params
+ * 
+ * 
+ * added by Manuel Baun 
+ * shouldUseDeltaTime
  */
-function timeline(params) {
+function timeline(params, shouldUseDeltaTime=false) {
   if ( params === void 0 ) params = {};
 
-  var tl = anime(params);
+  var tl = anime(params,shouldUseDeltaTime);
   tl.duration = 0;
   tl.add = function(instanceParams, timelineOffset) {
     var tlIndex = activeInstances.indexOf(tl);
@@ -1363,7 +1384,7 @@ function timeline(params) {
     insParams.timelineOffset = is.und(timelineOffset) ? tlDuration : getRelativeValue(timelineOffset, tlDuration);
     passThrough(tl);
     tl.seek(insParams.timelineOffset);
-    var ins = anime(insParams);
+    var ins = anime(insParams,tl.shouldUseDeltaTime);
     passThrough(ins);
     children.push(ins);
     var timings = getInstanceTimings(children, params);

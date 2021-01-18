@@ -528,7 +528,7 @@ class ArrayRef {
     if (!matrix) {
       // TODO: calcuclate free space?
       matrix = { translateX: 0, translateY: 0 };
-      console.log("no element");
+      // console.log("no element");
     }
     return matrix;
   }
