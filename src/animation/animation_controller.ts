@@ -1,4 +1,4 @@
-import { appController } from "../service/app_controller";
+import type { AppController } from "../service/app_controller";
 import anime from "./animejs/anime";
 
 /**
@@ -12,12 +12,15 @@ export default class AnimationController {
    * the update the animation.
    * When a timeline is created, the the startpoint is set
    */
-  initTimeline = anime.timeline({
-    easing: "easeInOutQuad",
-    duration: 200,
-    autoplay: false,
-    shouldReset: false,
-  },false);
+  initTimeline = anime.timeline(
+    {
+      easing: "easeInOutQuad",
+      duration: 200,
+      autoplay: false,
+      shouldReset: false,
+    },
+    false
+  );
 
   algoTimeline = anime.timeline(
     {
@@ -25,14 +28,11 @@ export default class AnimationController {
       duration: 200,
       autoplay: false,
       shouldReset: false,
-      // update: (anim) => actions.setAnimationStatus("UPDATE"),
-      // begin: (anim) => actions.setAnimationStatus("BEGIN"),
-      // complete: (anim) => actions.setAnimationStatus("COMPLETE"),
     },
     true
   );
 
-  constructor() {
+  constructor(appController: AppController) {
     this.algoTimeline.update = async ({ progress }) => {
       appController.setProgress(progress);
     };
@@ -40,7 +40,9 @@ export default class AnimationController {
     const { progress, speed, event } = appController;
 
     speed.subscribe((data) => this.setSpeed(data));
+
     progress.subscribe((data) => this.setProgress(data));
+
     event.subscribe((event) => {
       if (event == "RESET") {
         // in theory should now reset! and clear all animation

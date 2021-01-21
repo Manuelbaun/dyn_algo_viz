@@ -1,14 +1,13 @@
 import Interpreter from "./interpreter";
 import ComparisonSorts from "../algorithms/comparison";
-import AnimationController from "../animation/animation_controller";
+
 import { appController } from "../service/app_controller";
 
 import { editorController } from "../service/editor_controller";
 import { interpreterController } from "../service/interpreter_controller";
 
 export async function testAlgo(svgjs) {
-  const animationController = new AnimationController();
-  const algorithm = new ComparisonSorts(animationController, svgjs);
+  const algorithm = new ComparisonSorts(svgjs);
   await algorithm.setup();
 
   /**
@@ -293,7 +292,8 @@ export async function testAlgo(svgjs) {
     interpreter.onStep = handleBreakPoints;
 
     return () => {
-      animationController.dispose();
+      algorithm.dispose();
+      // TODO: proper cleanup
     };
   };
 

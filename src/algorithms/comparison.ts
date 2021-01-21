@@ -1,152 +1,52 @@
-import { scaleLinear, max, ScaleLinear } from "d3";
 import type { PanZoom } from "panzoom";
 import type { G } from "@svgdotjs/svg.js";
-import type AnimationController from "../animation/animation_controller";
+import AnimationController from "../animation/animation_controller";
 import { generateData } from "../utils/helper_functions";
 
 import type Interpreter from "../interpreter/interpreter";
-import { ArrayRef, ArrayRefManager, GroupRef } from "./helper_classes";
+import {
+  ArrayRef,
+  ArrayRefManager,
+  DrawBasic,
+  GroupRef,
+} from "./helper_classes";
+import { appController } from "../service/app_controller";
 
 /**
  * Type declarations
  */
-type DrawUtils = {
-  svg: G;
-  svgWidth: any;
-  svgHeight: any;
-  margin: {
-    top: number;
-    bottom: number;
-    left: number;
-    right: number;
-  };
-  drawHeight: number;
-  drawWidth: number;
-  bottomLine: number;
-  rect: {
-    width: number;
-  };
-};
 
 /** The comparisonSort Class */
 export default class ComparisonSorts {
-  private colors = {
-    base: "#f06", // Pink
-    check: "#FFFF00", // Green
-    highlight: "#22FF00", // Yellow
-    pop: "#0089FF", // Blue
-    push: "#FFCD00", // Orange
-  };
-
-  private controller: {
-    panZoomControl: PanZoom;
-    animationControl: AnimationController;
-  };
-
-  private draw: DrawUtils;
-
-  private scales: {
-    x: ScaleLinear<number, number, never>;
-    y: ScaleLinear<number, number, never>;
-    yHeight: ScaleLinear<number, number, never>;
-  };
+  panZoomControl: PanZoom;
+  animationControl: AnimationController;
 
   data: number[];
-
   refsManager;
-  // stream: flyd.Stream<any>;
 
-  constructor(animationControl: AnimationController, svgJS: any, length = 10) {
-    const { svg, panZoomControl, viewBox } = svgJS;
-    const { width: svgWidth, height: svgHeight } = viewBox;
+  drawer: DrawBasic;
 
-    this.refsManager = new ArrayRefManager(svg);
-
-    this.controller = {
-      panZoomControl,
-      animationControl,
-    };
-
+  // TODO: proper type fo svgjs, since it is not just svgjs!!
+  constructor(svgJS: any, length = 10) {
     this.data = generateData(length);
+    this.panZoomControl = svgJS.panZoomControl;
+    this.animationControl = new AnimationController(appController);
 
-    const margin = {
-      top: 50,
-      bottom: 50,
-      left: 20,
-      right: 20,
-    };
-
-    const drawHeight = svgHeight - margin.top - margin.bottom;
-    const drawWidth = svgWidth - margin.left - margin.right;
-    const bottomLine = svgHeight - margin.bottom;
-
-    this.draw = {
-      svg,
-      svgWidth,
-      svgHeight,
-      margin,
-      drawHeight,
-      drawWidth,
-      bottomLine,
-      rect: {
-        width: drawWidth / length - 2.5,
-      },
-    };
-
-    /**
-     * Scales, to map between pixels and the data vales
-     * domain: data domain
-     * range from to pixels
-     */
-    this.scales = {
-      x: scaleLinear().domain([0, length]).range([0, svgWidth]),
-      y: scaleLinear()
-        .domain([0, 1])
-        .range([margin.top, svgHeight / 2]),
-      yHeight: scaleLinear()
-        .domain([0, max(this.data)] as number[]) // the max value of the data
-        .range([0, svgHeight / 2]), // height minus bottom marginopen
-    };
-
-    /** Enable autoFit */
-
-    // this.stream = streamManager
-    //   .createSubStream(["animation", "status"] as const)
-    //   .map((value) => {
-    //     if (value == "COMPLETE") {
-    //       // svgJS.zoomFit();
-    //     }
-    //     // actions.setLocalScope();
-    //     // actions.setLocalScope(this.datas.toJson());
-    //     // console.log(this.datas, this.shiftedElements);
-    //     //   if (data.action == 'begin') {
-    //     //     const pz = this.controller.panZoomControl;
-    //     //     const box = this.draw.svg.bbox();
-    //     //     console.log(box);
-    //     //     pz.centerOn(this.draw.svg.node);
-    //     //     pz.smoothZoomAbs(box.cx, box.cy, 0.5);
-    //     //     const json = this.datas.toJson();
-    //     // })
-    //   });
+    this.refsManager = new ArrayRefManager(svgJS.svg);
+    this.drawer = new DrawBasic(svgJS.svg, svgJS.viewBox, this.data);
   }
 
-  dispose() {}
+  dispose() {
+    this.animationControl.dispose();
+  }
 
   async setup() {
-    const { initTimeline: tl } = this.controller.animationControl;
-    const { svg, bottomLine } = this.draw;
+    const tl = this.animationControl.initTimeline;
+    const { scales } = this.drawer;
 
     // create and add the the refsManager
     this.data.forEach((value) => {
-      const g = new GroupRef({
-        parent: svg,
-        scaleHeight: this.scales.yHeight,
-        bottomLine,
-        fill: this.colors.base,
-        value,
-        width: this.draw.rect.width,
-        fontsize: 10,
-      });
+      const g = new GroupRef({ value, draw: this.drawer });
       this.refsManager.setRef(value, g);
     });
 
@@ -155,28 +55,19 @@ export default class ComparisonSorts {
       tl.add({
         targets: d.node,
         duration: 200,
-        translateX: this.scales.x(i),
+        translateX: scales.x(i),
         opacity: 1,
       });
     });
 
-    await tl.continue();
-
-    // /// clone
-    // const cloneGroup = svg.group();
-    // Array.from(this.groupRefs.values()).forEach((e) => {
-    //   const c = e.g.clone();
-    //   c.attr('opacity', 0.1);
-    //   cloneGroup.add(c);
-    // });
     /// wait till timeline animation is done
     return await tl.continue();
   }
 
   async swap(array: Interpreter.Object, i: number, j: number) {
-    const { algoTimeline: tl } = this.controller.animationControl;
+    const tl = this.animationControl.algoTimeline;
 
-    const ref = this.refsManager.getArray(array);
+    const ref = this.refsManager.getArrayRef(array);
 
     // get visual objects
     const gi = ref.getRef(i);
@@ -191,7 +82,7 @@ export default class ComparisonSorts {
     // Animation Sequence
     tl.add({
       targets: rects,
-      fill: this.colors.highlight,
+      fill: this.drawer.colors.highlight,
       duration: 100,
     });
 
@@ -217,7 +108,7 @@ export default class ComparisonSorts {
     /// change back the color
     tl.add({
       targets: rects,
-      fill: this.colors.base,
+      fill: this.drawer.colors.base,
       duration: 100,
     });
 
@@ -232,12 +123,12 @@ export default class ComparisonSorts {
     j: number,
     iGreaterJ: boolean
   ) {
-    const { algoTimeline: tl } = this.controller.animationControl;
-    const arrClaa = this.refsManager.getArray(array);
+    const tl = this.animationControl.algoTimeline;
+    const ref = this.refsManager.getArrayRef(array);
 
     // get visual objects
-    const rv = arrClaa.getRef(i);
-    const rw = arrClaa.getRef(j);
+    const rv = ref.getRef(i);
+    const rw = ref.getRef(j);
 
     // if an element at pos i or j does not exist, the interpreter would have thrown error
     if (!rv || !rw) return;
@@ -247,7 +138,7 @@ export default class ComparisonSorts {
     // Highligh rects
     tl.add({
       targets: rects,
-      fill: this.colors.check,
+      fill: this.drawer.colors.check,
       duration: 200,
     });
     await tl.continue();
@@ -256,7 +147,7 @@ export default class ComparisonSorts {
     if (!iGreaterJ) {
       tl.add({
         targets: rects,
-        fill: this.colors.base,
+        fill: this.drawer.colors.base,
         duration: 100,
       });
     }
@@ -267,21 +158,21 @@ export default class ComparisonSorts {
   }
 
   async splice(array: Interpreter.Object) {
-    const { algoTimeline: tl } = this.controller.animationControl;
-    const arrClaa = this.refsManager.getArray(array);
+    const tl = this.animationControl.algoTimeline;
+    const ref = this.refsManager.getArrayRef(array);
 
-    if (!arrClaa.translateX) {
+    if (ref.translateX == undefined) {
       return;
     }
 
-    const translateY = arrClaa.translateY + this.scales.y(1);
+    const translateY = ref.translateY + this.drawer.scales.y(1);
 
     tl.add({
-      targets: arrClaa.rectNodes,
+      targets: ref.rectNodes,
       duration: 200,
-      fill: this.colors.highlight,
+      fill: this.drawer.colors.highlight,
     }).add({
-      targets: arrClaa.groupNodes,
+      targets: ref.groupNodes,
       duration: 200,
       translateY,
     });
@@ -290,34 +181,34 @@ export default class ComparisonSorts {
   }
 
   async shift(array: Interpreter.Object) {
-    const { algoTimeline: tl } = this.controller.animationControl;
-    const arrClaa = this.refsManager.getArray(array);
+    const tl = this.animationControl.algoTimeline;
+    const ref = this.refsManager.getArrayRef(array);
 
     /// needs the last reference position, since value is already gone from [arrClaa]
-    const ref = arrClaa.getRef(0);
-    if (!ref) return;
+    const group = ref.getRef(0);
+    if (!group) return;
 
-    const translateX = ref.matrix.translateX;
+    const translateX = group.matrix.translateX;
 
     // move all elements to the left by 1 position, that are in that array
-    arrClaa.forEachRef((d, i) => {
+    ref.forEachRef((d, i) => {
       tl.add({
         targets: d.node,
         duration: 100,
-        translateX: translateX + this.scales.x(i - 1),
+        translateX: translateX + this.drawer.scales.x(i - 1),
       });
     });
 
     // shift, first element to the left
     tl.add({
-      targets: ref.node,
+      targets: group.node,
       duration: 50,
       opacity: 0,
-      translateX: translateX - this.scales.x(1),
+      translateX: translateX - this.drawer.scales.x(1),
     }).add(
       {
-        targets: ref.rectNode,
-        fill: this.colors.pop,
+        targets: group.rectNode,
+        fill: this.drawer.colors.pop,
         duration: 50,
       },
       "-=50"
@@ -327,27 +218,27 @@ export default class ComparisonSorts {
   }
 
   async push(array: Interpreter.Object) {
-    const { algoTimeline: tl } = this.controller.animationControl;
+    const tl = this.animationControl.algoTimeline;
 
     const isNewArray = this.refsManager.has(array);
-    const arrClaa = this.refsManager.getArray(array);
+    const ref = this.refsManager.getArrayRef(array);
     // get last element!
-    const ref = arrClaa.getRef(arrClaa.length - 1);
-    if (!ref) return;
+    const group = ref.getRef(ref.length - 1);
+    if (!group) return;
 
-    const matrix = arrClaa.matrix;
-    const translateX = matrix.translateX + this.scales.x(arrClaa.length);
+    const matrix = ref.matrix;
+    const translateX = matrix.translateX + this.drawer.scales.x(ref.length);
 
     let translateY;
     if (isNewArray) {
       translateY =
-        Math.max(...this.refsManager.getAllYPos()) + this.scales.y(1);
+        Math.max(...this.refsManager.getAllYPos()) + this.drawer.scales.y(1);
     } else {
       translateY = matrix.translateY;
     }
 
     tl.add({
-      targets: ref.node,
+      targets: group.node,
       duration: 200,
       delay: 0,
       translateX,
@@ -355,9 +246,9 @@ export default class ComparisonSorts {
       opacity: 1,
     }).add(
       {
-        targets: ref.rectNode,
+        targets: group.rectNode,
         duration: 200,
-        fill: this.colors.push,
+        fill: this.drawer.colors.push,
       },
       "-=100"
     );
@@ -366,28 +257,38 @@ export default class ComparisonSorts {
   }
 
   async concat(array: Interpreter.Object) {
-    const { algoTimeline: tl } = this.controller.animationControl;
+    const tl = this.animationControl.algoTimeline;
 
-    const arrClaa = this.refsManager.getArray(array);
-    const matrix = arrClaa.matrix;
-    const translateY = matrix.translateY + this.scales.y(1);
+    const ref = this.refsManager.getArrayRef(array);
+    const matrix = ref.matrix;
+
+    // get position of current array
+    let translateY = ref.translateY;
+
+    if (translateY == undefined || 0) {
+      translateY = this.drawer.scales.y(1);
+    } else {
+      translateY = matrix.translateY;
+      // const translateY = matrix.translateY + this.scales.y(1);
+    }
+
     const translateX = matrix.translateX;
 
     tl.add({
-      targets: arrClaa.rectNodes,
+      targets: ref.rectNodes,
       duration: 200,
-      fill: this.colors.pop,
+      fill: this.drawer.colors.pop,
     }).add({
-      targets: arrClaa.groupNodes,
+      targets: ref.groupNodes,
       duration: 200,
       translateY,
     });
 
-    arrClaa.groupNodes.forEach(async (e, i) => {
+    ref.groupNodes.forEach(async (e, i) => {
       tl.add({
         targets: e,
         duration: 100,
-        translateX: translateX + this.scales.x(i),
+        translateX: translateX + this.drawer.scales.x(i),
         translateY,
       });
     });
@@ -405,15 +306,15 @@ export default class ComparisonSorts {
   async cloneElements(arrClaa: ArrayRef, opacity = 0.5) {
     const clones = arrClaa.mapRef((el) => el);
 
-    const { algoTimeline: tl } = this.controller.animationControl;
+    const tl = this.animationControl.algoTimeline;
 
     const clonedElements = clones.map((e) => {
-      const clone = e.g.clone();
+      const clone = e.root.clone();
       clone.attr("opacity", 0);
       return clone;
     });
 
-    const parent = clones[0].g.parent() as G;
+    const parent = clones[0].root.parent() as G;
     const cloneGrouP = parent.group();
     cloneGrouP.attr("id", "clones-" + arrClaa.id);
     clonedElements.forEach((d, i) => cloneGrouP.add(d));
@@ -428,3 +329,189 @@ export default class ComparisonSorts {
     return clonedElements;
   }
 }
+
+// createInterpreterInitFunction() {
+//   const algorithm = this;
+//   type IntObject = Interpreter.Object;
+//   const interpreterInitFunctions = function (
+//     interpreter: Interpreter,
+//     globalObject: Interpreter.Object
+//   ) {
+//     // func must be no anynomus functions => `this` needs references the pseudo array
+//     type PseudoArrayMethod = (
+//       this: Interpreter.Object,
+//       ...args: any[]
+//     ) => any;
+
+//     const registerPrototype = (name: string, func: PseudoArrayMethod) => {
+//       interpreter.setNativeFunctionPrototype(
+//         interpreter.ARRAY as Interpreter.Object,
+//         name,
+//         func
+//       );
+//     };
+
+//     /** **************** */
+//     /** Define Props     */
+//     /** **************** */
+
+//     const root = interpreter.nativeToPseudo(algorithm.data);
+//     interpreter.setProperty(globalObject, "root", root);
+
+//     /**
+//      * Global function "PRint"
+//      */
+//     interpreter.setProperty(
+//       globalObject,
+//       "print",
+//       interpreter.createNativeFunction(function (...obj: any[]) {
+//         const node = interpreter.stateStack.getTop().node;
+//         const printLine = "print:" + node.loc.start.line;
+//         try {
+//           if (obj instanceof Array) {
+//             const res = obj.map((e) => interpreter.pseudoToNative(e));
+
+//             console.log(printLine, ...res);
+//           } else {
+//             const res = interpreter.pseudoToNative(obj);
+//             console.log(printLine, res);
+//           }
+//         } catch (e) {
+//           console.log(e);
+//           console.log(printLine, obj);
+//         }
+//       }, false)
+//     );
+
+//     /** **************** */
+//     /** Define functions */
+//     /** **************** */
+
+//     /// extends the array prototype of the interpreter! with a compare function
+//     registerPrototype("compare", function (i: number, j: number) {
+//       const node = interpreter.stateStack.getTop().node;
+//       // editorController.markNode(node, "#aaafff");
+
+//       // do animation
+//       const arr = this.properties;
+//       const res = arr[i] > arr[j];
+
+//       if (res == null) {
+//         interpreter.throwException(
+//           interpreter.RANGE_ERROR,
+//           `Cannot compare elements, since either element at index i:${i}=>${arr[i]} OR j:${j}=>${arr[j]} does not exist on this array`
+//         );
+//       }
+
+//       // do animation
+//       interpreter.asyncCall(() => algorithm.compare(this, i, j, res));
+
+//       return res;
+//     });
+
+//     registerPrototype("swap", function (i, j) {
+//       const node = interpreter.stateStack.getTop().node;
+//       // editorController.markNode(node, "#cccccc");
+
+//       /// swap the data
+//       const arr = this.properties;
+
+//       // get real values;
+//       const a = arr[i];
+//       const b = arr[j];
+
+//       if (!a || !b) {
+//         interpreter.throwException(
+//           interpreter.RANGE_ERROR,
+//           `Cannot swap elements, since either element at index i:${i}=>${a} OR j:${j}=>${b} does not exist on this array`
+//         );
+//       }
+//       arr[i] = b;
+//       arr[j] = a;
+
+//       // do animation by real values
+//       interpreter.asyncCall(() => algorithm.swap(this, i, j));
+//     });
+
+//     registerPrototype("splice", function (start, end) {
+//       // editorController.markNode(self.stateStack.getTop().node, "#f1f1f1f1");
+
+//       const data = Array.prototype.splice.call(this.properties, start, end);
+//       const newObj = interpreter.arrayNativeToPseudo(data);
+
+//       interpreter.asyncCall(() => algorithm.splice(newObj));
+//       return newObj;
+//     });
+
+//     registerPrototype("shift", function (...args) {
+//       // editorController.markNode(self.stateStack.getTop().node, "#f1f1f1f1");
+
+//       interpreter.asyncCall(() => algorithm.shift(this));
+//       return Array.prototype.shift.call(this.properties);
+//     });
+
+//     registerPrototype("push", function (...args) {
+//       // editorController.markNode(self.stateStack.getTop().node, "#f1f1f1f1");
+
+//       const res = Array.prototype.push.apply(this.properties, args);
+
+//       interpreter.asyncCall(() => algorithm.push(this));
+//       return res;
+//     });
+
+//     registerPrototype("get", function (index) {
+//       // editorController.markNode(self.stateStack.getTop().node, "#f1f1f1f1");
+
+//       const element = this.properties[index];
+//       return element;
+//     });
+
+//     registerPrototype("set", function (index, element) {
+//       // editorController.markNode(self.stateStack.getTop().node, "#f1f1f1f1");
+//       this.properties[index] = element;
+//     });
+
+//     // copied from the interpreterclass
+//     const concat = function (thisArray: Interpreter.Object, ...args: any[]) {
+//       var data = [];
+//       var length = 0;
+//       // Start by copying the current array.
+//       var iLength = interpreter.getProperty(thisArray, "length") as number;
+//       for (var i = 0; i < iLength; i++) {
+//         if (interpreter.hasProperty(thisArray, i)) {
+//           var element = interpreter.getProperty(thisArray, i);
+//           data[length] = element;
+//         }
+//         length++;
+//       }
+//       // Loop through all args and copy them in.
+//       for (var i = 0; i < args.length; i++) {
+//         var value = args[i];
+//         if (interpreter.isa(value, interpreter.ARRAY)) {
+//           var jLength = interpreter.getProperty(value, "length") as number;
+//           for (var j = 0; j < jLength; j++) {
+//             if (interpreter.hasProperty(value, j)) {
+//               data[length] = interpreter.getProperty(value, j);
+//             }
+//             length++;
+//           }
+//         } else {
+//           data[length] = value;
+//         }
+//       }
+//       return data;
+//     };
+
+//     registerPrototype("concat", function (...args: []) {
+//       // editorController.markNode(self.stateStack.getTop().node, "#f1f1f1f1");
+
+//       const data = concat(this, arguments);
+//       const newArray = interpreter.arrayNativeToPseudo(data);
+
+//       interpreter.asyncCall(() => algorithm.concat(newArray));
+//       return newArray;
+//     });
+//   };
+
+//   return interpreterInitFunctions;
+// }

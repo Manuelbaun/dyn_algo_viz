@@ -1,60 +1,146 @@
 import type { G, Rect, Text } from "@svgdotjs/svg.js";
 import type Interpreter from "../interpreter/interpreter";
 import { genID } from "../utils/helper_functions";
+import { max, scaleLinear, ScaleLinear } from "d3";
+
+export type Scales = {
+  x: ScaleLinear<number, number, never>;
+  y: ScaleLinear<number, number, never>;
+  yHeight: ScaleLinear<number, number, never>;
+};
+
+export class DrawBasic {
+  colors = {
+    base: "#f06", // Pink
+    check: "#FFFF00", // Green
+    highlight: "#22FF00", // Yellow
+    pop: "#0089FF", // Blue
+    push: "#FFCD00", // Orange
+  };
+
+  drawRoot: G;
+  svgWidth: number;
+  svgHeight: number;
+
+  margin: {
+    top: number;
+    bottom: number;
+    left: number;
+    right: number;
+  };
+
+  drawHeight: number;
+  drawWidth: number;
+  bottomLine: number;
+  rect: {
+    width: number;
+  };
+
+  scales: Scales;
+
+  constructor(drawRoot: G, viewBox: any, data: number[]) {
+    const { width, height } = viewBox;
+
+    this.margin = {
+      top: 50,
+      bottom: 50,
+      left: 20,
+      right: 20,
+    };
+
+    this.drawRoot = drawRoot;
+    this.svgHeight = height;
+    this.svgWidth = width;
+
+    this.drawHeight = height - this.margin.top - this.margin.bottom;
+    this.drawWidth = width - this.margin.left - this.margin.right;
+    this.bottomLine = height - this.margin.bottom;
+
+    const length = data.length;
+    this.rect = {
+      width: this.drawWidth / length - 2.5,
+    };
+
+    console.log(length);
+    /**
+     * Scales, to map between pixels and the data vales
+     * domain: data domain
+     * range from to pixels
+     */
+    this.scales = {
+      x: scaleLinear().domain([0, length]).range([0, width]),
+      y: scaleLinear()
+        .domain([0, 1])
+        .range([this.margin.top, height / 2]),
+      yHeight: scaleLinear()
+        .domain([0, max(data)] as number[]) // the max value of the data
+        .range([0, height / 2]), // height minus bottom marginopen
+    };
+  }
+}
 
 export class GroupRef {
+  // the root group, which contains the text and rectangle
+  root: G;
   rectEl: Rect;
   textEl: Text;
-  g: G;
   value: number;
+  draw: DrawBasic;
+
+  private scales: Scales;
+  constructor({ value, draw }: { value: number; draw: DrawBasic }) {
+    this.draw = draw;
+    // set initial transform of Y
+    // create group element, to group rect and text together => less work
+    this.root = draw.drawRoot.group().attr({ opacity: 0.0 });
+    this.scales = this.draw.scales;
+    this.value = value;
+
+    /// create rect in previous created group
+    /// the dy(bottomline - height), means where to put the start of the bar
+    /// since coordinate systems start from top left corner
+    const height = this.draw.scales.yHeight(value);
+
+    this.rectEl = this.root
+      .rect(this.draw.rect.width, height)
+      .attr({ fill: this.draw.colors.base })
+      .dy(this.draw.bottomLine - height);
+
+    /// create text in previous created group
+    this.textEl = this.root
+      .text(value.toString())
+      .font({ size: 10 })
+      .dy(this.draw.bottomLine);
+  }
 
   get node() {
-    return this.g.node;
+    return this.root.node;
   }
 
   get rectNode() {
     return this.rectEl.node;
   }
 
-  constructor({
-    parent,
-    scaleHeight,
-    value,
-    width,
-    fill,
-    bottomLine,
-    fontsize = 10,
-  }: {
-    parent: G;
-    scaleHeight: any;
-    value: number;
-    width: number;
-    fill: string;
-    fontsize: number;
-    bottomLine: number;
-  }) {
-    // set initial transform of Y
-    // const style = 'transform: translateY(' + this.scales.y(yPos) + 'px)';
-    // const style = 'transform: translateY(' + 50 + 'px)';
-    // create group element, to group rect and text together => less work
-    this.g = parent.group().attr({ opacity: 0.0 });
+  // X position of the element (invert of the scales)
+  get x() {
+    const m = this.matrix;
+    return this.scales.x.invert(m.translateX);
+  }
 
-    /// create rect in previous created group
-    /// the dy(bottomline - height), means where to put the start of the bar
-    /// since coordinate systems start from top left corner
-    const height = scaleHeight(value);
-    this.rectEl = this.g
-      .rect(width, height)
-      .attr({ fill })
-      .dy(bottomLine - height);
+  // Y position of the element (invert of the scales)
+  get y() {
+    const m = this.matrix;
+    return this.scales.y.invert(m.translateY);
+  }
 
-    /// create text in previous created group
-    this.textEl = this.g
-      .text(`${value}`)
-      .font({ size: fontsize })
-      .dy(bottomLine);
+  // Pixel X position of the element
+  get xPos() {
+    return this.matrix.translateX;
+  }
 
-    this.value = value;
+  // Pixel Y position of the element
+  get yPos() {
+    return this.matrix.translateY;
   }
 
   get matrix() {
@@ -64,34 +150,29 @@ export class GroupRef {
 }
 
 export class ArrayRef {
-  private internal;
+  private self;
   private groupRefs;
   private parentGroup;
-  private _id: string;
+  readonly id: string = genID();
 
   constructor(
     array: Interpreter.Object,
     groupRefs: Map<number, GroupRef>,
     parent: G
   ) {
-    this.internal = array;
+    this.self = array;
     this.groupRefs = groupRefs;
     this.parentGroup = parent.group();
 
-    this._id = genID();
-    this.parentGroup.attr("id", this._id);
-  }
-
-  get id() {
-    return this._id;
+    this.parentGroup.attr("id", this.id);
   }
 
   get length() {
-    return this.internal.properties.length;
+    return this.self.properties.length;
   }
 
   get properties() {
-    return this.internal.properties;
+    return this.self.properties;
   }
 
   /** Get the matrix from the first element of the array */
@@ -100,7 +181,6 @@ export class ArrayRef {
     if (!matrix) {
       // TODO: calcuclate free space?
       matrix = { translateX: 0, translateY: 0 };
-      // console.log("no element");
     }
     return matrix;
   }
@@ -127,20 +207,15 @@ export class ArrayRef {
     return this.mapRef((e) => e.node);
   }
 
-  get(index: number) {
-    return this.internal.properties[index];
+  private get(index: number) {
+    return this.self.properties[index];
   }
 
   getRef(index: number) {
     const val = this.get(index);
     const el = this.groupRefs.get(val);
 
-    if (!el) {
-      // TOOD: Think about this line ? try catch?
-      // throw Error(`Cannot find Visual Group element at index:"${index}" with value: ${val}`);
-    }
-
-    if (el) this.parentGroup.add(el.g);
+    if (el) this.parentGroup.add(el.root);
     return el;
   }
 
@@ -168,12 +243,14 @@ export class ArrayRef {
   ): T[] {
     const result: T[] = [];
     for (let i = 0; i < this.length; i++) {
+      console.log(i, this.length);
       const el = this.getRef(i);
 
       if (el) {
         result.push(callbackfn(el, i, result));
       } else {
         console.error("The visual Element at index", i, "does not exist..");
+        throw Error("does not work");
       }
     }
     return result;
@@ -181,40 +258,52 @@ export class ArrayRef {
 }
 
 export class ArrayRefManager {
-  private _arrayRefs: Map<Interpreter.Object, ArrayRef> = new Map();
-  private _groupRefs: Map<number, GroupRef> = new Map();
+  /**
+   * ArrayRefs are the arrays from the interpreter
+   */
+  private arrayRefs: Map<Interpreter.Object, ArrayRef> = new Map();
 
-  drawSVG;
-  constructor(drawSVG: G) {
-    this.drawSVG = drawSVG;
+  /**
+   * A map, to map the (rectangle hight)/the init array value to the visual svg elements
+   */
+  private groupRefs: Map<number, GroupRef> = new Map();
+
+  drawRoot;
+  constructor(drawRoot: G) {
+    this.drawRoot = drawRoot;
   }
 
   has(array: Interpreter.Object) {
-    return this._arrayRefs.has(array);
+    return this.arrayRefs.has(array);
   }
 
-  getArray(array: Interpreter.Object) {
-    let arrClaa = this._arrayRefs.get(array);
+  getArrayRef(array: Interpreter.Object) {
+    let arrClaa = this.arrayRefs.get(array);
 
     if (!arrClaa) {
-      arrClaa = new ArrayRef(array, this._groupRefs, this.drawSVG);
-      this._arrayRefs.set(array, arrClaa);
+      arrClaa = new ArrayRef(array, this.groupRefs, this.drawRoot);
+      this.arrayRefs.set(array, arrClaa);
     }
 
     return arrClaa;
   }
 
+  /**
+   *
+   * @param value the value is the hight of the rectangle bar
+   * @param ref  is the svg groupref of the rectangle bar and the text
+   */
   setRef(value: number, ref: GroupRef) {
-    this._groupRefs.set(value, ref);
+    this.groupRefs.set(value, ref);
   }
 
   private get groupRefsList() {
-    const values = this._groupRefs.values();
+    const values = this.groupRefs.values();
     return Array.from(values);
   }
 
   private get arrayRefsList() {
-    const values = this._arrayRefs.values();
+    const values = this.arrayRefs.values();
     /// TODO: should the empty objects been removed?
     return Array.from(values);
   }

@@ -30,6 +30,7 @@
     "noEmit": true,
     /* Additional Options */
     "strict": true,
+    "noImplicitThis": false,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,

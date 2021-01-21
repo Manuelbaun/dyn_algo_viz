@@ -4741,7 +4741,7 @@ class Stack {
 
 /**
  *
- * @param {Promise<Function> | Promise<Function>[]} func
+ * @param {() => Promise<any>) | () => Promise<any>[]} func
  */
 Interpreter.prototype.asyncCall = async function (func) {
   const paused = this.paused_;
