@@ -1,4 +1,5 @@
 {
+  "name": "dny-algo-viz",
   "scripts": {
     "start": "snowpack dev",
     "build:snow": "snowpack build",
