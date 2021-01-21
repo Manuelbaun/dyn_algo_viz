@@ -1,16 +1,16 @@
 import type { PanZoom } from "panzoom";
-import type { G } from "@svgdotjs/svg.js";
-import AnimationController from "../animation/animation_controller";
+import type { Box, G } from "@svgdotjs/svg.js";
+
+import type AnimationController from "../animation/animation_controller";
+import type Interpreter from "../interpreter/interpreter";
 import { generateData } from "../utils/helper_functions";
 
-import type Interpreter from "../interpreter/interpreter";
 import {
   ArrayRef,
   ArrayRefManager,
   DrawBasic,
   GroupRef,
 } from "./helper_classes";
-import { appController } from "../service/app_controller";
 
 /**
  * Type declarations
@@ -27,17 +27,20 @@ export default class ComparisonSorts {
   drawer: DrawBasic;
 
   // TODO: proper type fo svgjs, since it is not just svgjs!!
-  constructor(svgJS: any, length = 10) {
+  constructor(
+    rootDraw: G,
+    viewBox: Box,
+    animationControl: AnimationController,
+    panZoomer: PanZoom,
+    zoomFit: Function,
+    length = 10
+  ) {
     this.data = generateData(length);
-    this.panZoomControl = svgJS.panZoomControl;
-    this.animationControl = new AnimationController(appController);
+    this.panZoomControl = panZoomer;
+    this.animationControl = animationControl;
 
-    this.refsManager = new ArrayRefManager(svgJS.svg);
-    this.drawer = new DrawBasic(svgJS.svg, svgJS.viewBox, this.data);
-  }
-
-  dispose() {
-    this.animationControl.dispose();
+    this.refsManager = new ArrayRefManager(rootDraw);
+    this.drawer = new DrawBasic(rootDraw, viewBox, this.data);
   }
 
   async setup() {
@@ -90,12 +93,12 @@ export default class ComparisonSorts {
 
     tl.add({
       targets: gi.node,
-      translateX: gj.matrix.translateX, // move {groupI} by i
+      translateX: gj.posX, // move {groupI} by i
       duration: 250,
     }).add(
       {
         targets: gj.node,
-        translateX: gi.matrix.translateX, // move {groupJ} by j
+        translateX: gi.posX, // move {groupJ} by j
         duration: 250,
       },
       /// By settings this value to -=200 (duration of the previous animation),

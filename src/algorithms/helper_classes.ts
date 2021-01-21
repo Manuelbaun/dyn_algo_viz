@@ -3,7 +3,7 @@ import type Interpreter from "../interpreter/interpreter";
 import { genID } from "../utils/helper_functions";
 import { max, scaleLinear, ScaleLinear } from "d3";
 
-export type Scales = {
+type Scales = {
   x: ScaleLinear<number, number, never>;
   y: ScaleLinear<number, number, never>;
   yHeight: ScaleLinear<number, number, never>;
@@ -134,7 +134,7 @@ export class GroupRef {
   }
 
   // Pixel X position of the element
-  get xPos() {
+  get posX() {
     return this.matrix.translateX;
   }
 

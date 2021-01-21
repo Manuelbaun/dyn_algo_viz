@@ -2,12 +2,14 @@ import Interpreter from "./interpreter";
 import ComparisonSorts from "../algorithms/comparison";
 
 import { appController } from "../service/app_controller";
-
 import { editorController } from "../service/editor_controller";
 import { interpreterController } from "../service/interpreter_controller";
 
-export async function testAlgo(svgjs) {
-  const algorithm = new ComparisonSorts(svgjs);
+/**
+ *
+ * @param {ComparisonSorts} algorithm
+ */
+export async function testAlgo(algorithm) {
   await algorithm.setup();
 
   /**
@@ -189,6 +191,7 @@ export async function testAlgo(svgjs) {
     const interpreter = new Interpreter(code, interpreterInitFunctions);
 
     const globalKeys = Object.keys(interpreter.globalObject.properties);
+
     const processLocalScope = (scope) => {
       const keys = Object.keys(scope.object.properties);
 

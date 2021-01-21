@@ -5,6 +5,8 @@
 
   import { testAlgo } from "../interpreter/interpreter_test";
   import { appController } from "../service/app_controller";
+  import ComparisonSorts from "../algorithms/comparison";
+  import AnimationController from "../animation/animation_controller";
 
   let svgElement: SVGElement;
   onMount(async () => {
@@ -14,10 +16,10 @@
 
     const viewBox = svgJS.viewbox();
     const panzoomNode = svgJS.group();
-    const drawNode = panzoomNode.group();
-    drawNode.attr("id", "draw-node");
+    const drawRoot = panzoomNode.group();
+    drawRoot.attr("id", "draw-root");
 
-    const pann = panzoom(panzoomNode.node, {
+    const panZoomer = panzoom(panzoomNode.node, {
       zoomSpeed: 0.1, // 6.5% per mouse wheel event
       minZoom: 0.1,
       maxZoom: 20,
@@ -29,28 +31,33 @@
     });
 
     const zoomFit = (paddingPercent = 0.75) => {
-      const a = drawNode.node.getBoundingClientRect();
-      const box = drawNode.bbox();
+      const a = drawRoot.node.getBoundingClientRect();
+      const box = drawRoot.bbox();
       const b = svgElement.getBoundingClientRect();
       let scale =
         Math.min(viewBox.width / box.width, viewBox.height / box.height) *
         paddingPercent;
       if (scale == Infinity) return;
 
-      const t = pann.getTransform();
+      const t = panZoomer.getTransform();
       const x = b.x - a.x + t.x;
       const y = b.y - a.y + t.y;
-      pann.smoothZoomAbs(x, y, scale);
-      pann.centerOn(drawNode.node);
+      panZoomer.smoothZoomAbs(x, y, scale);
+      panZoomer.centerOn(drawRoot.node);
     };
 
-    const run = await testAlgo({
-      svg: drawNode,
+    const animationContorller = new AnimationController(appController);
+    const algorithm = new ComparisonSorts(
+      drawRoot,
       viewBox,
-      zoomFit,
-    });
+      animationContorller,
+      panZoomer,
+      zoomFit
+    );
 
-    pann.centerOn(drawNode.node);
+    const run = await testAlgo(algorithm);
+
+    panZoomer.centerOn(drawRoot.node);
 
     appController.event.subscribe((event) => {
       if (event == "START") {
