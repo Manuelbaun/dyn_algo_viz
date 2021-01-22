@@ -294,9 +294,9 @@ export async function testAlgo(algorithm) {
     appController.event.subscribe((event) => handleStepAndStepIn(event));
     interpreter.onStep = handleBreakPoints;
 
+    // TODO: cleanup callback
     return () => {
-      algorithm.dispose();
-      // TODO: proper cleanup
+      // algorithm.dispose();
     };
   };
 

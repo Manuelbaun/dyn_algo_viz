@@ -3,7 +3,7 @@
   import { Svg, SVG } from "@svgdotjs/svg.js";
   import panzoom from "panzoom";
 
-  import { testAlgo } from "../interpreter/interpreter_test";
+  import { testAlgo } from "../interpreter/interpreter_wrapper";
   import { appController } from "../service/app_controller";
   import ComparisonSorts from "../algorithms/comparison";
   import AnimationController from "../animation/animation_controller";
