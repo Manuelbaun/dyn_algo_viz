@@ -395,9 +395,6 @@ Interpreter.prototype.step = function () {
  * @return {boolean} True if a execution is asynchronously blocked,
  *     false if no more instructions.
  *
- * Added by Manuel Baun:
- * Added try catch
- *
  */
 Interpreter.prototype.run = function () {
   while (!this.paused_ && this.step()) {}
@@ -4695,6 +4692,10 @@ Interpreter.prototype["pseudoToNative"] = Interpreter.prototype.pseudoToNative;
  * Extend the Interpreter
  */
 
+/**
+ * The Stack is a refactored stack for the interpreter
+ * Should make it simpler
+ */
 class Stack {
   constructor(emitter, elements) {
     // Initializing the stack with given arguments

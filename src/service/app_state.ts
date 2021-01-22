@@ -26,6 +26,7 @@ export class AppState {
 
   readonly localScope = writable<object>({});
   readonly errors = writable<object>({});
+
   // need a helper class(Set), since breakPoints wont trigger
   private readonly breakPointsSet = new Set<number>();
   readonly breakPoints = writable<number[]>(
@@ -48,14 +49,6 @@ export class AppState {
   localScopeSeries = new TimeSeries<object>();
 
   constructor() {
-    // this.state.subscribe((val) => {
-    //   console.log("state:", val);
-    // });
-    // this.event.subscribe((val) => {
-    //   console.log("event:", val);
-    // });
-    // this.errors.subscribe((data) => console.log("Errors", data));
-
     // auto save speed to localstorage
     this.speed.subscribe((val) =>
       localStorage.setItem("speed", val.toString())
@@ -138,9 +131,7 @@ export class AppState {
       this.breakPointsSet.add(line);
     }
 
-    const currentBreakPoints = Array.from(this.breakPointsSet);
-
-    this.breakPoints.set(currentBreakPoints);
+    this.breakPoints.set(Array.from(this.breakPointsSet));
   }
 
   getBreakPoints() {
@@ -151,10 +142,11 @@ export class AppState {
     return this.breakPointsSet.has(line);
   }
 
-  setLocalScope(localScope: object) {
+  setLocalScope(localScope: object, shouldSave = false) {
     this.localScope.set(localScope);
 
-    if (this.isRunning) {
+    // only store the localScope, when is running
+    if (shouldSave) {
       this.localScopeSeries.add(this.getCurrentTime(), localScope);
     }
   }
@@ -174,11 +166,15 @@ export class AppState {
    * @param node
    * @param color
    */
-  markNode(node: CustomAcornNode | undefined, color: string) {
+  markNode(
+    node: CustomAcornNode | undefined,
+    color: string,
+    shouldSave = false
+  ) {
     const old = get(this.markedNode);
     const markedNode = { ...old, node, color };
 
-    if (this.isRunning) {
+    if (shouldSave) {
       this.markedNodeSeries.add(appState.getCurrentTime(), markedNode);
     }
 
