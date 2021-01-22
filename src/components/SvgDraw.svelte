@@ -3,10 +3,11 @@
   import { Svg, SVG } from "@svgdotjs/svg.js";
   import panzoom from "panzoom";
 
-  import { testAlgo } from "../interpreter/interpreter_wrapper";
   import { appController } from "../service/app_controller";
   import ComparisonSorts from "../algorithms/comparison";
   import AnimationController from "../animation/animation_controller";
+  // needs .js, since it is a javascript file
+  import { InterpreterWrapper } from "../interpreter/interpreter_wrapper.js";
 
   let svgElement: SVGElement;
   onMount(async () => {
@@ -47,6 +48,7 @@
     };
 
     const animationContorller = new AnimationController(appController);
+
     const algorithm = new ComparisonSorts(
       drawRoot,
       viewBox,
@@ -55,13 +57,14 @@
       zoomFit
     );
 
-    const run = await testAlgo(algorithm);
+    const wrapper = new InterpreterWrapper(algorithm);
+    await wrapper.setup();
 
     panZoomer.centerOn(drawRoot.node);
 
     appController.event.subscribe((event) => {
       if (event == "START") {
-        run();
+        wrapper.run();
       }
     });
   });

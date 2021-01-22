@@ -5,10 +5,13 @@ import type { EVENTS, STATE } from "./store_types";
 
 export class AppController {
   progress = writable<number>(0);
+  currentTime = writable<number>(0);
   speed = writable<number>(+(localStorage.getItem("speed") || 1));
   event = writableModified<EVENTS>("INIT");
 
-  // crash!!
+  /**
+   * State is derived from event, first event changes -> state will change
+   */
   state = derived<Writable<EVENTS>, STATE>(this.event, (ev) => {
     if (ev == "START") return "RUNNING";
     if (ev == "PAUSE") return "PAUSED";
@@ -64,6 +67,14 @@ export class AppController {
 
   setProgress(value: number) {
     this.progress.set(value);
+  }
+
+  setCurrentTime(value: number) {
+    this.currentTime.set(value);
+  }
+
+  getCurrentTime() {
+    return get(this.currentTime);
   }
 
   setDone() {

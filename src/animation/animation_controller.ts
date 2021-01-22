@@ -33,8 +33,9 @@ export default class AnimationController {
   );
 
   constructor(appController: AppController) {
-    this.algoTimeline.update = async ({ progress }) => {
-      appController.setProgress(progress);
+    this.algoTimeline.update = async (timeline) => {
+      appController.setProgress(timeline.progress);
+      appController.setCurrentTime(timeline.currentTime);
     };
 
     const { progress, speed, event } = appController;

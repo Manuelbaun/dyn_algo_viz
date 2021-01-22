@@ -6,7 +6,7 @@
   import { appController } from "../service/app_controller";
   import { interpreterController } from "../service/interpreter_controller";
 
-  const { progress, speed, state, event } = appController;
+  const { progress, speed, state, event, currentTime } = appController;
   const { breakPoints, localScope } = interpreterController;
 
   let jsonViewer: any;
@@ -20,10 +20,11 @@
       localScope: $localScope,
       breakPoints: $breakPoints,
       control: {
-        progress: $progress,
+        progress: $progress.toFixed(2) + " %",
         speed: $speed,
         state: $state,
         event: $event,
+        currentTime: +$currentTime.toFixed(2) + " ms",
       },
     };
   }

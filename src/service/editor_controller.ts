@@ -1,5 +1,7 @@
 import { get, writable } from "svelte/store";
-import type { CustomAcornNode } from "./store_types";
+import type { CustomAcornNode, MarkedNode } from "./store_types";
+import { TimeSeries } from "../utils/time_series";
+import { appController } from "./app_controller";
 
 function loadSourceCode(): string {
   return (
@@ -26,12 +28,6 @@ function saveSourceCode(value: string) {
   localStorage.setItem("sourceCode", value);
 }
 
-type MarkedNode = {
-  node: CustomAcornNode | undefined;
-  color: string;
-  autoScroll: boolean;
-};
-
 export class EditorController {
   readonly sourceCode = writable<string>(loadSourceCode());
   readonly markedNode = writable<MarkedNode>({
@@ -40,8 +36,19 @@ export class EditorController {
     autoScroll: false,
   });
 
+  // for lookup the marked node,when slider range moves
+  series = new TimeSeries<MarkedNode>();
+
   constructor() {
     this.sourceCode.subscribe((data) => saveSourceCode(data));
+
+    /// Listen to time Series change!
+    appController.currentTime.subscribe((ts) => {
+      if (!appController.isRunning) {
+        const node = this.series.getAtTime(ts);
+        this.markedNode.set(node);
+      }
+    });
   }
 
   getCurrentSourceCode() {
@@ -54,7 +61,11 @@ export class EditorController {
 
   markNode(node: CustomAcornNode | undefined, color: string) {
     const old = get(this.markedNode);
-    this.markedNode.set({ ...old, node, color });
+    const markedNode = { ...old, node, color };
+
+    this.series.add(appController.getCurrentTime(), markedNode);
+
+    this.markedNode.set(markedNode);
   }
 }
 
