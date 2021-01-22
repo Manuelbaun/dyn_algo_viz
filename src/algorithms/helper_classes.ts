@@ -154,6 +154,13 @@ export class VisualElement {
     return this.matrix.translateY;
   }
 
+  /**
+   * Unfortunately, the SVGjs lib does not work 100% with the animation
+   * of animejs. The Transform property of the svg elements from a group
+   * uses a matrix. Animejs uses the style.transfrom
+   *
+   * this is a workaround
+   */
   private get matrix() {
     const matrix = new WebKitCSSMatrix(this.node.style.transform);
     return { translateX: matrix.e, translateY: matrix.f };

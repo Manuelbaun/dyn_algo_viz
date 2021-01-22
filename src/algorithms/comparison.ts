@@ -207,7 +207,6 @@ export default class ComparisonSorts {
     const tl = this.animationControl.algoTimeline;
     const ref = this.elementManager.getArrayWrapper(array);
 
-    /// needs the last reference position, since value is already gone from [arrClaa]
     const first = ref?.getRef(0);
     if (!first) return;
 
@@ -253,13 +252,7 @@ export default class ComparisonSorts {
     if (!group || !first) return;
 
     const translateX = first?.posX + this.drawing.scales.x(ref.length);
-
-    let translateY = first.posY;
-    if (isNewArray) {
-      // const pos = this.refsManager.getAllYPos();
-      // Math.max(...pos) +
-      translateY = this.drawing.scales.y(1);
-    }
+    const translateY = isNewArray ? this.drawing.scales.y(1) : first.posY;
 
     await tl
       .add({
