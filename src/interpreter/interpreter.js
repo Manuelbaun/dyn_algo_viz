@@ -10,7 +10,7 @@
  */
 "use strict";
 import * as acorn from "acorn";
-import { appController } from "../service/app_controller";
+import { appState } from "../service/app_state";
 /**
  * Added by: Manuel Baun
  */
@@ -3277,7 +3277,7 @@ Interpreter.prototype.unwind = function (type, value, label) {
         state.done = true;
         // Added by Manuel Baun: trigger app state to be done
 
-        appController.setDone();
+        appState.setDone();
 
         break loop;
     }
@@ -3320,7 +3320,7 @@ Interpreter.prototype.unwind = function (type, value, label) {
     realError = String(value);
   }
 
-  appController.setError();
+  appState.setError();
   throw realError;
 };
 
@@ -4395,7 +4395,7 @@ Interpreter.prototype["stepProgram"] = function (stack, state, node) {
    * trigger app state to be done
    */
   if (this.initComplete) {
-    appController.setDone();
+    appState.setDone();
     // console.log('Interpreter Initial finished');
   }
 };
@@ -4754,7 +4754,7 @@ Interpreter.prototype.asyncCall = async function (func) {
   }
   this.paused_ = paused;
 
-  if (appController.isRunning) {
+  if (appState.isRunning) {
     this.run();
   }
 };

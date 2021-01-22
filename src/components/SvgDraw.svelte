@@ -3,7 +3,7 @@
   import { Svg, SVG } from "@svgdotjs/svg.js";
   import panzoom from "panzoom";
 
-  import { appController } from "../service/app_controller";
+  import { appState } from "../service/app_state";
   import ComparisonSorts from "../algorithms/comparison";
   import AnimationController from "../animation/animation_controller";
   // needs .js, since it is a javascript file
@@ -47,7 +47,7 @@
       panZoomer.centerOn(drawRoot.node);
     };
 
-    const animationContorller = new AnimationController(appController);
+    const animationContorller = new AnimationController(appState);
 
     const algorithm = new ComparisonSorts(
       drawRoot,
@@ -62,7 +62,7 @@
 
     panZoomer.centerOn(drawRoot.node);
 
-    appController.event.subscribe((event) => {
+    appState.event.subscribe((event) => {
       if (event == "START") {
         wrapper.run();
       }

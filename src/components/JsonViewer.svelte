@@ -3,11 +3,17 @@
   /// import of webcomponent
   import "@alenaksu/json-viewer";
 
-  import { appController } from "../service/app_controller";
-  import { interpreterController } from "../service/interpreter_controller";
+  import { appState } from "../service/app_state";
 
-  const { progress, speed, state, event, currentTime } = appController;
-  const { breakPoints, localScope } = interpreterController;
+  const {
+    progress,
+    speed,
+    state,
+    event,
+    currentTime,
+    breakPoints,
+    localScope,
+  } = appState;
 
   let jsonViewer: any;
   onMount(() => jsonViewer.expand("**.localScope"));

@@ -13,8 +13,7 @@ import type { MarkedNode } from "../../service/store_types";
 
 // @ts-ignore : missing types?
 import { JSHINT } from "jshint";
-import { editorController } from "../../service/editor_controller";
-import { interpreterController } from "../../service/interpreter_controller";
+import { appState } from "../../service/app_state";
 // @ts-ignore
 // Extends the window object with JSHINT in order to work properly
 window.JSHINT = JSHINT;
@@ -36,14 +35,14 @@ export class CodeMirrorWrapper {
   constructor(textArea: HTMLTextAreaElement) {
     this.textArea = textArea;
 
-    editorController.sourceCode.subscribe((value) => {
+    appState.sourceCode.subscribe((value) => {
       // only set editor value, if the value changed
       if (this.editor && value != this.editor.getValue()) {
         this.editor.setValue(value);
       }
     });
 
-    editorController.markedNode.subscribe((mark) => this.markNode(mark));
+    appState.markedNode.subscribe((mark) => this.markNode(mark));
 
     this.editor = CodeMirror.fromTextArea(this.textArea, {
       gutters: ["CodeMirror-lint-markers", "breakpoints"],
@@ -58,23 +57,23 @@ export class CodeMirrorWrapper {
       theme: "dracula",
     });
 
-    this.editor.setSize('100%', '100%');
-    this.editor.setValue(editorController.getCurrentSourceCode());
+    this.editor.setSize("100%", "100%");
+    this.editor.setValue(appState.getCurrentSourceCode());
 
     this.editor.on("change", (instance) => {
       // this.updateHints();
-      editorController.setSourceCode(instance.getValue());
+      appState.setSourceCode(instance.getValue());
     });
 
     this.editor.on("gutterClick", function (cm, line) {
       const info = cm.lineInfo(line);
       const marker = info.gutterMarkers ? null : makeMarker();
       cm.setGutterMarker(line, "breakpoints", marker);
-      interpreterController.toggleBreakPoint(info.line + 1);
+      appState.toggleBreakPoint(info.line + 1);
     });
 
     // if any breakpoints where set from before, apply them
-    interpreterController.getBreakPoints().forEach((l) => {
+    appState.getBreakPoints().forEach((l) => {
       this.editor?.setGutterMarker(l - 1, "breakpoints", makeMarker());
     });
 

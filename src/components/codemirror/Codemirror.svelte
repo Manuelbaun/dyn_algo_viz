@@ -2,19 +2,12 @@
   import { onMount } from "svelte";
   import { CodeMirrorWrapper } from "./code_mirror";
 
-  import { editorController } from "../../service/editor_controller";
-
-  const { markedNode } = editorController;
   let textRef: HTMLTextAreaElement;
   let codemirror: CodeMirrorWrapper;
 
   onMount(() => {
     codemirror = new CodeMirrorWrapper(textRef);
   });
-
-  // lable to auto subscribe markedNode changes
-  $: codemirror?.markNode($markedNode);
-  
 </script>
 
 <div class="editor">

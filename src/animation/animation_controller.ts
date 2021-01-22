@@ -1,4 +1,4 @@
-import type { AppController } from "../service/app_controller";
+import type { AppState } from "../service/app_state";
 import anime from "./animejs/anime";
 
 /**
@@ -32,13 +32,13 @@ export default class AnimationController {
     true
   );
 
-  constructor(appController: AppController) {
+  constructor(appState: AppState) {
     this.algoTimeline.update = async (timeline) => {
-      appController.setProgress(timeline.progress);
-      appController.setCurrentTime(timeline.currentTime);
+      appState.setProgress(timeline.progress);
+      appState.setCurrentTime(timeline.currentTime);
     };
 
-    const { progress, speed, event } = appController;
+    const { progress, speed, event } = appState;
 
     speed.subscribe((data) => this.setSpeed(data));
 

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { appController } from "../service/app_controller";
+  import { appState } from "../service/app_state";
   import Slider from "./Slider.svelte";
-  const { event, progress, speed, state } = appController;
+  const { event, progress, speed, state } = appState;
 
   let mainButtonText = "Start";
 
@@ -17,17 +17,17 @@
   }
 
   const handleMainButton = () => {
-    if ($state == "INIT") appController.start();
-    else if ($state == "RUNNING") appController.pause();
+    if ($state == "INIT") appState.start();
+    else if ($state == "RUNNING") appState.pause();
     else if ($state == "PAUSED" || $state == "STEPPING")
-      appController.continue();
+      appState.continue();
   };
 
-  /// carefull, when binding click event directly to appController.step
+  /// carefull, when binding click event directly to appState.step
   /// this will be undefined then!
-  const step = () => appController.step();
-  const stepIn = () => appController.stepIn();
-  const reset = () => appController.reset();
+  const step = () => appState.step();
+  const stepIn = () => appState.stepIn();
+  const reset = () => appState.reset();
 </script>
 
 <div class="container">
