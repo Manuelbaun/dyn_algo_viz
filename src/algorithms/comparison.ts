@@ -3,7 +3,7 @@ import type { Box, G } from "@svgdotjs/svg.js";
 
 import type AnimationController from "../animation/animation_controller";
 import type Interpreter from "../interpreter/interpreter";
-import { generateData } from "../utils/helper_functions";
+import { generateData, get } from "../utils/helper_functions";
 
 import { ElementRefManager, DrawBasic, VisualElement } from "./helper_classes";
 
@@ -18,17 +18,26 @@ import { ElementRefManager, DrawBasic, VisualElement } from "./helper_classes";
 export default class ComparisonSorts {
   panZoomControl: PanZoom;
   animationControl: AnimationController;
-
   data: number[];
   elementManager;
-
   drawing: DrawBasic;
 
   get colors() {
-    return this.drawing.colors;
+    return this.colorMapping;
   }
 
-  // TODO: proper type fo svgjs, since it is not just svgjs!!
+  private colorMapping: {
+    get: string;
+    push: string;
+    swap: string;
+    compare: string;
+    splice: string;
+    shift: string;
+    concat: string;
+    set: string;
+    default: string;
+  };
+
   constructor(
     rootDraw: G,
     viewBox: Box,
@@ -43,6 +52,18 @@ export default class ComparisonSorts {
 
     this.elementManager = new ElementRefManager();
     this.drawing = new DrawBasic(rootDraw, viewBox, this.data);
+
+    this.colorMapping = {
+      get: this.drawing.colors.Aqua,
+      push: this.drawing.colors.Green,
+      swap: this.drawing.colors.Red,
+      compare: this.drawing.colors.Navy,
+      splice: this.drawing.colors.Purple,
+      shift: this.drawing.colors.Fuchsia,
+      concat: this.drawing.colors.Lime,
+      set: this.drawing.colors.Gray,
+      default: this.drawing.colors.Silver,
+    };
   }
 
   async setup() {
@@ -70,10 +91,9 @@ export default class ComparisonSorts {
 
   async swap(array: Interpreter.Object, i: number, j: number) {
     const tl = this.animationControl.algoTimeline;
-
     const ref = this.elementManager.getArrayWrapper(array);
 
-    // get visual objects
+    // get visual elements
     const el1 = ref.getRef(i);
     const el2 = ref.getRef(j);
 
@@ -87,7 +107,7 @@ export default class ComparisonSorts {
     await tl
       .add({
         targets: rects,
-        fill: this.drawing.colors.orange,
+        fill: this.colorMapping.swap,
         duration: 100,
       })
       .continue();
@@ -116,7 +136,7 @@ export default class ComparisonSorts {
     await tl
       .add({
         targets: rects,
-        fill: this.drawing.colors.pink,
+        fill: this.colorMapping.default,
         duration: 100,
       })
       .continue();
@@ -141,20 +161,19 @@ export default class ComparisonSorts {
     const rects = [el1.rectNode, el2.rectNode];
 
     // Highligh rects
-    await tl
-      .add({
-        targets: rects,
-        fill: this.drawing.colors.green,
-        duration: 200,
-      })
-      .continue();
+    tl.add({
+      targets: rects,
+      fill: this.colorMapping.compare,
+      duration: 200,
+    });
+    await tl.continue();
 
-    // unHighligh rects
+    // unHighligh rects the first
     if (!iGreaterJ) {
       await tl
         .add({
           targets: rects,
-          fill: this.drawing.colors.pink,
+          fill: this.colorMapping.default,
           duration: 100,
         })
         .continue();
@@ -174,7 +193,7 @@ export default class ComparisonSorts {
       .add({
         targets: ref.rectNodes,
         duration: 200,
-        fill: this.drawing.colors.yellow,
+        fill: this.colorMapping.splice,
       })
       .add({
         targets: ref.groupNodes,
@@ -212,7 +231,7 @@ export default class ComparisonSorts {
     }).add(
       {
         targets: first.rectNode,
-        fill: this.drawing.colors.blue,
+        fill: this.colorMapping.shift,
         duration: 50,
       },
       "-=50"
@@ -254,7 +273,7 @@ export default class ComparisonSorts {
         {
           targets: group.rectNode,
           duration: 200,
-          fill: this.drawing.colors.orange,
+          fill: this.colorMapping.push,
         },
         "-=100"
       )
@@ -281,7 +300,7 @@ export default class ComparisonSorts {
       .add({
         targets: ref.rectNodes,
         duration: 200,
-        fill: this.drawing.colors.blue,
+        fill: this.colorMapping.concat,
       })
       .continue();
 
@@ -311,7 +330,7 @@ export default class ComparisonSorts {
     await tl
       .add({
         targets: group.rectNode,
-        fill: this.drawing.colors.orange,
+        fill: this.colorMapping.set,
         duration: 200,
       })
       .add({
@@ -337,7 +356,7 @@ export default class ComparisonSorts {
     await tl
       .add({
         targets: group.rectNode,
-        fill: this.drawing.colors.blue,
+        fill: this.colorMapping.get,
         duration: 200,
       })
       .add({
@@ -351,7 +370,7 @@ export default class ComparisonSorts {
 
     tl.add({
       targets: group.rectNode,
-      fill: this.drawing.colors.pink,
+      fill: this.colorMapping.default,
       duration: 200,
     });
 

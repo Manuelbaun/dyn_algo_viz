@@ -1,4 +1,4 @@
-import type { Circle, G, Rect, Text } from "@svgdotjs/svg.js";
+import type { G, Rect, Text } from "@svgdotjs/svg.js";
 import type Interpreter from "../interpreter/interpreter";
 import { genID } from "../utils/helper_functions";
 import { max, scaleLinear, ScaleLinear } from "d3";
@@ -10,12 +10,24 @@ type Scales = {
 };
 
 export class DrawBasic {
+  // https://htmlcolorcodes.com/
   colors = {
-    pink: "#f06", // Pink
-    green: "#FFFF00", // Green
-    yellow: "#22FF00", // Yellow
-    blue: "#0089FF", // Blue
-    orange: "#FFCD00", // Orange
+    White: "#FFFFFF",
+    Silver: "#C0C0C0",
+    Gray: "#808080",
+    Black: "#000000",
+    Red: "#FF0000",
+    Maroon: "#800000",
+    Yellow: "#FFFF00",
+    Olive: "#808000",
+    Lime: "#00FF00",
+    Green: "#008000",
+    Aqua: "#00FFFF",
+    Teal: "#008080",
+    Blue: "#0000FF",
+    Navy: "#000080",
+    Fuchsia: "#FF00FF",
+    Purple: "#800080",
   };
 
   drawRoot: G;
@@ -102,7 +114,7 @@ export class VisualElement {
 
     this.rectEl = this.root
       .rect(this.draw.rect.width, height)
-      .attr({ fill: this.draw.colors.pink })
+      .attr({ fill: this.draw.colors.Silver })
       .dy(this.draw.bottomLine - height);
 
     /// create text in previous created group
