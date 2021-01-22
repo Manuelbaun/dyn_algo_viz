@@ -31,7 +31,7 @@
 
 <div class="container">
   <div class="container">
-    <Slider step=".01" min="0" max="100" bind:value={$progress} unit="%" />
+    <Slider step=".01" min="0" max="100" bind:value={$progress} />
     <Slider step=".01" min="0.1" max="10" bind:value={$speed} />
 
     <div>{$event}</div>
