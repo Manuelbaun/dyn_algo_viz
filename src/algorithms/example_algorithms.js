@@ -44,12 +44,14 @@ print(mergeSort(root));
 function insertion_Sort(nums) {
   for (var i = 1; i < nums.length; i++) {
     var j = i - 1;
-    var temp = nums[i];
+    var temp = nums.get(i);
+		
     while (j >= 0 && nums[j] > temp) {
-      nums[j + 1] = nums[j];
+			var val = nums.get(j);
+      nums.set(j + 1, val);
       j--;
     }
-    nums[j + 1] = temp;
+    nums.set(j + 1, temp);
   }
   return nums;
 }

@@ -1,4 +1,4 @@
-import type { G, Rect, Text } from "@svgdotjs/svg.js";
+import type { Circle, G, Rect, Text } from "@svgdotjs/svg.js";
 import type Interpreter from "../interpreter/interpreter";
 import { genID } from "../utils/helper_functions";
 import { max, scaleLinear, ScaleLinear } from "d3";
@@ -11,11 +11,11 @@ type Scales = {
 
 export class DrawBasic {
   colors = {
-    base: "#f06", // Pink
-    check: "#FFFF00", // Green
-    highlight: "#22FF00", // Yellow
-    pop: "#0089FF", // Blue
-    push: "#FFCD00", // Orange
+    pink: "#f06", // Pink
+    green: "#FFFF00", // Green
+    yellow: "#22FF00", // Yellow
+    blue: "#0089FF", // Blue
+    orange: "#FFCD00", // Orange
   };
 
   drawRoot: G;
@@ -61,7 +61,6 @@ export class DrawBasic {
       width: this.drawWidth / length - 2.5,
     };
 
-    console.log(length);
     /**
      * Scales, to map between pixels and the data vales
      * domain: data domain
@@ -88,7 +87,7 @@ export class GroupRef {
   draw: DrawBasic;
 
   private scales: Scales;
-  constructor({ value, draw }: { value: number; draw: DrawBasic }) {
+  constructor(value: number, draw: DrawBasic) {
     this.draw = draw;
     // set initial transform of Y
     // create group element, to group rect and text together => less work
@@ -103,7 +102,7 @@ export class GroupRef {
 
     this.rectEl = this.root
       .rect(this.draw.rect.width, height)
-      .attr({ fill: this.draw.colors.base })
+      .attr({ fill: this.draw.colors.pink })
       .dy(this.draw.bottomLine - height);
 
     /// create text in previous created group
@@ -139,32 +138,29 @@ export class GroupRef {
   }
 
   // Pixel Y position of the element
-  get yPos() {
+  get posY() {
     return this.matrix.translateY;
   }
 
-  get matrix() {
+  private get matrix() {
     const matrix = new WebKitCSSMatrix(this.node.style.transform);
     return { translateX: matrix.e, translateY: matrix.f };
   }
 }
 
-export class ArrayRef {
+/**
+ * Utilityclass to wrap the interpreter array (object)
+ * and gives severy utility methods
+ */
+export class ArrayWrapper {
   private self;
   private groupRefs;
-  private parentGroup;
+
   readonly id: string = genID();
 
-  constructor(
-    array: Interpreter.Object,
-    groupRefs: Map<number, GroupRef>,
-    parent: G
-  ) {
+  constructor(array: Interpreter.Object, groupRefs: Map<number, GroupRef>) {
     this.self = array;
     this.groupRefs = groupRefs;
-    this.parentGroup = parent.group();
-
-    this.parentGroup.attr("id", this.id);
   }
 
   get length() {
@@ -173,26 +169,6 @@ export class ArrayRef {
 
   get properties() {
     return this.self.properties;
-  }
-
-  /** Get the matrix from the first element of the array */
-  get matrix() {
-    let matrix = this.getRef(0)?.matrix;
-    if (!matrix) {
-      // TODO: calcuclate free space?
-      matrix = { translateX: 0, translateY: 0 };
-    }
-    return matrix;
-  }
-
-  /** Get the translateX from the first element of the array */
-  get translateX() {
-    return this.matrix.translateX;
-  }
-
-  /** Get the translateY from the first element of the array */
-  get translateY() {
-    return this.matrix.translateY;
   }
 
   // Access the rectangle svg nodes directly to only color them!!!
@@ -211,46 +187,41 @@ export class ArrayRef {
     return this.self.properties[index];
   }
 
-  getRef(index: number) {
-    const val = this.get(index);
-    const el = this.groupRefs.get(val);
-
-    if (el) this.parentGroup.add(el.root);
-    return el;
+  getByValue(value: number) {
+    return this.groupRefs.get(value);
   }
 
-  forEach(callbackfn: (element: number, index: number, self: this) => void) {
+  getRef(index: number) {
+    const val = this.get(index);
+    return this.getByValue(val);
+  }
+
+  forEach(cb: (element: number, index: number, self: this) => void) {
     for (let i = 0; i < this.length; i++) {
-      callbackfn(this.get(i), i, this);
+      cb(this.get(i), i, this);
     }
   }
 
-  forEachRef(
-    callbackfn: (element: GroupRef, index: number, self: this) => void
-  ) {
+  forEachRef(cb: (element: GroupRef, index: number, self: this) => void) {
     for (let i = 0; i < this.length; i++) {
       const el = this.getRef(i);
       if (el) {
-        callbackfn(el, i, this);
+        cb(el, i, this);
       } else {
         console.error("The visual Element at index", i, "does not exist..");
       }
     }
   }
 
-  mapRef<T>(
-    callbackfn: (element: GroupRef, index: number, array: T[]) => T
-  ): T[] {
+  mapRef<T>(cb: (element: GroupRef, index: number, array: T[]) => T): T[] {
     const result: T[] = [];
     for (let i = 0; i < this.length; i++) {
-      console.log(i, this.length);
       const el = this.getRef(i);
 
       if (el) {
-        result.push(callbackfn(el, i, result));
+        result.push(cb(el, i, result));
       } else {
-        console.error("The visual Element at index", i, "does not exist..");
-        throw Error("does not work");
+        throw Error(`The visual Element at index ${i} does not exist.`);
       }
     }
     return result;
@@ -258,38 +229,33 @@ export class ArrayRef {
 }
 
 export class ArrayRefManager {
-  /**
-   * ArrayRefs are the arrays from the interpreter
-   */
-  private arrayRefs: Map<Interpreter.Object, ArrayRef> = new Map();
+  /** Map of the interpreter Array to the wrapped classes */
+  private wrappedArrays: Map<Interpreter.Object, ArrayWrapper> = new Map();
 
-  /**
-   * A map, to map the (rectangle hight)/the init array value to the visual svg elements
-   */
+  /** A map,of value to visual svg elements */
   private groupRefs: Map<number, GroupRef> = new Map();
 
-  drawRoot;
-  constructor(drawRoot: G) {
-    this.drawRoot = drawRoot;
+  private get groupRefsList() {
+    // todo memoize
+    return Array.from(this.groupRefs.values());
   }
 
   has(array: Interpreter.Object) {
-    return this.arrayRefs.has(array);
+    return this.wrappedArrays.has(array);
   }
 
-  getArrayRef(array: Interpreter.Object) {
-    let arrClaa = this.arrayRefs.get(array);
+  getArrayWrapper(array: Interpreter.Object) {
+    let arrClaa = this.wrappedArrays.get(array);
 
     if (!arrClaa) {
-      arrClaa = new ArrayRef(array, this.groupRefs, this.drawRoot);
-      this.arrayRefs.set(array, arrClaa);
+      arrClaa = new ArrayWrapper(array, this.groupRefs);
+      this.wrappedArrays.set(array, arrClaa);
     }
 
     return arrClaa;
   }
 
   /**
-   *
    * @param value the value is the hight of the rectangle bar
    * @param ref  is the svg groupref of the rectangle bar and the text
    */
@@ -297,27 +263,7 @@ export class ArrayRefManager {
     this.groupRefs.set(value, ref);
   }
 
-  private get groupRefsList() {
-    const values = this.groupRefs.values();
-    return Array.from(values);
-  }
-
-  private get arrayRefsList() {
-    const values = this.arrayRefs.values();
-    /// TODO: should the empty objects been removed?
-    return Array.from(values);
-  }
-
   forEachRef(callbackfn: (element: GroupRef, index: number) => void) {
-    this.groupRefsList.forEach((e, i, a) => callbackfn(e, i));
-  }
-
-  getAllYPos() {
-    return (
-      this.arrayRefsList
-        .filter((e) => e.translateY != null)
-        // here only existing values come
-        .map((d) => d.translateY as number)
-    );
+    this.groupRefsList.forEach((e, i) => callbackfn(e, i));
   }
 }

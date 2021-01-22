@@ -26,7 +26,7 @@ export class InterpreterWrapper {
       /** Define Props     */
       /** **************** */
       const root = self.nativeToPseudo(algorithm.data);
-
+      root.id = "root";
       self.setProperty(globalObject, "root", root);
 
       //  print
@@ -72,7 +72,7 @@ export class InterpreterWrapper {
         // do animation
         self.asyncCall(() => {
           const state = self.stateStack.getTop();
-          appState.markNode(state.node, "#aaafff", true);
+          appState.markNode(state.node, algorithm.colors.green, true);
           appState.setLocalScope(self.getLocalScope(state.scope), true);
 
           return algorithm.compare(this, i, j, res);
@@ -101,7 +101,7 @@ export class InterpreterWrapper {
         // do animation by real values
         self.asyncCall(() => {
           const state = self.stateStack.getTop();
-          appState.markNode(state.node, "#aaafff", true);
+          appState.markNode(state.node, algorithm.colors.yellow, true);
           appState.setLocalScope(self.getLocalScope(state.scope), true);
           return algorithm.swap(this, i, j);
         });
@@ -116,7 +116,7 @@ export class InterpreterWrapper {
 
           self.asyncCall(() => {
             const state = self.stateStack.getTop();
-            appState.markNode(state.node, "#aaafff", true);
+            appState.markNode(state.node, algorithm.colors.yellow, true);
             appState.setLocalScope(self.getLocalScope(state.scope), true);
             return algorithm.splice(newObj);
           });
@@ -127,10 +127,12 @@ export class InterpreterWrapper {
       self.setNativeFunctionPrototype(self.ARRAY, "shift", function (args) {
         self.asyncCall(() => {
           const state = self.stateStack.getTop();
-          appState.markNode(state.node, "#aaafff", true);
+          appState.markNode(state.node, algorithm.colors.blue, true);
           appState.setLocalScope(self.getLocalScope(state.scope), true);
           return algorithm.shift(this);
         });
+        
+        /// shift the element on the array AFTER, the animation..
         return Array.prototype.shift.call(this.properties);
       });
 
@@ -139,7 +141,7 @@ export class InterpreterWrapper {
 
         self.asyncCall(() => {
           const state = self.stateStack.getTop();
-          appState.markNode(state.node, "#aaafff", true);
+          appState.markNode(state.node, algorithm.colors.orange, true);
           appState.setLocalScope(self.getLocalScope(state.scope), true);
 
           return algorithm.push(this);
@@ -147,10 +149,14 @@ export class InterpreterWrapper {
         return res;
       });
 
-      self.setNativeFunctionPrototype(self.ARRAY, "get", function (args) {
-        const state = self.stateStack.getTop();
-        appState.markNode(state.node, "#aaafff", true);
-        appState.setLocalScope(self.getLocalScope(state.scope), true);
+      self.setNativeFunctionPrototype(self.ARRAY, "get", function (index) {
+        self.asyncCall(() => {
+          const state = self.stateStack.getTop();
+          appState.markNode(state.node, algorithm.colors.blue, true);
+          appState.setLocalScope(self.getLocalScope(state.scope), true);
+
+          return algorithm.get(this, index);
+        });
 
         const element = this.properties[index];
         return element;
@@ -159,12 +165,16 @@ export class InterpreterWrapper {
       self.setNativeFunctionPrototype(
         self.ARRAY,
         "set",
-        function (index, element) {
-          const state = self.stateStack.getTop();
-          appState.markNode(state.node, "#aaafff", true);
-          appState.setLocalScope(self.getLocalScope(state.scope), true);
+        function (index, value) {
+          this.properties[index] = value;
 
-          this.properties[index] = element;
+          self.asyncCall(() => {
+            const state = self.stateStack.getTop();
+            appState.markNode(state.node, algorithm.colors.orange, true);
+            appState.setLocalScope(self.getLocalScope(state.scope), true);
+
+            return algorithm.set(this, index, value);
+          });
         }
       );
 
@@ -205,7 +215,7 @@ export class InterpreterWrapper {
 
         self.asyncCall(() => {
           const state = self.stateStack.getTop();
-          appState.markNode(state.node, "#aaafff", true);
+          appState.markNode(state.node, algorithm.colors.blue, true);
           appState.setLocalScope(self.getLocalScope(state.scope), true);
 
           return algorithm.concat(newArray);
@@ -219,6 +229,10 @@ export class InterpreterWrapper {
     const code = appState.getCurrentSourceCode();
 
     const interpreter = new Interpreter(code, this.interpreterInitFunctions);
+
+    // interpreter.onStep = (step) => {
+    //   console.log(step.node.loc.start.line, step.node.type, step);
+    // };
 
     appState.state.subscribe((state) => {
       if (state == "RUNNING") {

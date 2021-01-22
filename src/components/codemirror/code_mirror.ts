@@ -15,7 +15,7 @@ import type { MarkedNode } from "../../service/store_types";
 import { JSHINT } from "jshint";
 import { appState } from "../../service/app_state";
 // @ts-ignore
-// Extends the window object with JSHINT in order to work properly
+// Extends the window object with JSHINT in order for codemirror to work properly
 window.JSHINT = JSHINT;
 
 function makeMarker() {
@@ -57,7 +57,7 @@ export class CodeMirrorWrapper {
       theme: "dracula",
     });
 
-    this.editor.setSize("100%", "100%");
+    this.editor.setSize("100%", "600px");
     this.editor.setValue(appState.getCurrentSourceCode());
 
     this.editor.on("change", (instance) => {

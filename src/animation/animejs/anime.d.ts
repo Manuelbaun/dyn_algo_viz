@@ -125,7 +125,9 @@ declare namespace anime {
 
     /**
      * added by: Manuel Baun
-     * Contine returns the finished Promise
+     * 
+     * continue returns the Promise, 
+     * which is then resolved, once animation is fished
      */
     continue(): Promise<void>;
     break(): void;
