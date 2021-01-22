@@ -9,7 +9,9 @@ export class AppState {
   readonly currentTime = writable<number>(0);
   readonly speed = writable<number>(+(localStorage.getItem("speed") || 1));
   readonly event = writableModified<EVENTS>("INIT");
-  readonly autofit = writable<boolean>(false);
+  readonly autofit = writable<boolean>(
+    JSON.parse(localStorage.getItem("autofit") || "false")
+  );
 
   /**
    * State is derived from event, first event changes -> state will change
@@ -54,6 +56,10 @@ export class AppState {
     // auto save breakpoints
     this.breakPoints.subscribe((data) => {
       localStorage.setItem("breakPoints", JSON.stringify(data));
+    });
+
+    this.autofit.subscribe((data) => {
+      localStorage.setItem("autofit", `${data}`);
     });
 
     this.sourceCode.subscribe((data) => saveSourceCode(data));
