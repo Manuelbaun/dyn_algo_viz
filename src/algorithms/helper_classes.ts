@@ -289,3 +289,8 @@ export class ElementRefManager {
     this.groupRefsList.forEach((e, i) => callbackfn(e, i));
   }
 }
+
+export function matrix(styleTransfrom: string) {
+  const matrix = new WebKitCSSMatrix(styleTransfrom);
+  return { translateX: matrix.e, translateY: matrix.f };
+}

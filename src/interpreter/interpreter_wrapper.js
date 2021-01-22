@@ -13,9 +13,8 @@ export class InterpreterWrapper {
     this.interpreterInitFunctions = () => {};
   }
 
-  async setup() {
+  setup() {
     const algorithm = this.algorithm;
-    await algorithm.setup();
 
     /**
      * @param {Interpreter} self
@@ -226,9 +225,10 @@ export class InterpreterWrapper {
   }
 
   run() {
-    const code = appState.getCurrentSourceCode();
-
-    const interpreter = new Interpreter(code, this.interpreterInitFunctions);
+    const interpreter = new Interpreter(
+      appState.currentSourceCodeValue,
+      this.interpreterInitFunctions
+    );
 
     // interpreter.onStep = (step) => {
     //   console.log(step.node.loc.start.line, step.node.type, step);

@@ -43,7 +43,6 @@ export default class ComparisonSorts {
     viewBox: Box,
     animationControl: AnimationController,
     panZoomer: PanZoom,
-    zoomFit: Function,
     length = 10
   ) {
     this.data = generateData(length);
@@ -64,16 +63,16 @@ export default class ComparisonSorts {
       set: this.drawing.colors.Gray,
       default: this.drawing.colors.Silver,
     };
-  }
-
-  async setup() {
-    const tl = this.animationControl.initTimeline;
-    const { scales } = this.drawing;
-
     // create and add the the refsManager
     this.data.forEach((value) => {
       this.elementManager.setRef(value, new VisualElement(value, this.drawing));
     });
+  }
+
+  /** * must await setup! */
+  setup() {
+    const tl = this.animationControl.initTimeline;
+    const { scales } = this.drawing;
 
     // position
     this.elementManager.forEachRef((d, i) => {
@@ -85,8 +84,11 @@ export default class ComparisonSorts {
       });
     });
 
+    if (this.animationControl.getSpeed() == 0) {
+      console.error("Speed of animation is 0, there nothing will happen");
+    }
     /// wait till timeline animation is done
-    return await tl.continue();
+    return tl.continue();
   }
 
   async swap(array: Interpreter.Object, i: number, j: number) {

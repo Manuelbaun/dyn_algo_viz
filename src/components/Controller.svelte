@@ -1,7 +1,7 @@
 <script lang="ts">
   import { appState } from "../service/app_state";
   import Slider from "./Slider.svelte";
-  const { event, progress, speed, state } = appState;
+  const { event, progress, speed, state, autofit } = appState;
 
   let mainButtonText = "Start";
 
@@ -19,8 +19,7 @@
   const handleMainButton = () => {
     if ($state == "INIT") appState.start();
     else if ($state == "RUNNING") appState.pause();
-    else if ($state == "PAUSED" || $state == "STEPPING")
-      appState.continue();
+    else if ($state == "PAUSED" || $state == "STEPPING") appState.continue();
   };
 
   /// carefull, when binding click event directly to appState.step
@@ -33,7 +32,7 @@
 <div class="container">
   <div class="container">
     <Slider step=".01" min="0" max="100" bind:value={$progress} unit="%" />
-    <Slider step=".01" min="0" max="10" bind:value={$speed} />
+    <Slider step=".01" min="0.1" max="10" bind:value={$speed} />
 
     <div>{$event}</div>
     <div>{$state}</div>
@@ -54,5 +53,12 @@
     <button class="btn" on:click={reset} disabled={$state == "INIT"}>
       RESET
     </button>
+
+    <div class="form-group">
+      <label class="form-checkbox">
+        <input type="checkbox" bind:checked={$autofit} />
+        <i class="form-icon" />Autofit
+      </label>
+    </div>
   </div>
 </div>

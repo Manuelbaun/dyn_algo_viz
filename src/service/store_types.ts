@@ -18,7 +18,6 @@ export type EVENTS =
   | "STEPIN"
   | "FINISH"
   | "SOME_ERROR";
-// | "NONE";
 
 export interface CustomAcornNode extends acorn.Node {
   loc: acorn.SourceLocation;

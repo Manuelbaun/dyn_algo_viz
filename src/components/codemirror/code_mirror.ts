@@ -58,7 +58,7 @@ export class CodeMirrorWrapper {
     });
 
     this.editor.setSize("100%", "600px");
-    this.editor.setValue(appState.getCurrentSourceCode());
+    this.editor.setValue(appState.currentSourceCodeValue);
 
     this.editor.on("change", (instance) => {
       // this.updateHints();
@@ -73,7 +73,7 @@ export class CodeMirrorWrapper {
     });
 
     // if any breakpoints where set from before, apply them
-    appState.getBreakPoints().forEach((l) => {
+    appState.breakPointsValues.forEach((l) => {
       this.editor?.setGutterMarker(l - 1, "breakpoints", makeMarker());
     });
 

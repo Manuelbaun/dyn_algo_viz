@@ -21,7 +21,7 @@
     drawRoot.attr("id", "draw-root");
 
     const panZoomer = panzoom(panzoomNode.node, {
-      zoomSpeed: 0.1, // 6.5% per mouse wheel event
+      zoomSpeed: 0.0, // 6.5% per mouse wheel event
       minZoom: 0.1,
       maxZoom: 20,
       initialZoom: 1,
@@ -31,39 +31,43 @@
       autocenter: true,
     });
 
-    const zoomFit = (paddingPercent = 0.75) => {
-      const a = drawRoot.node.getBoundingClientRect();
-      const box = drawRoot.bbox();
-      const b = svgElement.getBoundingClientRect();
-      let scale =
-        Math.min(viewBox.width / box.width, viewBox.height / box.height) *
-        paddingPercent;
-      if (scale == Infinity) return;
-
-      const t = panZoomer.getTransform();
-      const x = b.x - a.x + t.x;
-      const y = b.y - a.y + t.y;
-      panZoomer.smoothZoomAbs(x, y, scale);
-      panZoomer.centerOn(drawRoot.node);
-    };
-
     const animationContorller = new AnimationController(appState);
 
     const algorithm = new ComparisonSorts(
       drawRoot,
       viewBox,
       animationContorller,
-      panZoomer,
-      zoomFit
+      panZoomer
     );
+
+    const setupDone = algorithm.setup();
+    await setupDone;
 
     const wrapper = new InterpreterWrapper(algorithm);
     await wrapper.setup();
 
     panZoomer.centerOn(drawRoot.node);
 
-    appState.event.subscribe((event) => {
+    appState.currentTime.subscribe((state) => {
+      if (appState.autofitValue) {
+        const { width, height } = viewBox;
+        const dW = drawRoot.width();
+        const dH = drawRoot.height();
+        const box = drawRoot.bbox();
+
+        const wFac = 1 / (dW / width);
+        const hFac = 1 / (dH / height);
+
+        const zoom = Math.min(wFac, hFac);
+
+        panZoomer.zoomAbs(box.x, box.y, zoom);
+        panZoomer.centerOn(drawRoot.node);
+      }
+    });
+
+    appState.event.subscribe(async (event) => {
       if (event == "START") {
+        await setupDone;
         wrapper.run();
       }
     });

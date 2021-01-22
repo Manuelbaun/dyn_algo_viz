@@ -9,6 +9,7 @@ export class AppState {
   readonly currentTime = writable<number>(0);
   readonly speed = writable<number>(+(localStorage.getItem("speed") || 1));
   readonly event = writableModified<EVENTS>("INIT");
+  readonly autofit = writable<boolean>(false);
 
   /**
    * State is derived from event, first event changes -> state will change
@@ -33,10 +34,6 @@ export class AppState {
     JSON.parse(localStorage.getItem("breakPoints") || "[]") || []
   );
 
-  /**
-   * Stuff related to the editor
-   *
-   */
   readonly sourceCode = writable<string>(loadSourceCode());
   readonly markedNode = writable<MarkedNode>({
     node: undefined,
@@ -108,10 +105,6 @@ export class AppState {
     this.currentTime.set(value);
   }
 
-  getCurrentTime() {
-    return get(this.currentTime);
-  }
-
   setDone() {
     this.event.set("FINISH");
   }
@@ -120,8 +113,23 @@ export class AppState {
     this.event.set("SOME_ERROR");
   }
 
+  get autofitValue() {
+    return get(this.autofit);
+  }
+
+  get currentTimeValue() {
+    return get(this.currentTime);
+  }
   get isRunning() {
     return get(this.state) == "RUNNING";
+  }
+
+  get breakPointsValues() {
+    return Array.from(this.breakPointsSet);
+  }
+
+  get currentSourceCodeValue() {
+    return get(this.sourceCode);
   }
 
   toggleBreakPoint(line: number) {
@@ -134,10 +142,6 @@ export class AppState {
     this.breakPoints.set(Array.from(this.breakPointsSet));
   }
 
-  getBreakPoints() {
-    return Array.from(this.breakPointsSet);
-  }
-
   isBreakPoint(line: number) {
     return this.breakPointsSet.has(line);
   }
@@ -147,12 +151,8 @@ export class AppState {
 
     // only store the localScope, when is running
     if (shouldSave) {
-      this.localScopeSeries.add(this.getCurrentTime(), localScope);
+      this.localScopeSeries.add(this.currentTimeValue, localScope);
     }
-  }
-
-  getCurrentSourceCode() {
-    return get(this.sourceCode);
   }
 
   setSourceCode(value: string) {
@@ -175,7 +175,7 @@ export class AppState {
     const markedNode = { ...old, node, color };
 
     if (shouldSave) {
-      this.markedNodeSeries.add(appState.getCurrentTime(), markedNode);
+      this.markedNodeSeries.add(appState.currentTimeValue, markedNode);
     }
 
     this.markedNode.set(markedNode);
