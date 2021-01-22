@@ -5,7 +5,7 @@ import type AnimationController from "../animation/animation_controller";
 import type Interpreter from "../interpreter/interpreter";
 import { generateData } from "../utils/helper_functions";
 
-import { ArrayRefManager, DrawBasic, GroupRef } from "./helper_classes";
+import { ElementRefManager, DrawBasic, VisualElement } from "./helper_classes";
 
 /**
  * BIG TODOS:
@@ -20,7 +20,7 @@ export default class ComparisonSorts {
   animationControl: AnimationController;
 
   data: number[];
-  refsManager;
+  elementManager;
 
   drawing: DrawBasic;
 
@@ -41,7 +41,7 @@ export default class ComparisonSorts {
     this.panZoomControl = panZoomer;
     this.animationControl = animationControl;
 
-    this.refsManager = new ArrayRefManager();
+    this.elementManager = new ElementRefManager();
     this.drawing = new DrawBasic(rootDraw, viewBox, this.data);
   }
 
@@ -51,11 +51,11 @@ export default class ComparisonSorts {
 
     // create and add the the refsManager
     this.data.forEach((value) => {
-      this.refsManager.setRef(value, new GroupRef(value, this.drawing));
+      this.elementManager.setRef(value, new VisualElement(value, this.drawing));
     });
 
     // position
-    this.refsManager.forEachRef((d, i) => {
+    this.elementManager.forEachRef((d, i) => {
       tl.add({
         targets: d.node,
         duration: 200,
@@ -71,7 +71,7 @@ export default class ComparisonSorts {
   async swap(array: Interpreter.Object, i: number, j: number) {
     const tl = this.animationControl.algoTimeline;
 
-    const ref = this.refsManager.getArrayWrapper(array);
+    const ref = this.elementManager.getArrayWrapper(array);
 
     // get visual objects
     const el1 = ref.getRef(i);
@@ -129,7 +129,7 @@ export default class ComparisonSorts {
     iGreaterJ: boolean
   ) {
     const tl = this.animationControl.algoTimeline;
-    const ref = this.refsManager.getArrayWrapper(array);
+    const ref = this.elementManager.getArrayWrapper(array);
 
     // get visual objects
     const el1 = ref.getRef(i);
@@ -163,7 +163,7 @@ export default class ComparisonSorts {
 
   async splice(array: Interpreter.Object) {
     const tl = this.animationControl.algoTimeline;
-    const ref = this.refsManager.getArrayWrapper(array);
+    const ref = this.elementManager.getArrayWrapper(array);
     const first = ref?.getRef(0);
 
     if (!first) return;
@@ -186,7 +186,7 @@ export default class ComparisonSorts {
 
   async shift(array: Interpreter.Object) {
     const tl = this.animationControl.algoTimeline;
-    const ref = this.refsManager.getArrayWrapper(array);
+    const ref = this.elementManager.getArrayWrapper(array);
 
     /// needs the last reference position, since value is already gone from [arrClaa]
     const first = ref?.getRef(0);
@@ -224,8 +224,8 @@ export default class ComparisonSorts {
   async push(array: Interpreter.Object) {
     const tl = this.animationControl.algoTimeline;
 
-    const isNewArray = this.refsManager.has(array);
-    const ref = this.refsManager.getArrayWrapper(array);
+    const isNewArray = this.elementManager.has(array);
+    const ref = this.elementManager.getArrayWrapper(array);
 
     // get last element! since the value is already added by the interpreter!
     const group = ref.getRef(ref.length - 1);
@@ -264,7 +264,7 @@ export default class ComparisonSorts {
   async concat(array: Interpreter.Object) {
     const tl = this.animationControl.algoTimeline;
 
-    const ref = this.refsManager.getArrayWrapper(array);
+    const ref = this.elementManager.getArrayWrapper(array);
     const firstElement = ref?.getRef(0);
     if (!firstElement) return;
 
@@ -299,7 +299,7 @@ export default class ComparisonSorts {
 
   async set(array: Interpreter.Object, i: number, value: number) {
     const tl = this.animationControl.algoTimeline;
-    const ref = this.refsManager.getArrayWrapper(array);
+    const ref = this.elementManager.getArrayWrapper(array);
 
     // get visual objects
     const group = ref.getByValue(value);
@@ -325,7 +325,7 @@ export default class ComparisonSorts {
 
   async get(array: Interpreter.Object, i: number) {
     const tl = this.animationControl.algoTimeline;
-    const ref = this.refsManager.getArrayWrapper(array);
+    const ref = this.elementManager.getArrayWrapper(array);
 
     // get visual objects
     const group = ref.getRef(i);

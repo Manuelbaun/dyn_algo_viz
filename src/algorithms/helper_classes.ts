@@ -78,7 +78,7 @@ export class DrawBasic {
   }
 }
 
-export class GroupRef {
+export class VisualElement {
   // the root group, which contains the text and rectangle
   root: G;
   rectEl: Rect;
@@ -158,7 +158,10 @@ export class ArrayWrapper {
 
   readonly id: string = genID();
 
-  constructor(array: Interpreter.Object, groupRefs: Map<number, GroupRef>) {
+  constructor(
+    array: Interpreter.Object,
+    groupRefs: Map<number, VisualElement>
+  ) {
     this.self = array;
     this.groupRefs = groupRefs;
   }
@@ -202,7 +205,7 @@ export class ArrayWrapper {
     }
   }
 
-  forEachRef(cb: (element: GroupRef, index: number, self: this) => void) {
+  forEachRef(cb: (element: VisualElement, index: number, self: this) => void) {
     for (let i = 0; i < this.length; i++) {
       const el = this.getRef(i);
       if (el) {
@@ -213,7 +216,7 @@ export class ArrayWrapper {
     }
   }
 
-  mapRef<T>(cb: (element: GroupRef, index: number, array: T[]) => T): T[] {
+  mapRef<T>(cb: (element: VisualElement, index: number, array: T[]) => T): T[] {
     const result: T[] = [];
     for (let i = 0; i < this.length; i++) {
       const el = this.getRef(i);
@@ -228,16 +231,16 @@ export class ArrayWrapper {
   }
 }
 
-export class ArrayRefManager {
+export class ElementRefManager {
   /** Map of the interpreter Array to the wrapped classes */
   private wrappedArrays: Map<Interpreter.Object, ArrayWrapper> = new Map();
 
   /** A map,of value to visual svg elements */
-  private groupRefs: Map<number, GroupRef> = new Map();
+  private elements: Map<number, VisualElement> = new Map();
 
   private get groupRefsList() {
     // todo memoize
-    return Array.from(this.groupRefs.values());
+    return Array.from(this.elements.values());
   }
 
   has(array: Interpreter.Object) {
@@ -248,7 +251,7 @@ export class ArrayRefManager {
     let arrClaa = this.wrappedArrays.get(array);
 
     if (!arrClaa) {
-      arrClaa = new ArrayWrapper(array, this.groupRefs);
+      arrClaa = new ArrayWrapper(array, this.elements);
       this.wrappedArrays.set(array, arrClaa);
     }
 
@@ -259,11 +262,11 @@ export class ArrayRefManager {
    * @param value the value is the hight of the rectangle bar
    * @param ref  is the svg groupref of the rectangle bar and the text
    */
-  setRef(value: number, ref: GroupRef) {
-    this.groupRefs.set(value, ref);
+  setRef(value: number, ref: VisualElement) {
+    this.elements.set(value, ref);
   }
 
-  forEachRef(callbackfn: (element: GroupRef, index: number) => void) {
+  forEachRef(callbackfn: (element: VisualElement, index: number) => void) {
     this.groupRefsList.forEach((e, i) => callbackfn(e, i));
   }
 }
