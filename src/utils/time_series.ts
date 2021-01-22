@@ -8,28 +8,37 @@ export class TimeSeries<T> {
   }
 
   getAtTime(ts: number) {
-    const index = this.binarySearch(ts);
+    const index = this.indexOfNearestLessThan(ts);
     return this.data[index];
   }
 
-  private binarySearch(el: number) {
-    var m = 0;
-    var length = this.ts.length - 1;
-    var k = 0;
-    while (m <= length) {
-      k = (length + m) >> 1;
+  // https://gist.github.com/robertleeplummerjr/1cc657191d34ecd0a324
+  indexOfNearestLessThan(needle: number) {
+    if (this.ts.length === 0) return -1;
 
-      var cmp = el - this.ts[k];
+    var high = this.ts.length - 1,
+      low = 0,
+      mid,
+      item,
+      target = -1;
 
-      if (cmp > 0) {
-        m = k + 1;
-      } else if (cmp < 0) {
-        length = k - 1;
+    if (this.ts[high] < needle) {
+      return high;
+    }
+
+    while (low <= high) {
+      mid = (low + high) >> 1;
+      item = this.ts[mid];
+      if (item > needle) {
+        high = mid - 1;
+      } else if (item < needle) {
+        target = mid;
+        low = mid + 1;
       } else {
-        return k;
+        return low;
       }
     }
-    return k;
-    // return -m - 1;
+
+    return target;
   }
 }
