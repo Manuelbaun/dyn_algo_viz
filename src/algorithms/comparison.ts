@@ -3,7 +3,7 @@ import type { Box, G } from "@svgdotjs/svg.js";
 
 import type AnimationController from "../animation/animation_controller";
 import type Interpreter from "../interpreter/interpreter";
-import { generateData, get } from "../utils/helper_functions";
+import { generateData } from "../utils/helper_functions";
 
 import { ElementRefManager, DrawBasic, VisualElement } from "./helper_classes";
 

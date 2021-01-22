@@ -21,7 +21,7 @@
     drawRoot.attr("id", "draw-root");
 
     const panZoomer = panzoom(panzoomNode.node, {
-      zoomSpeed: 0.0, // 6.5% per mouse wheel event
+      zoomSpeed: 0.2, // 6.5% per mouse wheel event
       minZoom: 0.1,
       maxZoom: 20,
       initialZoom: 1,
