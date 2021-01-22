@@ -58,8 +58,9 @@ export class InterpreterWrapper {
 
       /// extends the array prototype of the interpreter! with a compare function
       self.setNativeFunctionPrototype(self.ARRAY, "compare", function (i, j) {
-        const node = self.stateStack.getTop().node;
-        appState.markNode(node, "#aaafff");
+        const state = self.stateStack.getTop();
+        appState.markNode(state.node, "#aaafff");
+        appState.setLocalScope(self.getLocalScope(state.scope));
 
         // do animation
         const arr = this.properties;
@@ -79,8 +80,9 @@ export class InterpreterWrapper {
       });
 
       self.setNativeFunctionPrototype(self.ARRAY, "swap", function (i, j) {
-        const node = self.stateStack.getTop().node;
-        appState.markNode(node, "#cccccc");
+        const state = self.stateStack.getTop();
+        appState.markNode(state.node, "#aaafff");
+        appState.setLocalScope(self.getLocalScope(state.scope));
 
         /// swap the data
         const arr = this.properties;
@@ -106,7 +108,9 @@ export class InterpreterWrapper {
         self.ARRAY,
         "splice",
         function (start, end) {
-          appState.markNode(self.stateStack.getTop().node, "#f1f1f1f1");
+          const state = self.stateStack.getTop();
+          appState.markNode(state.node, "#aaafff");
+          appState.setLocalScope(self.getLocalScope(state.scope));
 
           const data = Array.prototype.splice.call(this.properties, start, end);
           const newObj = self.arrayNativeToPseudo(data);
@@ -117,14 +121,18 @@ export class InterpreterWrapper {
       );
 
       self.setNativeFunctionPrototype(self.ARRAY, "shift", function (args) {
-        appState.markNode(self.stateStack.getTop().node, "#f1f1f1f1");
+        const state = self.stateStack.getTop();
+        appState.markNode(state.node, "#aaafff");
+        appState.setLocalScope(self.getLocalScope(state.scope));
 
         self.asyncCall(() => algorithm.shift(this));
         return Array.prototype.shift.call(this.properties);
       });
 
       self.setNativeFunctionPrototype(self.ARRAY, "push", function (args) {
-        appState.markNode(self.stateStack.getTop().node, "#f1f1f1f1");
+        const state = self.stateStack.getTop();
+        appState.markNode(state.node, "#aaafff");
+        appState.setLocalScope(self.getLocalScope(state.scope));
 
         const res = Array.prototype.push.apply(this.properties, arguments);
 
@@ -133,7 +141,9 @@ export class InterpreterWrapper {
       });
 
       self.setNativeFunctionPrototype(self.ARRAY, "get", function (args) {
-        appState.markNode(self.stateStack.getTop().node, "#f1f1f1f1");
+        const state = self.stateStack.getTop();
+        appState.markNode(state.node, "#aaafff");
+        appState.setLocalScope(self.getLocalScope(state.scope));
 
         const element = this.properties[index];
         return element;
@@ -143,7 +153,10 @@ export class InterpreterWrapper {
         self.ARRAY,
         "set",
         function (index, element) {
-          appState.markNode(self.stateStack.getTop().node, "#f1f1f1f1");
+          const state = self.stateStack.getTop();
+          appState.markNode(state.node, "#aaafff");
+          appState.setLocalScope(self.getLocalScope(state.scope));
+
           this.properties[index] = element;
         }
       );
@@ -180,7 +193,9 @@ export class InterpreterWrapper {
       };
 
       self.setNativeFunctionPrototype(self.ARRAY, "concat", function (args) {
-        appState.markNode(self.stateStack.getTop().node, "#f1f1f1f1");
+        const state = self.stateStack.getTop();
+        appState.markNode(state.node, "#aaafff");
+        appState.setLocalScope(self.getLocalScope(state.scope));
 
         const data = concat(this, arguments);
         const newArray = self.arrayNativeToPseudo(data);
@@ -196,30 +211,6 @@ export class InterpreterWrapper {
 
     const interpreter = new Interpreter(code, this.interpreterInitFunctions);
 
-    const globalKeys = Object.keys(interpreter.globalObject.properties);
-
-    const processLocalScope = (scope) => {
-      const keys = Object.keys(scope.object.properties);
-
-      const difference = keys.filter(
-        (x) => !globalKeys.includes(x) && x != "arguments"
-      );
-
-      const obj = {};
-
-      for (const k of difference) {
-        const prop = scope.object.properties[k];
-
-        if (prop instanceof Interpreter.Object) {
-          obj[k] = interpreter.pseudoToNative(prop);
-        } else {
-          obj[k] = prop;
-        }
-      }
-
-      appState.setLocalScope(obj);
-    };
-
     appState.state.subscribe((state) => {
       if (state == "RUNNING") {
         interpreter.run();
@@ -234,7 +225,6 @@ export class InterpreterWrapper {
     function handleStepAndStepIn(event) {
       if (event == "STEPIN" || event == "STEP") {
         const state = interpreter.stateStack.getTop();
-        const node = state.node;
 
         if (event == "STEP") {
           // // walks only editor line by editor line
@@ -264,8 +254,8 @@ export class InterpreterWrapper {
           const res = interpreter.step();
           interpreter.paused_ = paused;
 
-          appState.markNode(node, "#ffaafa");
-          processLocalScope(state.scope);
+          appState.markNode(state.node, "#ffaafa", false);
+          appState.setLocalScope(interpreter.getLocalScope(state.scope), false);
         }
       }
     }

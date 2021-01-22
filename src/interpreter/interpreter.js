@@ -4797,4 +4797,34 @@ Interpreter.prototype.disableExtenstion = function () {
   this.extentionEnable = false;
 };
 
+/**
+ * Utility function, which takes the scope of a state and filtes out
+ * the global scope
+ * @param {*} scope
+ */
+Interpreter.prototype.getLocalScope = function (scope) {
+  // TODO: memoize
+  const globalKeys = Object.keys(this.globalObject.properties);
+
+  const keys = Object.keys(scope.object.properties);
+
+  const difference = keys.filter(
+    (x) => !globalKeys.includes(x) && x != "arguments"
+  );
+
+  const localScope = {};
+
+  for (const k of difference) {
+    const prop = scope.object.properties[k];
+
+    if (prop instanceof Interpreter.Object) {
+      localScope[k] = this.pseudoToNative(prop);
+    } else {
+      localScope[k] = prop;
+    }
+  }
+
+  return localScope;
+};
+
 export default Interpreter;

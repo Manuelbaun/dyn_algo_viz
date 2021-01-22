@@ -45,15 +45,16 @@ export class AppState {
 
   // for lookup the marked node,when slider range moves
   markedNodeSeries = new TimeSeries<MarkedNode>();
-  localScopeSeries = new TimeSeries<MarkedNode>();
+  localScopeSeries = new TimeSeries<object>();
 
   constructor() {
-    this.state.subscribe((val) => {
-      console.log("state:", val);
-    });
-    this.event.subscribe((val) => {
-      console.log("event:", val);
-    });
+    // this.state.subscribe((val) => {
+    //   console.log("state:", val);
+    // });
+    // this.event.subscribe((val) => {
+    //   console.log("event:", val);
+    // });
+    // this.errors.subscribe((data) => console.log("Errors", data));
 
     // auto save speed to localstorage
     this.speed.subscribe((val) =>
@@ -65,17 +66,15 @@ export class AppState {
       localStorage.setItem("breakPoints", JSON.stringify(data));
     });
 
-    this.localScope.subscribe((data) => console.log("LOCALScope", data));
-    this.errors.subscribe((data) => console.log("Errors", data));
-
     this.sourceCode.subscribe((data) => saveSourceCode(data));
 
     /// Listen to time Series change!
     this.currentTime.subscribe((ts) => {
-      if (!this.isRunning) {
-        const node = this.markedNodeSeries.getAtTime(ts);
-        this.markedNode.set(node);
-      }
+      const node = this.markedNodeSeries.getAtTime(ts);
+      this.markedNode.set(node);
+
+      const localScope = this.localScopeSeries.getAtTime(ts);
+      this.localScope.set(localScope);
     });
   }
 
@@ -132,10 +131,6 @@ export class AppState {
     return get(this.state) == "RUNNING";
   }
 
-  /**
-   * "for the Interpreter"
-   */
-
   toggleBreakPoint(line: number) {
     if (this.breakPointsSet.has(line)) {
       this.breakPointsSet.delete(line);
@@ -158,6 +153,10 @@ export class AppState {
 
   setLocalScope(localScope: object) {
     this.localScope.set(localScope);
+
+    if (this.isRunning) {
+      this.localScopeSeries.add(this.getCurrentTime(), localScope);
+    }
   }
 
   getCurrentSourceCode() {
@@ -168,11 +167,20 @@ export class AppState {
     this.sourceCode.set(value);
   }
 
+  /**
+   * Function, which highlights a line in the codemirror editor!
+   * It will only store the nod node value, when the algorithm is running
+   * during "debug", it will not store those valus...
+   * @param node
+   * @param color
+   */
   markNode(node: CustomAcornNode | undefined, color: string) {
     const old = get(this.markedNode);
     const markedNode = { ...old, node, color };
 
-    this.markedNodeSeries.add(appState.getCurrentTime(), markedNode);
+    if (this.isRunning) {
+      this.markedNodeSeries.add(appState.getCurrentTime(), markedNode);
+    }
 
     this.markedNode.set(markedNode);
   }
