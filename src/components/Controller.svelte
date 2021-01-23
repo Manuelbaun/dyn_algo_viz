@@ -82,7 +82,7 @@
     <div class="form-group ">
       <label class="form-checkbox form-inline">
         <input type="checkbox" bind:checked={$autofit} />
-        <i class="form-icon" />Autofit
+        <i class="form-icon" />Autofit (Experimental)
       </label>
       <label class="form-checkbox form-inline">
         <input type="checkbox" bind:checked={$autoscroll} />
