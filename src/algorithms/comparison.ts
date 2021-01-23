@@ -49,8 +49,8 @@ export default class ComparisonSorts {
     this.panZoomControl = panZoomer;
     this.animationControl = animationControl;
 
-    this.elementManager = new ElementRefManager();
     this.drawing = new DrawBasic(rootDraw, viewBox, this.data);
+    this.elementManager = new ElementRefManager(this.drawing);
 
     this.colorMapping = {
       get: this.drawing.colors.Aqua,
@@ -118,14 +118,12 @@ export default class ComparisonSorts {
       .add({
         targets: el1.node,
         translateX: el2.posX, // move {groupI} by i
-        // translateY: gj.posY,   // swap on Y is not needed, since it is the same Array
         duration: 250,
       })
       .add(
         {
           targets: el2.node,
           translateX: el1.posX, // move {groupJ} by j
-          // translateY: gi.posY,
           duration: 250,
         },
         /// By settings this value to -=200 (duration of the previous animation),
@@ -191,6 +189,7 @@ export default class ComparisonSorts {
 
     const translateY = first.posY + this.drawing.scales.y(1);
 
+    console.log("SPLICE", translateY, first);
     await tl
       .add({
         targets: ref.rectNodes,
@@ -244,7 +243,6 @@ export default class ComparisonSorts {
   async push(array: Interpreter.Object) {
     const tl = this.animationControl.algoTimeline;
 
-    const isNewArray = this.elementManager.has(array);
     const ref = this.elementManager.getArrayWrapper(array);
 
     // get last element! since the value is already added by the interpreter!
@@ -253,8 +251,26 @@ export default class ComparisonSorts {
 
     if (!group || !first) return;
 
-    const translateX = first?.posX + this.drawing.scales.x(ref.length);
-    const translateY = isNewArray ? this.drawing.scales.y(1) : first.posY;
+    const newArray = ref.length == 1;
+
+    const xy = this.elementManager.findFree(first, newArray);
+
+    const translateY = newArray
+      ? this.drawing.scales.y(xy.y)
+      : this.drawing.scales.y(first.y);
+
+    // const translateX = first.posX + this.drawing.scales.x(ref.length - 1);
+    const translateX = newArray
+      ? this.drawing.scales.x(xy.x)
+      : first.posX + this.drawing.scales.x(ref.length - 1);
+
+    console.log(
+      newArray,
+      xy,
+      { translateX, translateY },
+      first,
+      this.drawing.scales.y(3)
+    );
 
     await tl
       .add({
@@ -331,7 +347,7 @@ export default class ComparisonSorts {
       .add({
         targets: group.node,
         translateX: this.drawing.scales.x(i),
-        translateY: 0,
+        translateY: group.posY - this.drawing.scales.y(1),
         duration: 200,
       })
       .continue();
@@ -356,7 +372,7 @@ export default class ComparisonSorts {
       })
       .add({
         targets: group.node,
-        translateY: this.drawing.scales.y(1),
+        translateY: group.posY + this.drawing.scales.y(1),
         duration: 200,
       })
       .continue();

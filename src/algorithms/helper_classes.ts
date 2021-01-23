@@ -6,6 +6,8 @@ import { max, scaleLinear, ScaleLinear } from "d3";
 type Scales = {
   x: ScaleLinear<number, number, never>;
   y: ScaleLinear<number, number, never>;
+  xInv: (val: number) => number;
+  yInv: (val: number) => number;
   yHeight: ScaleLinear<number, number, never>;
 };
 
@@ -82,11 +84,22 @@ export class DrawBasic {
       x: scaleLinear().domain([0, length]).range([0, width]),
       y: scaleLinear()
         .domain([0, 1])
-        .range([this.margin.top, height / 2]),
+        .range([0, height / 2]),
+      xInv: (val: number) => val / xStep,
+      yInv: (val: number) => val / yStep,
       yHeight: scaleLinear()
         .domain([0, max(data)] as number[]) // the max value of the data
-        .range([0, height / 2]), // height minus bottom marginopen
+        .range([0, height / 2 - this.margin.top - 20]), // height minus bottom marginopen
     };
+
+    const xStep = this.scales.x(1);
+    const yStep = this.scales.y(1);
+
+    console.log(
+      Array(10)
+        .fill(0)
+        .map((e, i) => this.scales.y(i))
+    );
   }
 }
 
@@ -134,14 +147,15 @@ export class VisualElement {
 
   // X position of the element (invert of the scales)
   get x() {
-    const m = this.matrix;
-    return this.scales.x.invert(m.translateX);
+    return Math.round(this.scales.xInv(this.matrix.translateX));
   }
 
   // Y position of the element (invert of the scales)
   get y() {
-    const m = this.matrix;
-    return this.scales.y.invert(m.translateY);
+    // normally d3 scale have an inverse function,
+    // but it does not work properly on the y scale???
+    // bug in y.inverse()
+    return Math.round(this.scales.yInv(this.matrix.translateY));
   }
 
   // Pixel X position of the element
@@ -256,10 +270,52 @@ export class ElementRefManager {
 
   /** A map,of value to visual svg elements */
   private elements: Map<number, VisualElement> = new Map();
+  drawing: DrawBasic;
 
+  constructor(drawing: DrawBasic) {
+    this.drawing = drawing;
+  }
   private get groupRefsList() {
     // todo memoize
     return Array.from(this.elements.values());
+  }
+
+  helpMatrix(first: VisualElement) {
+    const els = Array.from(this.elements.values()).filter((e) => e != first);
+
+    // y-x 2d matrix
+    const m = Array<number>(els.length)
+      .fill(0)
+      .map((v, i) => Array<number>(els.length).fill(0));
+
+    els.forEach(({ x, y }) => (m[y][x] = 1));
+
+    return m;
+  }
+
+  /**
+   * A very simple algorithm, to find a free space, in that "2d" grid.
+   * This algorithm is not working properly and needs more checks
+   * @param first
+   * @param any
+   */
+  findFree(first: VisualElement, any: boolean) {
+    const m = this.helpMatrix(first);
+
+    let y: number, x: number;
+
+    if (any) {
+      for (x = first.x; x < 8; x++) {
+        for (y = 1; y < 8; y++) {
+          // check also one on the left..
+          if (m[y][x] == 0 && m[y][x + 1] == 0 && m[y][x + 2] == 0) {
+            // console.log("MATRIX:", m, { x, y });
+            return { x, y };
+          }
+        }
+      }
+    }
+    return { x: m[first.y].findIndex((e) => e == 0), y: first.y };
   }
 
   has(array: Interpreter.Object) {
