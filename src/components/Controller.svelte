@@ -13,6 +13,8 @@
       mainButtonText = "Pause";
     } else if ($state == "PAUSED") {
       mainButtonText = "Continue";
+    } else if ($state == "DONE") {
+      mainButtonText = "Done";
     }
   }
 
@@ -39,7 +41,7 @@
   </div>
 
   <div class="container">
-    <button class="btn" on:click={handleMainButton}>
+    <button class="btn" on:click={handleMainButton} disabled={$state == "DONE"}>
       {mainButtonText}
     </button>
     <button

@@ -259,7 +259,6 @@ export default class ComparisonSorts {
       ? this.drawing.scales.y(xy.y)
       : this.drawing.scales.y(first.y);
 
-    // const translateX = first.posX + this.drawing.scales.x(ref.length - 1);
     const translateX = newArray
       ? this.drawing.scales.x(xy.x)
       : first.posX + this.drawing.scales.x(ref.length - 1);
