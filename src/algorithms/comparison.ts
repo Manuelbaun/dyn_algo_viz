@@ -195,7 +195,7 @@ export default class ComparisonSorts {
       fill: this.colorMapping.splice,
     }).add({
       targets: ref.groupNodes,
-      duration: 400,
+      duration: 800,
       translateY,
     });
 
@@ -216,25 +216,22 @@ export default class ComparisonSorts {
       targets: first.rectNode,
       fill: this.colorMapping.shift,
       duration: 200,
-    }).add(
-      {
-        targets: first.node,
-        duration: 200,
-        opacity: 0,
-        translateX: translateX + this.drawing.scales.x(-1),
-      },
-      "-=200"
-    );
+    }).add({
+      targets: first.node,
+      duration: 500,
+      opacity: 0,
+      translateX: translateX + this.drawing.scales.x(-1),
+    });
 
     ref.forEachRef((d, i) => {
       if (d != first) {
         tl.add(
           {
             targets: d.node,
-            duration: 200,
-            translateX: translateX + this.drawing.scales.x(i),
+            duration: 400,
+            translateX: translateX + this.drawing.scales.x(i - 1),
           },
-          "-=200"
+          "-=400"
         );
       }
     });
@@ -264,14 +261,6 @@ export default class ComparisonSorts {
     const translateX = newArray
       ? this.drawing.scales.x(xy.x)
       : first.posX + this.drawing.scales.x(ref.length - 1);
-
-    console.log(
-      newArray,
-      xy,
-      { translateX, translateY },
-      first,
-      this.drawing.scales.y(3)
-    );
 
     tl.add({
       targets: group.node,
@@ -315,13 +304,11 @@ export default class ComparisonSorts {
       fill: this.colorMapping.concat,
     });
 
-    // await tl.continue();
-
     ref.forEachRef((e, i) => {
       tl.add(
         {
           targets: e.node,
-          duration: 200,
+          duration: 500,
           translateX: translateX + this.drawing.scales.x(i),
           translateY,
         },
