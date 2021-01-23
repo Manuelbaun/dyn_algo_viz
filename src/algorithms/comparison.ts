@@ -78,7 +78,7 @@ export default class ComparisonSorts {
     this.elementManager.forEachRef((d, i) => {
       tl.add({
         targets: d.node,
-        duration: 200,
+        duration: 50,
         translateX: scales.x(i),
         opacity: 1,
       });
@@ -110,7 +110,7 @@ export default class ComparisonSorts {
       .add({
         targets: rects,
         fill: this.colorMapping.swap,
-        duration: 100,
+        duration: 200,
       })
       .continue();
 
@@ -118,17 +118,17 @@ export default class ComparisonSorts {
       .add({
         targets: el1.node,
         translateX: el2.posX, // move {groupI} by i
-        duration: 250,
+        duration: 400,
       })
       .add(
         {
           targets: el2.node,
           translateX: el1.posX, // move {groupJ} by j
-          duration: 250,
+          duration: 400,
         },
-        /// By settings this value to -=200 (duration of the previous animation),
+        /// By settings this value to -=400 (duration of the previous animation),
         /// this animation starts with the previous animation
-        "-=250"
+        "-=400"
       )
       .continue();
 
@@ -137,7 +137,7 @@ export default class ComparisonSorts {
       .add({
         targets: rects,
         fill: this.colorMapping.default,
-        duration: 100,
+        duration: 200,
       })
       .continue();
   }
@@ -174,7 +174,7 @@ export default class ComparisonSorts {
         .add({
           targets: rects,
           fill: this.colorMapping.default,
-          duration: 100,
+          duration: 200,
         })
         .continue();
     }
@@ -189,19 +189,17 @@ export default class ComparisonSorts {
 
     const translateY = first.posY + this.drawing.scales.y(1);
 
-    console.log("SPLICE", translateY, first);
-    await tl
-      .add({
-        targets: ref.rectNodes,
-        duration: 200,
-        fill: this.colorMapping.splice,
-      })
-      .add({
-        targets: ref.groupNodes,
-        duration: 200,
-        translateY,
-      })
-      .continue();
+    tl.add({
+      targets: ref.rectNodes,
+      duration: 200,
+      fill: this.colorMapping.splice,
+    }).add({
+      targets: ref.groupNodes,
+      duration: 400,
+      translateY,
+    });
+
+    await tl.continue();
   }
 
   async shift(array: Interpreter.Object) {
@@ -214,28 +212,32 @@ export default class ComparisonSorts {
     const translateX = first.posX;
 
     // move all elements to the left by 1 position, that are in that array
-    ref.forEachRef((d, i) => {
-      tl.add({
-        targets: d.node,
-        duration: 100,
-        translateX: translateX + this.drawing.scales.x(i - 1),
-      });
-    });
-
-    // shift, first element to the left
     tl.add({
-      targets: first.node,
-      duration: 50,
-      opacity: 0,
-      translateX: translateX - this.drawing.scales.x(1),
+      targets: first.rectNode,
+      fill: this.colorMapping.shift,
+      duration: 200,
     }).add(
       {
-        targets: first.rectNode,
-        fill: this.colorMapping.shift,
-        duration: 50,
+        targets: first.node,
+        duration: 200,
+        opacity: 0,
+        translateX: translateX + this.drawing.scales.x(-1),
       },
-      "-=50"
+      "-=200"
     );
+
+    ref.forEachRef((d, i) => {
+      if (d != first) {
+        tl.add(
+          {
+            targets: d.node,
+            duration: 200,
+            translateX: translateX + this.drawing.scales.x(i),
+          },
+          "-=200"
+        );
+      }
+    });
 
     return tl.continue();
   }
@@ -271,56 +273,60 @@ export default class ComparisonSorts {
       this.drawing.scales.y(3)
     );
 
-    await tl
-      .add({
-        targets: group.node,
-        duration: 200,
-        translateX,
-        translateY,
-        opacity: 1,
-      })
+    tl.add({
+      targets: group.node,
+      duration: 400,
+      translateX,
+      translateY,
+    })
       .add(
         {
           targets: group.rectNode,
           duration: 200,
           fill: this.colorMapping.push,
         },
-        "-=100"
+        "-=200"
       )
-      .continue();
+      .add(
+        {
+          targets: group.node,
+          duration: 200,
+          opacity: 1,
+        },
+        "-=200"
+      );
+
+    await tl.continue();
   }
 
   async concat(array: Interpreter.Object) {
     const tl = this.animationControl.algoTimeline;
 
     const ref = this.elementManager.getArrayWrapper(array);
-    const firstElement = ref?.getRef(0);
-    if (!firstElement) return;
+    const first = ref?.getRef(0);
+    if (!first) return;
 
-    // get position of current array
-    let translateY = firstElement.posY;
+    const translateX = first.posX;
+    const translateY = first.posY;
 
-    if (translateY == undefined || 0) {
-      translateY = this.drawing.scales.y(1);
-    }
+    tl.add({
+      targets: ref.rectNodes,
+      duration: 200,
+      fill: this.colorMapping.concat,
+    });
 
-    const translateX = firstElement.posX;
+    // await tl.continue();
 
-    await tl
-      .add({
-        targets: ref.rectNodes,
-        duration: 200,
-        fill: this.colorMapping.concat,
-      })
-      .continue();
-
-    ref.groupNodes.forEach(async (e, i) => {
-      tl.add({
-        targets: e,
-        duration: 100,
-        translateX: translateX + this.drawing.scales.x(i),
-        translateY,
-      });
+    ref.forEachRef((e, i) => {
+      tl.add(
+        {
+          targets: e.node,
+          duration: 200,
+          translateX: translateX + this.drawing.scales.x(i),
+          translateY,
+        },
+        "-=200"
+      );
     });
 
     return await tl.continue();
@@ -337,19 +343,18 @@ export default class ComparisonSorts {
     if (!group) return;
 
     // Highligh rects
-    await tl
-      .add({
-        targets: group.rectNode,
-        fill: this.colorMapping.set,
-        duration: 200,
-      })
-      .add({
-        targets: group.node,
-        translateX: this.drawing.scales.x(i),
-        translateY: group.posY - this.drawing.scales.y(1),
-        duration: 200,
-      })
-      .continue();
+    tl.add({
+      targets: group.rectNode,
+      fill: this.colorMapping.set,
+      duration: 100,
+    }).add({
+      targets: group.node,
+      translateX: this.drawing.scales.x(i),
+      translateY: group.posY - this.drawing.scales.y(1),
+      duration: 200,
+    });
+
+    await tl.continue();
   }
 
   async get(array: Interpreter.Object, i: number) {
@@ -363,25 +368,24 @@ export default class ComparisonSorts {
     if (!group) return;
 
     // Highligh rects
-    await tl
-      .add({
-        targets: group.rectNode,
-        fill: this.colorMapping.get,
-        duration: 200,
-      })
-      .add({
-        targets: group.node,
-        translateY: group.posY + this.drawing.scales.y(1),
-        duration: 200,
-      })
-      .continue();
+    tl.add({
+      targets: group.rectNode,
+      fill: this.colorMapping.get,
+      duration: 100,
+    }).add({
+      targets: group.node,
+      translateY: group.posY + this.drawing.scales.y(1),
+      duration: 200,
+    });
+
+    await tl.continue();
     // Dont know, why the animation would not animate properly,
     // when this animation is changed with the following one => leave as is
 
     tl.add({
       targets: group.rectNode,
       fill: this.colorMapping.default,
-      duration: 200,
+      duration: 100,
     });
 
     return await tl.continue();

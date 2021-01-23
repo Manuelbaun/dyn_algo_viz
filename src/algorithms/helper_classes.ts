@@ -305,10 +305,10 @@ export class ElementRefManager {
     let y: number, x: number;
 
     if (any) {
-      for (x = first.x; x < 8; x++) {
-        for (y = 1; y < 8; y++) {
+      for (x = 0; x < 8; x++) {
+        for (y = 0; y < 8; y++) {
           // check also one on the left..
-          if (m[y][x] == 0 && m[y][x + 1] == 0 && m[y][x + 2] == 0) {
+          if (m[y][x] == 0 && m[y][x + 1] == 0) {
             // console.log("MATRIX:", m, { x, y });
             return { x, y };
           }
