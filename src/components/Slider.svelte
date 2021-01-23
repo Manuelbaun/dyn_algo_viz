@@ -6,6 +6,7 @@
   export let min: number | string;
   export let max: number | string;
   export let step: number | string;
+  export let hint: string = "";
 
   let range: HTMLInputElement;
   let tooltip: HTMLDivElement;
@@ -41,7 +42,14 @@
       bind:this={tooltip}
       transition:fade={{ duration: 200 }}
     >
-      <span>{value.toFixed(2)}</span>
+      <span class="label label-primary">
+        <div class="label-text">
+          {hint || ""}
+        </div>
+        <div>
+          {value.toFixed(2)}
+        </div>
+      </span>
     </div>
   {/if}
   <input
@@ -59,32 +67,15 @@
 </div>
 
 <style>
-  /* input[type="range"] {
-    -webkit-appearance: none;
-    margin: 20px 0;
-    width: 100%;
-  } */
-
-  /* input[type="range"]:focus {
-    outline: none;
-  } */
-
-  /* input[type="range"]:focus::-webkit-slider-runnable-track {
-    background: #03a9f4;
-  } */
-
   input::-webkit-slider-runnable-track {
     width: 100%;
     height: 4px;
     cursor: pointer;
     animation: 0.1s;
-    /* background: #03a9f4; */
-    /* border-radius: 25px; */
   }
   input::-webkit-slider-thumb {
     height: 20px;
     width: 20px;
-    /* border-radius: 50%; */
     background: #fff;
     box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
     cursor: pointer;
@@ -92,30 +83,29 @@
     margin-top: -8px;
   }
 
+  .label-text {
+    display: block;
+    width: auto;
+    white-space: nowrap;
+  }
+
   .range-wrap {
     width: 100%;
     position: relative;
+    z-index: 100;
   }
 
   .range-value {
     position: absolute;
-    top: -120%;
+    top: -220%;
   }
 
   .range-value span {
-    min-width: 4em;
+    min-width: auto;
     width: auto;
-    height: 24px;
-    line-height: 24px;
     text-align: center;
-    background: #03a9f4;
-    color: #fff;
-    font-size: 12px;
-    display: block;
     position: absolute;
-    left: 50%;
     transform: translate(-50%, 0);
-    border-radius: 6px;
   }
 
   .range-value span:before {
@@ -123,7 +113,8 @@
     position: absolute;
     width: 0;
     height: 0;
-    border-top: 10px solid #03a9f4;
+    border-top: 10px solid;
+    border-top-color: #5755d9;
     border-left: 5px solid transparent;
     border-right: 5px solid transparent;
     top: 100%;
