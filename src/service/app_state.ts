@@ -4,14 +4,29 @@ import type { CustomAcornNode, EVENTS, MarkedNode, STATE } from "./store_types";
 import { writableModified } from "../utils/custom_store";
 import { TimeSeries } from "../utils/time_series";
 
+function getItem(key: string, useJsonParser = true) {
+  const item = localStorage.getItem(key);
+  if (item) {
+    if (useJsonParser) return JSON.parse(item);
+    return item;
+  }
+}
+
+function setItem(key: string, value: any) {
+  let item: string = "";
+  if (typeof value != "string") {
+    item = JSON.stringify(value);
+  } else {
+    item = value;
+  }
+
+  localStorage.setItem(key, item);
+}
+
 export class AppState {
   readonly progress = writable<number>(0);
   readonly currentTime = writable<number>(0);
-  readonly speed = writable<number>(+(localStorage.getItem("speed") || 1));
   readonly event = writableModified<EVENTS>("INIT");
-  readonly autofit = writable<boolean>(
-    JSON.parse(localStorage.getItem("autofit") || "false")
-  );
 
   /**
    * State is derived from event, first event changes -> state will change
@@ -30,17 +45,17 @@ export class AppState {
   readonly localScope = writable<object>({});
   readonly errors = writable<object>({});
 
+  readonly speed = writable<number>(+(getItem("speed") || 1));
+  readonly autofit = writable<boolean>(getItem("autofit") || false);
+  readonly autoscroll = writable<boolean>(getItem("autoscroll") || false);
   // need a helper class(Set), since breakPoints wont trigger
   private readonly breakPointsSet = new Set<number>();
-  readonly breakPoints = writable<number[]>(
-    JSON.parse(localStorage.getItem("breakPoints") || "[]") || []
-  );
+  readonly breakPoints = writable<number[]>(getItem("breakPoints") || []);
 
   readonly sourceCode = writable<string>(loadSourceCode());
   readonly markedNode = writable<MarkedNode>({
     node: undefined,
     color: "",
-    autoScroll: false,
   });
 
   // for lookup the marked node,when slider range moves
@@ -49,20 +64,11 @@ export class AppState {
 
   constructor() {
     // auto save speed to localstorage
-    this.speed.subscribe((val) =>
-      localStorage.setItem("speed", val.toString())
-    );
-
-    // auto save breakpoints
-    this.breakPoints.subscribe((data) => {
-      localStorage.setItem("breakPoints", JSON.stringify(data));
-    });
-
-    this.autofit.subscribe((data) => {
-      localStorage.setItem("autofit", `${data}`);
-    });
-
-    this.sourceCode.subscribe((data) => saveSourceCode(data));
+    this.speed.subscribe((val) => setItem("speed", val));
+    this.breakPoints.subscribe((data) => setItem("breakPoints", data));
+    this.autofit.subscribe((data) => setItem("autofit", data));
+    this.autoscroll.subscribe((data) => setItem("autoscroll", data));
+    this.sourceCode.subscribe((data) => setItem("sourceCode", data));
 
     /// Listen to time Series change!
     this.currentTime.subscribe((ts) => {
@@ -126,16 +132,25 @@ export class AppState {
   get currentTimeValue() {
     return get(this.currentTime);
   }
+
   get isRunning() {
-    return get(this.state) == "RUNNING";
+    return this.stateValue == "RUNNING";
+  }
+
+  get stateValue() {
+    return get(this.state);
   }
 
   get breakPointsValues() {
     return Array.from(this.breakPointsSet);
   }
 
-  get currentSourceCodeValue() {
+  get sourceCodeValue() {
     return get(this.sourceCode);
+  }
+
+  get autoscrollValue() {
+    return get(this.autoscroll);
   }
 
   toggleBreakPoint(line: number) {
@@ -152,17 +167,17 @@ export class AppState {
     return this.breakPointsSet.has(line);
   }
 
-  setLocalScope(localScope: object, shouldSave = false) {
+  setSourceCode(value: string) {
+    this.sourceCode.set(value);
+  }
+
+  setLocalScope(localScope: object, shouldTrack = false) {
     this.localScope.set(localScope);
 
     // only store the localScope, when is running
-    if (shouldSave) {
+    if (shouldTrack) {
       this.localScopeSeries.add(this.currentTimeValue, localScope);
     }
-  }
-
-  setSourceCode(value: string) {
-    this.sourceCode.set(value);
   }
 
   /**
@@ -175,12 +190,12 @@ export class AppState {
   markNode(
     node: CustomAcornNode | undefined,
     color: string,
-    shouldSave = false
+    shouldTrack = false
   ) {
     const old = get(this.markedNode);
     const markedNode = { ...old, node, color };
 
-    if (shouldSave) {
+    if (shouldTrack) {
       this.markedNodeSeries.add(appState.currentTimeValue, markedNode);
     }
 
@@ -207,10 +222,6 @@ function loadSourceCode(): string {
   bubbleSort(root);
   `
   );
-}
-
-function saveSourceCode(value: string) {
-  localStorage.setItem("sourceCode", value);
 }
 
 export const appState = new AppState();

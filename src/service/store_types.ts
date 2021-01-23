@@ -25,5 +25,4 @@ export interface CustomAcornNode extends acorn.Node {
 export type MarkedNode = {
   node: CustomAcornNode | undefined;
   color: string;
-  autoScroll: boolean;
 };

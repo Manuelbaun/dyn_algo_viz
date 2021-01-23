@@ -226,7 +226,7 @@ export class InterpreterWrapper {
 
   run() {
     const interpreter = new Interpreter(
-      appState.currentSourceCodeValue,
+      appState.sourceCodeValue,
       this.interpreterInitFunctions
     );
 

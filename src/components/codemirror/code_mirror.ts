@@ -58,7 +58,7 @@ export class CodeMirrorWrapper {
     });
 
     this.editor.setSize("100%", "600px");
-    this.editor.setValue(appState.currentSourceCodeValue);
+    this.editor.setValue(appState.sourceCodeValue);
 
     this.editor.on("change", (instance) => {
       // this.updateHints();
@@ -128,7 +128,7 @@ export class CodeMirrorWrapper {
   markNode(markedNode: MarkedNode) {
     if (!this.editor || !markedNode) return;
 
-    const { node, color, autoScroll } = markedNode;
+    const { node, color } = markedNode;
 
     this.marks?.clear();
 
@@ -153,7 +153,7 @@ export class CodeMirrorWrapper {
     });
 
     /// Disable here, if no scroll should happen
-    if (autoScroll) {
+    if (appState.autoscrollValue) {
       this.editor.scrollIntoView(startPos, 200);
     }
   }
