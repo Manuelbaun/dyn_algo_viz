@@ -38,9 +38,9 @@ export default class AnimationController {
       appState.setCurrentTime(timeline.currentTime);
     };
 
-    const { progress, speed, event } = appState;
+    const { progress, animationSpeed, event } = appState;
 
-    speed.subscribe((data) => this.setSpeed(data));
+    animationSpeed.subscribe((data) => this.setSpeed(data));
 
     progress.subscribe((data) => this.setProgress(data));
 

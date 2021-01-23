@@ -7,6 +7,7 @@
   export let max: number | string;
   export let step: number | string;
   export let hint: string = "";
+  export let displayValue: string = "";
 
   let range: HTMLInputElement;
   let tooltip: HTMLDivElement;
@@ -47,7 +48,7 @@
           {hint || ""}
         </div>
         <div>
-          {value.toFixed(2)}
+          {displayValue || value.toFixed(2)}
         </div>
       </span>
     </div>

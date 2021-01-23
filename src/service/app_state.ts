@@ -3,6 +3,7 @@ import { derived, get, Writable, writable } from "svelte/store";
 import type { CustomAcornNode, EVENTS, MarkedNode, STATE } from "./store_types";
 import { writableModified } from "../utils/custom_store";
 import { TimeSeries } from "../utils/time_series";
+import { scaleLinear } from "d3";
 
 function getItem(key: string, useJsonParser = true) {
   const item = localStorage.getItem(key);
@@ -42,12 +43,26 @@ export class AppState {
     return "ERROR";
   });
 
+  /**
+   * A scale, which maps the domain from min, max/2 to values between 0.1 - 1.
+   * This is used, so, that the middle of the input range slider is the animation speed 1
+   */
+  leftScale = scaleLinear().domain([0.1, 5]).range([0.1, 1]);
+
+  /** this handles the values from max/2 -max, in the range of 1-10*/
+  rightScale = scaleLinear().domain([5, 10]).range([1, 10]);
+
   readonly localScope = writable<object>({});
   readonly errors = writable<object>({});
 
-  readonly speed = writable<number>(+(getItem("speed") || 1));
+  readonly animationSpeedSlider = writable<number>(+(getItem("speed") || 1));
+  readonly animationSpeed = derived(this.animationSpeedSlider, (v) => {
+    return v <= 5 ? this.leftScale(v) : this.rightScale(v);
+  });
+
   readonly autofit = writable<boolean>(getItem("autofit") || false);
   readonly autoscroll = writable<boolean>(getItem("autoscroll") || false);
+
   // need a helper class(Set), since breakPoints wont trigger
   private readonly breakPointsSet = new Set<number>();
   readonly breakPoints = writable<number[]>(getItem("breakPoints") || []);
@@ -64,7 +79,7 @@ export class AppState {
 
   constructor() {
     // auto save speed to localstorage
-    this.speed.subscribe((val) => setItem("speed", val));
+    this.animationSpeedSlider.subscribe((val) => setItem("speed", val));
     this.breakPoints.subscribe((data) => setItem("breakPoints", data));
     this.autofit.subscribe((data) => setItem("autofit", data));
     this.autoscroll.subscribe((data) => setItem("autoscroll", data));
@@ -105,7 +120,7 @@ export class AppState {
   }
 
   setSpeed(value: number) {
-    this.speed.set(value);
+    this.animationSpeedSlider.set(value);
   }
 
   setProgress(value: number) {

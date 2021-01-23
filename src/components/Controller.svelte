@@ -1,7 +1,15 @@
 <script lang="ts">
   import { appState } from "../service/app_state";
   import Slider from "./Slider.svelte";
-  const { event, progress, speed, state, autofit, autoscroll } = appState;
+  const {
+    event,
+    progress,
+    animationSpeed,
+    animationSpeedSlider,
+    state,
+    autofit,
+    autoscroll,
+  } = appState;
 
   let mainButtonText = "Start";
 
@@ -47,7 +55,8 @@
         step=".01"
         min="0.1"
         max="10"
-        bind:value={$speed}
+        bind:value={$animationSpeedSlider}
+        displayValue={$animationSpeed.toFixed(2)}
         hint="Animation Speed"
       />
     </div>
