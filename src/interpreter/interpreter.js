@@ -11,10 +11,6 @@
 "use strict";
 import * as acorn from "acorn";
 import { appState } from "../service/app_state";
-/**
- * Added by: Manuel Baun
- */
-import { EventEmitter } from "../utils/event_emitter";
 
 /**
  * Create a new interpreter.
@@ -27,16 +23,10 @@ import { EventEmitter } from "../utils/event_emitter";
 var Interpreter = function (code, opt_initFunc) {
   /**
    * Added by: Manuel Baun
-   * The event emitter class
-   */
-  this.emitter = new EventEmitter();
-  /**
-   * Added by: Manuel Baun
    * EmitEnable will be set to true, when the step function is called.
    * This way, we bypass all the setup
    * dont get any events or modifition on existing objects
    */
-  this.extentionEnable = false;
   this.initComplete = false;
   /**
    *
@@ -85,7 +75,7 @@ var Interpreter = function (code, opt_initFunc) {
    * Add a new stack class!! not array
    */
 
-  this.stateStack = new Stack(this.emitter, [state]);
+  this.stateStack = new Stack([state]);
 
   this.run();
   this.value = undefined;
@@ -341,8 +331,6 @@ Interpreter.prototype.appendCode = function (code) {
  * @return {boolean} True if a step was executed, false if no more instructions.
  */
 Interpreter.prototype.step = function () {
-  this.enableExtenstion();
-
   var stack = this.stateStack;
   do {
     var state = stack.getTop();
@@ -3732,7 +3720,6 @@ Interpreter.prototype["stepBinaryExpression"] = function (stack, state, node) {
       throw SyntaxError("Unknown binary operator: " + node["operator"]);
   }
 
-  this.emitEvent("BinaryExpression", { ...state, leftValue, rightValue });
   stack.getTop().value = value;
 };
 
@@ -4697,15 +4684,18 @@ Interpreter.prototype["pseudoToNative"] = Interpreter.prototype.pseudoToNative;
  * Should make it simpler
  */
 class Stack {
-  constructor(emitter, elements) {
+  /**
+   * @param {any[]} elements 
+   */
+  constructor(elements) {
     // Initializing the stack with given arguments
-    this.emitter = emitter;
     this.elements = [...elements];
   }
 
   get length() {
     return this.elements.length;
   }
+
   set(index, value) {
     this.elements[index] = value;
   }
@@ -4717,13 +4707,12 @@ class Stack {
   // Proxying the push/shift methods
   push(state) {
     const res = this.elements.push(state);
-    this.emitter.emit("stack", { action: "push", state });
     return res;
   }
 
   pop() {
     const state = this.elements.pop();
-    this.emitter.emit("stack", { action: "pop", state });
+
     return state;
   }
 
@@ -4771,32 +4760,9 @@ Interpreter.prototype.unsetPause = function () {
   this.paused_ = false;
 };
 
-Interpreter.prototype.emit = function (obj, action, data) {
-  if (this.emitter && this.extentionEnable) {
-    this.emitter.emit({ action, obj, ...data }, obj.id);
-  }
-};
-
-Interpreter.prototype.emitEvent = function (event, data) {
-  if (this.emitter && this.extentionEnable) {
-    this.emitter.emit(data, event);
-  }
-};
-
-Interpreter.prototype.on = function (event, callback) {
-  this.emitter.on(event, callback);
-};
 
 /** @type {Function(topStack) => void} */
 Interpreter.prototype.onStep;
-
-Interpreter.prototype.enableExtenstion = function () {
-  this.extentionEnable = true;
-};
-
-Interpreter.prototype.disableExtenstion = function () {
-  this.extentionEnable = false;
-};
 
 /**
  * Utility function, which takes the scope of a state and filtes out
