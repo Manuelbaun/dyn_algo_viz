@@ -264,7 +264,7 @@ export class ArrayWrapper {
   }
 }
 
-export class ElementRefManager {
+export class ElementManager {
   /** Map of the interpreter Array to the wrapped classes */
   private wrappedArrays: Map<Interpreter.Object, ArrayWrapper> = new Map();
 
@@ -280,6 +280,11 @@ export class ElementRefManager {
     return Array.from(this.elements.values());
   }
 
+  /**
+   * Creates a 2d Array, where 0 represets the absents of an visual element
+   * and 1 represents the present of an visual element
+   * @param first
+   */
   helpMatrix(first: VisualElement) {
     const els = Array.from(this.elements.values()).filter((e) => e != first);
 
@@ -296,25 +301,26 @@ export class ElementRefManager {
   /**
    * A very simple algorithm, to find a free space, in that "2d" grid.
    * This algorithm is not working properly and needs more checks
+   * starting point it x=0 and y=0 and searches first vertically,
    * @param first
-   * @param any
+   * @param findFreeSpot
    */
-  findFree(first: VisualElement, any: boolean) {
+  findFree(first: VisualElement, findFreeSpot: boolean = false) {
     const m = this.helpMatrix(first);
 
     let y: number, x: number;
 
-    if (any) {
+    if (findFreeSpot) {
       for (x = 0; x < 8; x++) {
         for (y = 0; y < 8; y++) {
           // check also one on the left..
           if (m[y][x] == 0 && m[y][x + 1] == 0) {
-            // console.log("MATRIX:", m, { x, y });
             return { x, y };
           }
         }
       }
     }
+
     return { x: m[first.y].findIndex((e) => e == 0), y: first.y };
   }
 

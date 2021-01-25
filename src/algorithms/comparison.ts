@@ -5,7 +5,7 @@ import type AnimationController from "../animation/animation_controller";
 import type Interpreter from "../interpreter/interpreter";
 import { generateData } from "../utils/helper_functions";
 
-import { ElementRefManager, DrawBasic, VisualElement } from "./helper_classes";
+import { ElementManager, DrawBasic, VisualElement } from "./helper_classes";
 
 /**
  * BIG TODOS:
@@ -46,11 +46,15 @@ export default class ComparisonSorts {
     length = 10
   ) {
     this.data = generateData(length);
+    // this.data = Array(50)
+    // .fill(0)
+    // .map((a, i) => i);
+
     this.panZoomControl = panZoomer;
     this.animationControl = animationControl;
 
     this.drawing = new DrawBasic(rootDraw, viewBox, this.data);
-    this.elementManager = new ElementRefManager(this.drawing);
+    this.elementManager = new ElementManager(this.drawing);
 
     this.colorMapping = {
       get: this.drawing.colors.Aqua,

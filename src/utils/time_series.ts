@@ -13,7 +13,7 @@ export class TimeSeries<T> {
   }
 
   // https://gist.github.com/robertleeplummerjr/1cc657191d34ecd0a324
-  indexOfNearestLessThan(needle: number) {
+  private indexOfNearestLessThan(needle: number) {
     if (this.ts.length === 0) return -1;
 
     var high = this.ts.length - 1,
