@@ -14,7 +14,7 @@
       <Codemirror />
     </div>
   </div>
-  <div class="divider text-center" data-content="Utils"></div>
+  <div class="divider text-center" data-content="Control"></div>
   <div class="columns">
     <div class="column col-6">
       <Controller />
