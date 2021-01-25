@@ -51,6 +51,17 @@ export class InterpreterWrapper {
         }, false)
       );
 
+      /**
+       * Function to highlight the code line
+       * and store local Scope at that node/state
+       * @param {string} color
+       */
+      const highlightAndScope = (color) => {
+        const state = self.stateStack.getTop();
+        appState.markNode(state.node, color, true);
+        appState.setLocalScope(self.getLocalScope(state.scope), true);
+      };
+
       /** **************** */
       /** Define functions */
       /** **************** */
@@ -70,10 +81,7 @@ export class InterpreterWrapper {
 
         // do animation
         self.asyncCall(() => {
-          const state = self.stateStack.getTop();
-          appState.markNode(state.node, algorithm.colors.compare, true);
-          appState.setLocalScope(self.getLocalScope(state.scope), true);
-
+          highlightAndScope(algorithm.colors.compare);
           return algorithm.compare(this, i, j, res);
         });
 
@@ -99,9 +107,7 @@ export class InterpreterWrapper {
 
         // do animation by real values
         self.asyncCall(() => {
-          const state = self.stateStack.getTop();
-          appState.markNode(state.node, algorithm.colors.swap, true);
-          appState.setLocalScope(self.getLocalScope(state.scope), true);
+          highlightAndScope(algorithm.colors.swap);
           return algorithm.swap(this, i, j);
         });
       });
@@ -114,9 +120,7 @@ export class InterpreterWrapper {
           const newObj = self.arrayNativeToPseudo(data);
 
           self.asyncCall(() => {
-            const state = self.stateStack.getTop();
-            appState.markNode(state.node, algorithm.colors.splice, true);
-            appState.setLocalScope(self.getLocalScope(state.scope), true);
+            highlightAndScope(algorithm.colors.splice);
             return algorithm.splice(newObj);
           });
           return newObj;
@@ -124,10 +128,9 @@ export class InterpreterWrapper {
       );
 
       self.setNativeFunctionPrototype(self.ARRAY, "shift", function (args) {
+        // First animate, then apply shift to Array
         self.asyncCall(() => {
-          const state = self.stateStack.getTop();
-          appState.markNode(state.node, algorithm.colors.shift, true);
-          appState.setLocalScope(self.getLocalScope(state.scope), true);
+          highlightAndScope(algorithm.colors.shift);
           return algorithm.shift(this);
         });
 
@@ -139,10 +142,7 @@ export class InterpreterWrapper {
         const res = Array.prototype.push.apply(this.properties, arguments);
 
         self.asyncCall(() => {
-          const state = self.stateStack.getTop();
-          appState.markNode(state.node, algorithm.colors.push, true);
-          appState.setLocalScope(self.getLocalScope(state.scope), true);
-
+          highlightAndScope(algorithm.colors.push);
           return algorithm.push(this);
         });
         return res;
@@ -150,10 +150,7 @@ export class InterpreterWrapper {
 
       self.setNativeFunctionPrototype(self.ARRAY, "get", function (index) {
         self.asyncCall(() => {
-          const state = self.stateStack.getTop();
-          appState.markNode(state.node, algorithm.colors.get, true);
-          appState.setLocalScope(self.getLocalScope(state.scope), true);
-
+          highlightAndScope(algorithm.colors.get);
           return algorithm.get(this, index);
         });
 
@@ -168,10 +165,7 @@ export class InterpreterWrapper {
           this.properties[index] = value;
 
           self.asyncCall(() => {
-            const state = self.stateStack.getTop();
-            appState.markNode(state.node, algorithm.colors.set, true);
-            appState.setLocalScope(self.getLocalScope(state.scope), true);
-
+            highlightAndScope(algorithm.colors.set);
             return algorithm.set(this, index, value);
           });
         }
@@ -213,10 +207,7 @@ export class InterpreterWrapper {
         const newArray = self.arrayNativeToPseudo(data);
 
         self.asyncCall(() => {
-          const state = self.stateStack.getTop();
-          appState.markNode(state.node, algorithm.colors.concat, true);
-          appState.setLocalScope(self.getLocalScope(state.scope), true);
-
+          highlightAndScope(algorithm.colors.concat);
           return algorithm.concat(newArray);
         });
         return newArray;
