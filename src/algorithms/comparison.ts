@@ -326,6 +326,9 @@ export default class ComparisonSorts {
   async set(array: Interpreter.Object, i: number, value: number) {
     const tl = this.animationControl.algoTimeline;
     const ref = this.elementManager.getArrayWrapper(array);
+    const first = ref.getRef(0);
+
+    if (!first) return;
 
     // get visual objects
     const group = ref.getByValue(value);
@@ -340,8 +343,8 @@ export default class ComparisonSorts {
       duration: 100,
     }).add({
       targets: group.node,
-      translateX: this.drawing.scales.x(i),
-      translateY: group.posY - this.drawing.scales.y(1),
+      translateX: first.posX + this.drawing.scales.x(i),
+      translateY: first.posY,
       duration: 200,
     });
 
