@@ -881,11 +881,6 @@ var engine = (function () {
         activeInstance.tick(t);
         i++;
       } else {
-        /// need to remeber, when it paused
-        activeInstance.pausedCurrent = activeInstance.currentTime
-        activeInstance.pausedSpeed = anime.speed;
-        activeInstance.pausedAtNow = t;
-
         activeInstances.splice(i, 1);
         activeInstancesLength--;
       }
@@ -936,7 +931,7 @@ function anime(params) {
 
   var instance = createNewInstance(params);
   instance.useDeltaTime = params.useDeltaTime;
-  instance.pausedCurrent =0;
+
 
   var promise = makePromise(instance);
 
@@ -1164,11 +1159,7 @@ function anime(params) {
       const progress = instance.currentTime + 16.6 * anime.speed;
       setInstanceProgress(progress);
     } else {
-      if (this.adjustTime) {
-        this.adjustTime = false;
-        startTime = now - instance.pausedCurrent;
-      }
-    
+
       const progress = (now + (lastTime - startTime)) * anime.speed;
     
       setInstanceProgress(progress);
@@ -1197,22 +1188,16 @@ function anime(params) {
    * added by: Manuel Baun 
    * 
    * A break function to distinguish between the pause function.
-   * Use the adjustTime field, to indikate, that the animation was 
-   * stopped by the break function and not by pause.
+   * It will not reset the Time of the instance
    * 
-   * When adjustTime is set to true, the next call of the instance.tick 
-   * function (line 1168) will set it to false.
    */
-  instance.adjustTime = false;
   instance.break = function() {
     instance.paused = true;
-    instance.adjustTime = true;
   };
 
   /**
    * added by: Manuel Baun
-   *  
-   * Will wait the the animation to finished before hit break
+   * Will wait until the animation is finished before hit break
    */
   instance.step = async function() {
     await instance.finished
