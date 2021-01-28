@@ -20,7 +20,7 @@ export class InterpreterWrapper {
     this.paused = false;
     this.initDone = false;
 
-    const initFunction = this.initFunctions.bind(this);
+    const initFunction = this.interpreterInitFunctions.bind(this);
     /**
      *
      */
@@ -46,35 +46,10 @@ export class InterpreterWrapper {
     });
   }
 
-  /**
-   * Function that returns an object as the local scope.
-   * It filters verything, that is in the globalobject
-   * and leave only the difference
-   */
-  getLocalScope(scope: any) {
-    const globalKeys = Object.keys(this.interpreter.globalObject.properties);
-    const keys = Object.keys(scope.object.properties);
-
-    const difference = keys.filter(
-      (x) => !globalKeys.includes(x) && x != "arguments"
-    );
-
-    const localScope: any = {};
-
-    for (const k of difference) {
-      const prop = scope.object.properties[k];
-
-      if (prop instanceof Interpreter.Object) {
-        localScope[k] = this.interpreter.pseudoToNative(prop);
-      } else {
-        localScope[k] = prop;
-      }
-    }
-
-    return localScope;
-  }
-
-  private initFunctions(self: Interpreter, globalObject: Interpreter.Object) {
+  private interpreterInitFunctions(
+    self: Interpreter,
+    globalObject: Interpreter.Object
+  ) {
     // extra variable for algorithm, since the context within the wrapper is a different one!
     // and this.algorithm wont be available within the wrapper functions
     const algorithm = this.algorithm;
@@ -323,10 +298,37 @@ export class InterpreterWrapper {
   }
 
   /**
+   * Function that returns an object as the local scope.
+   * It filters verything, that is in the globalobject
+   * and leave only the difference
+   */
+  private getLocalScope(scope: any) {
+    const globalKeys = Object.keys(this.interpreter.globalObject.properties);
+    const keys = Object.keys(scope.object.properties);
+
+    const difference = keys.filter(
+      (x) => !globalKeys.includes(x) && x != "arguments"
+    );
+
+    const localScope: any = {};
+
+    for (const k of difference) {
+      const prop = scope.object.properties[k];
+
+      if (prop instanceof Interpreter.Object) {
+        localScope[k] = this.interpreter.pseudoToNative(prop);
+      } else {
+        localScope[k] = prop;
+      }
+    }
+
+    return localScope;
+  }
+  /**
    * A function to handle the breakpoints
    */
   lastBreakPoint: number[] = [];
-  handleBreakPoints(top: any) {
+  private handleBreakPoints(top: any) {
     const line = top.node.loc.start.line as number;
     const lineEnd = top.node.loc.end.line;
 
@@ -356,7 +358,7 @@ export class InterpreterWrapper {
     }
   }
 
-  handleStepAndStepIn(event: EVENTS) {
+  private handleStepAndStepIn(event: EVENTS) {
     if (event == "STEPIN" || event == "STEP") {
       const state = this.interpreter.stateStack.getTop();
 
@@ -388,7 +390,7 @@ export class InterpreterWrapper {
     }
   }
 
-  stepHighlighted(state: any) {
+  private stepHighlighted(state: any) {
     // will walk every node in the tree
     const paused = this.paused;
     this.paused = false;
@@ -406,7 +408,7 @@ export class InterpreterWrapper {
    *
    * @private
    */
-  mainExecutingLoop() {
+  private mainExecutingLoop() {
     while (appState.isRunning && !this.paused && this.interpreter.step()) {
       const topStack = this.interpreter.stateStack.getTop();
       this.handleBreakPoints(topStack);
