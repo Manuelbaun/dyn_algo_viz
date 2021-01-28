@@ -1159,9 +1159,7 @@ function anime(params) {
       const progress = instance.currentTime + 16.6 * anime.speed;
       setInstanceProgress(progress);
     } else {
-
       const progress = (now + (lastTime - startTime)) * anime.speed;
-    
       setInstanceProgress(progress);
     }
   };
