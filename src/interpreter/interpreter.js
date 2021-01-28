@@ -10,7 +10,6 @@
  */
 "use strict";
 import * as acorn from "acorn";
-// import { appState } from "../service/app_state";
 
 /**
  * Create a new interpreter.
@@ -21,16 +20,6 @@ import * as acorn from "acorn";
  * @constructor
  */
 var Interpreter = function (code, opt_initFunc) {
-  /**
-   * Added by: Manuel Baun
-   * EmitEnable will be set to true, when the step function is called.
-   * This way, we bypass all the setup
-   * dont get any events or modifition on existing objects
-   */
-  this.initComplete = false;
-  /**
-   *
-   */
   if (typeof code === "string") {
     code = acorn.parse(code, Interpreter.PARSE_OPTIONS);
   }
@@ -74,7 +63,6 @@ var Interpreter = function (code, opt_initFunc) {
    * Added by Manuel Baun:
    * Add a new stack class!! not array
    */
-
   this.stateStack = new Stack([state]);
 
   this.run();
@@ -88,8 +76,6 @@ var Interpreter = function (code, opt_initFunc) {
   // Preserve publicly properties from being pruned/renamed by JS compilers.
   // Add others as needed.
   this["stateStack"] = this.stateStack;
-
-  this.initComplete = true;
 };
 
 /**
@@ -3260,9 +3246,6 @@ Interpreter.prototype.unwind = function (type, value, label) {
         // Don't pop the stateStack.
         // Leave the root scope on the tree in case the program is appended to.
         state.done = true;
-        // Added by Manuel Baun: trigger app state to be done
-
-        // appState.setDone();
 
         break loop;
     }
@@ -3305,7 +3288,6 @@ Interpreter.prototype.unwind = function (type, value, label) {
     realError = String(value);
   }
 
-  // appState.setError();
   throw realError;
 };
 
@@ -4372,16 +4354,6 @@ Interpreter.prototype["stepProgram"] = function (stack, state, node) {
 
   // Don't pop the stateStack.
   // Leave the root scope on the tree in case the program is appended to.
-
-  // /**
-  //  * Added by Manuel Baun:
-  //  *
-  //  * trigger app state to be done
-  //  */
-  // if (this.initComplete) {
-  //   appState.setDone();
-  //   // console.log('Interpreter Initial finished');
-  // }
 };
 
 Interpreter.prototype["stepReturnStatement"] = function (stack, state, node) {
@@ -4676,16 +4648,14 @@ Interpreter.prototype["pseudoToNative"] = Interpreter.prototype.pseudoToNative;
 
 /**
  * Added by: Manuel Baun
- * Extend the Interpreter
- */
-
-/**
- * The Stack is a refactored stack for the interpreter
- * Should make it simpler
+ *
+ * The Stack is a refactored stack of the interpreter
+ * it does not change the behavoir, but makes it simpler to handle
+ * when the state/stack/node, needs to be read from outside
  */
 class Stack {
   /**
-   * @param {any[]} elements 
+   * @param {any[]} elements
    */
   constructor(elements) {
     // Initializing the stack with given arguments
@@ -4728,70 +4698,5 @@ class Stack {
     return (this.elements.length = length);
   }
 }
-
-/**
- *
- * @param {() => Promise<any>) | () => Promise<any>[]} func
- */
-// Interpreter.prototype.asyncCall = async function (func) {
-//   const paused = this.paused_;
-//   this.paused_ = true;
-
-//   if (func instanceof Array) {
-//     Promise.all(func);
-//   } else {
-//     await func();
-//   }
-//   this.paused_ = paused;
-
-//   if (appState.isRunning) {
-//     this.run();
-//   }
-// };
-
-/**
- * Call this function to stop the running interpreter
- */
-// Interpreter.prototype.setPause = function () {
-//   this.paused_ = true;
-// };
-
-// Interpreter.prototype.unsetPause = function () {
-//   this.paused_ = false;
-// };
-
-
-/** @type {Function(topStack) => void} */
-// Interpreter.prototype.onStep;
-
-/**
- * Utility function, which takes the scope of a state and filtes out
- * the global scope
- * @param {*} scope
- */
-// Interpreter.prototype.getLocalScope = function (scope) {
-//   // TODO: memoize
-//   const globalKeys = Object.keys(this.globalObject.properties);
-
-//   const keys = Object.keys(scope.object.properties);
-
-//   const difference = keys.filter(
-//     (x) => !globalKeys.includes(x) && x != "arguments"
-//   );
-
-//   const localScope = {};
-
-//   for (const k of difference) {
-//     const prop = scope.object.properties[k];
-
-//     if (prop instanceof Interpreter.Object) {
-//       localScope[k] = this.pseudoToNative(prop);
-//     } else {
-//       localScope[k] = prop;
-//     }
-//   }
-
-//   return localScope;
-// };
 
 export default Interpreter;
