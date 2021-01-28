@@ -920,7 +920,7 @@ function isDocumentHidden() {
 
 // Public Instance
 
-function anime(params, shouldUseDeltaTime = false) {
+function anime(params) {
   if ( params === void 0 ) params = {};
 
 
@@ -935,7 +935,7 @@ function anime(params, shouldUseDeltaTime = false) {
   }
 
   var instance = createNewInstance(params);
-  instance.shouldUseDeltaTime = shouldUseDeltaTime;
+  instance.useDeltaTime = params.useDeltaTime;
   instance.pausedCurrent =0;
 
   var promise = makePromise(instance);
@@ -1150,14 +1150,17 @@ function anime(params, shouldUseDeltaTime = false) {
      * where it last stopped. Otherwise, the animation will "jump".
      * CurrentTime gives the time, of the animation timeline.
      * 
-     * The shouldUseDeltaTime will apply the speed on the 1000/60 => 60 fps or 16.6 and adds it to the instance currentTime
+     * The useDeltaTime will apply the speed on the 1000/60 => 60 fps or 16.6 and adds it to the instance currentTime
      * this way, we dont influence the progress, when we change the animation speed on the play!
      * 
      * 
      * Also, when animaiton is paused, we dont get wired artifacts, when resume animation
      * 
+     * Possible idea:
+     * Every instance could have its own speed!
+     * 
      */
-    if (instance.shouldUseDeltaTime) {
+    if (instance.useDeltaTime) {
       const progress = instance.currentTime + 16.6 * anime.speed;
       setInstanceProgress(progress);
     } else {
@@ -1193,12 +1196,12 @@ function anime(params, shouldUseDeltaTime = false) {
   /**
    * added by: Manuel Baun 
    * 
-   * The break function, to distingues between the pause function.
-   * Use the adjustTime field, to indikate, the animation was stopped by the break function
-   * and not by pause.
+   * A break function to distinguish between the pause function.
+   * Use the adjustTime field, to indikate, that the animation was 
+   * stopped by the break function and not by pause.
    * 
-   * When break is set to true, the instance.tick function will unset it.
-   * 
+   * When adjustTime is set to true, the next call of the instance.tick 
+   * function (line 1168) will set it to false.
    */
   instance.adjustTime = false;
   instance.break = function() {
@@ -1207,6 +1210,8 @@ function anime(params, shouldUseDeltaTime = false) {
   };
 
   /**
+   * added by: Manuel Baun
+   *  
    * Will wait the the animation to finished before hit break
    */
   instance.step = async function() {
@@ -1219,6 +1224,8 @@ function anime(params, shouldUseDeltaTime = false) {
    * added by: Manuel Baun
    * Added a custom function to continue from last added animation param
    * the function removes the reset time function.
+   *  
+   * Copied most of it from instance.reset! (line 1107)
    * 
    * Returns the finshed promise
    * @returns {Promise<void>}
@@ -1365,10 +1372,10 @@ function stagger(val, params) {
  * added by Manuel Baun 
  * shouldUseDeltaTime
  */
-function timeline(params, shouldUseDeltaTime=false) {
+function timeline(params) {
   if ( params === void 0 ) params = {};
 
-  var tl = anime(params,shouldUseDeltaTime);
+  var tl = anime(params);
   tl.duration = 0;
   tl.add = function(instanceParams, timelineOffset) {
     var tlIndex = activeInstances.indexOf(tl);
@@ -1384,7 +1391,7 @@ function timeline(params, shouldUseDeltaTime=false) {
     insParams.timelineOffset = is.und(timelineOffset) ? tlDuration : getRelativeValue(timelineOffset, tlDuration);
     passThrough(tl);
     tl.seek(insParams.timelineOffset);
-    var ins = anime(insParams,tl.shouldUseDeltaTime);
+    var ins = anime(insParams);
     passThrough(ins);
     children.push(ins);
     var timings = getInstanceTimings(children, params);
@@ -1392,6 +1399,8 @@ function timeline(params, shouldUseDeltaTime=false) {
     tl.endDelay = timings.endDelay;
     tl.duration = timings.duration;
     /**
+     *  Added by Manuel Baun
+     * 
      *  added here, so that we do not reset, after we add a new animation
      *  default behavoir is == true
      */

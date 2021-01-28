@@ -28,6 +28,7 @@ export default class AnimationController {
       duration: 200,
       autoplay: false,
       shouldReset: false,
+      useDeltaTime: true,
     },
     true
   );
