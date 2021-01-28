@@ -7,7 +7,7 @@
   import ComparisonSorts from "../algorithms/comparison";
   import AnimationController from "../animation/animation_controller";
   // needs .js, since it is a javascript file
-  import { InterpreterWrapper } from "../interpreter/interpreter_wrapper.js";
+  import { InterpreterWrapper } from "../interpreter/interpreter_wrap";
 
   let svgElement: SVGElement;
   onMount(async () => {

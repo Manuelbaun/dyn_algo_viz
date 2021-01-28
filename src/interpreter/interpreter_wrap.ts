@@ -1,13 +1,19 @@
 import Interpreter from "./interpreter";
 
-import ComparisonSorts from "../algorithms/comparison";
+import type ComparisonSorts from "../algorithms/comparison";
 import { appState } from "../service/app_state";
+import type { EVENTS } from "src/service/store_types";
 
 export class InterpreterWrapper {
-  /**
-   * @param {ComparisonSorts} algorithm
-   */
-  constructor(algorithm) {
+  algorithm: ComparisonSorts;
+  paused: boolean;
+  initDone: boolean;
+  interpreter: Interpreter;
+
+  stateSubscription: Function;
+  eventSubscription: Function;
+
+  constructor(algorithm: ComparisonSorts) {
     this.algorithm = algorithm;
 
     // should be from app state!
@@ -44,9 +50,8 @@ export class InterpreterWrapper {
    * Function that returns an object as the local scope.
    * It filters verything, that is in the globalobject
    * and leave only the difference
-   * @param {*} scope
    */
-  getLocalScope(scope) {
+  getLocalScope(scope: any) {
     const globalKeys = Object.keys(this.interpreter.globalObject.properties);
     const keys = Object.keys(scope.object.properties);
 
@@ -54,7 +59,7 @@ export class InterpreterWrapper {
       (x) => !globalKeys.includes(x) && x != "arguments"
     );
 
-    const localScope = {};
+    const localScope: any = {};
 
     for (const k of difference) {
       const prop = scope.object.properties[k];
@@ -69,12 +74,7 @@ export class InterpreterWrapper {
     return localScope;
   }
 
-  /**
-   * @private
-   * @param {Interpreter} self
-   * @param {Interpreter.Object} globalObject
-   */
-  initFunctions(self, globalObject) {
+  private initFunctions(self: Interpreter, globalObject: Interpreter.Object) {
     // extra variable for algorithm, since the context within the wrapper is a different one!
     // and this.algorithm wont be available within the wrapper functions
     const algorithm = this.algorithm;
@@ -82,10 +82,11 @@ export class InterpreterWrapper {
      * A utility function to stop the interpreter running and await async functions, then continue
      * when the interpreter was in runnning state!
      * It is expected, that the func returns a promise, or multiple Promises
-     * @param {() => Promise<any>) | () => Promise<any>[]} func
      * @private
      */
-    const asyncCall = async (func) => {
+    const asyncCall = async (
+      func: (() => Promise<any>) | (() => Promise<any>[])
+    ) => {
       const paused = this.paused;
       this.paused = true;
 
@@ -112,7 +113,7 @@ export class InterpreterWrapper {
      * and store local Scope at that node/state
      * @param {string} color
      */
-    const highlightAndScope = (color) => {
+    const highlightAndScope = (color: string) => {
       const state = self.stateStack.getTop();
       appState.markNode(state.node, color, true);
       appState.setLocalScope(this.getLocalScope(state.scope), true);
@@ -122,7 +123,10 @@ export class InterpreterWrapper {
     /** Define Props     **/
     /** **************** **/
     const root = self.nativeToPseudo(algorithm.data);
-    root.id = "root";
+    if (root) {
+      // @ts-ignore
+      root.id = "root";
+    }
     self.setProperty(globalObject, "root", root);
 
     /** **************** **/
@@ -131,21 +135,21 @@ export class InterpreterWrapper {
     self.setProperty(
       globalObject,
       "print",
-      self.createNativeFunction(function (...obj) {
+      self.createNativeFunction(function (...args: any[]) {
         const node = self.stateStack.getTop().node;
         const printLine = "print:" + node.loc.start.line;
         try {
-          if (obj instanceof Array) {
-            const res = obj.map((e) => self.pseudoToNative(e));
+          if (args instanceof Array) {
+            const res = args.map((e) => self.pseudoToNative(e));
 
             console.log(printLine, ...res);
           } else {
-            const res = self.pseudoToNative(obj);
+            const res = self.pseudoToNative(args);
             console.log(printLine, res);
           }
         } catch (e) {
           console.log(e);
-          console.log(printLine, obj);
+          console.log(printLine, args);
         }
       }, false)
     );
@@ -155,55 +159,63 @@ export class InterpreterWrapper {
     /** *************************************** **/
 
     /// extends the array prototype of the interpreter! with a compare function
-    self.setNativeFunctionPrototype(self.ARRAY, "compare", function (i, j) {
-      const arr = this.properties;
-      const res = arr[i] > arr[j];
+    self.setNativeFunctionPrototype(
+      self.ARRAY,
+      "compare",
+      function (i: number, j: number) {
+        const arr = this.properties;
+        const res = arr[i] > arr[j];
 
-      if (res == null) {
-        self.throwException(
-          self.RANGE_ERROR,
-          `Cannot compare elements, since either element at index i:${i}=>${arr[i]} OR j:${j}=>${arr[j]} does not exist on this array`
-        );
+        if (res == null) {
+          self.throwException(
+            self.RANGE_ERROR,
+            `Cannot compare elements, since either element at index i:${i}=>${arr[i]} OR j:${j}=>${arr[j]} does not exist on this array`
+          );
+        }
+
+        // do animation
+        asyncCall(() => {
+          highlightAndScope(algorithm.colors.compare);
+          return algorithm.compare(this, i, j, res);
+        });
+
+        return res;
       }
+    );
 
-      // do animation
-      asyncCall(() => {
-        highlightAndScope(algorithm.colors.compare);
-        return algorithm.compare(this, i, j, res);
-      });
+    self.setNativeFunctionPrototype(
+      self.ARRAY,
+      "swap",
+      function (i: number, j: number) {
+        /// swap the data
+        const arr = this.properties;
 
-      return res;
-    });
+        // get real values;
+        const a = arr[i];
+        const b = arr[j];
 
-    self.setNativeFunctionPrototype(self.ARRAY, "swap", function (i, j) {
-      /// swap the data
-      const arr = this.properties;
+        if (!a || !b) {
+          self.throwException(
+            self.RANGE_ERROR,
+            `Cannot swap elements, since either element at index i:${i}=>${a} OR j:${j}=>${b} does not exist on this array`
+          );
+        }
+        // swap
+        arr[i] = b;
+        arr[j] = a;
 
-      // get real values;
-      const a = arr[i];
-      const b = arr[j];
-
-      if (!a || !b) {
-        self.throwException(
-          self.RANGE_ERROR,
-          `Cannot swap elements, since either element at index i:${i}=>${a} OR j:${j}=>${b} does not exist on this array`
-        );
+        // do animation by real values
+        asyncCall(() => {
+          highlightAndScope(algorithm.colors.swap);
+          return algorithm.swap(this, i, j);
+        });
       }
-      // swap
-      arr[i] = b;
-      arr[j] = a;
-
-      // do animation by real values
-      asyncCall(() => {
-        highlightAndScope(algorithm.colors.swap);
-        return algorithm.swap(this, i, j);
-      });
-    });
+    );
 
     self.setNativeFunctionPrototype(
       self.ARRAY,
       "splice",
-      function (start, end) {
+      function (start: number, end: number) {
         const data = Array.prototype.splice.call(this.properties, start, end);
         const newObj = self.arrayNativeToPseudo(data);
 
@@ -215,7 +227,7 @@ export class InterpreterWrapper {
       }
     );
 
-    self.setNativeFunctionPrototype(self.ARRAY, "shift", function (args) {
+    self.setNativeFunctionPrototype(self.ARRAY, "shift", function () {
       // First animate, then apply shift to Array
       asyncCall(() => {
         highlightAndScope(algorithm.colors.shift);
@@ -226,17 +238,21 @@ export class InterpreterWrapper {
       return Array.prototype.shift.call(this.properties);
     });
 
-    self.setNativeFunctionPrototype(self.ARRAY, "push", function (args) {
-      const res = Array.prototype.push.apply(this.properties, arguments);
+    self.setNativeFunctionPrototype(
+      self.ARRAY,
+      "push",
+      function (...args: any[]) {
+        const res = Array.prototype.push.apply(this.properties, args);
 
-      asyncCall(() => {
-        highlightAndScope(algorithm.colors.push);
-        return algorithm.push(this);
-      });
-      return res;
-    });
+        asyncCall(() => {
+          highlightAndScope(algorithm.colors.push);
+          return algorithm.push(this);
+        });
+        return res;
+      }
+    );
 
-    self.setNativeFunctionPrototype(self.ARRAY, "get", function (index) {
+    self.setNativeFunctionPrototype(self.ARRAY, "get", function (index: any) {
       asyncCall(() => {
         highlightAndScope(algorithm.colors.get);
         return algorithm.get(this, index);
@@ -245,21 +261,25 @@ export class InterpreterWrapper {
       return this.properties[index];
     });
 
-    self.setNativeFunctionPrototype(self.ARRAY, "set", function (index, value) {
-      this.properties[index] = value;
+    self.setNativeFunctionPrototype(
+      self.ARRAY,
+      "set",
+      function (index: any, value: any) {
+        this.properties[index] = value;
 
-      asyncCall(() => {
-        highlightAndScope(algorithm.colors.set);
-        return algorithm.set(this, index, value);
-      });
-    });
+        asyncCall(() => {
+          highlightAndScope(algorithm.colors.set);
+          return algorithm.set(this, index, value);
+        });
+      }
+    );
 
     // this concat function is copied straight from the interpreter itself
-    const concat = function (thisArray, args) {
+    const concat = function (thisArray: Interpreter.Object, args: any[]) {
       var data = [];
       var length = 0;
       // Start by copying the current array.
-      var iLength = self.getProperty(thisArray, "length");
+      var iLength = self.getProperty(thisArray, "length") as number;
       for (var i = 0; i < iLength; i++) {
         if (self.hasProperty(thisArray, i)) {
           var element = self.getProperty(thisArray, i);
@@ -271,7 +291,7 @@ export class InterpreterWrapper {
       for (var i = 0; i < args.length; i++) {
         var value = args[i];
         if (self.isa(value, self.ARRAY)) {
-          var jLength = self.getProperty(value, "length");
+          var jLength = self.getProperty(value, "length") as number;
           for (var j = 0; j < jLength; j++) {
             if (self.hasProperty(value, j)) {
               data[length] = self.getProperty(value, j);
@@ -285,25 +305,29 @@ export class InterpreterWrapper {
       return data;
     };
 
-    self.setNativeFunctionPrototype(self.ARRAY, "concat", function (args) {
-      const data = concat(this, arguments);
-      const newArray = self.arrayNativeToPseudo(data);
+    self.setNativeFunctionPrototype(
+      self.ARRAY,
+      "concat",
+      function (...args: any[]) {
+        const data = concat(this, args);
+        const newArray = self.arrayNativeToPseudo(data);
 
-      asyncCall(() => {
-        highlightAndScope(algorithm.colors.concat);
-        return algorithm.concat(newArray);
-      });
+        asyncCall(() => {
+          highlightAndScope(algorithm.colors.concat);
+          return algorithm.concat(newArray);
+        });
 
-      return newArray;
-    });
+        return newArray;
+      }
+    );
   }
 
   /**
    * A function to handle the breakpoints
    */
-  lastBreakPoint = [];
-  handleBreakPoints(top) {
-    const line = top.node.loc.start.line;
+  lastBreakPoint: number[] = [];
+  handleBreakPoints(top: any) {
+    const line = top.node.loc.start.line as number;
     const lineEnd = top.node.loc.end.line;
 
     const isBreakPoint = appState.isBreakPoint(line);
@@ -332,7 +356,7 @@ export class InterpreterWrapper {
     }
   }
 
-  handleStepAndStepIn(event) {
+  handleStepAndStepIn(event: EVENTS) {
     if (event == "STEPIN" || event == "STEP") {
       const state = this.interpreter.stateStack.getTop();
 
@@ -364,7 +388,7 @@ export class InterpreterWrapper {
     }
   }
 
-  stepHighlighted(state) {
+  stepHighlighted(state: any) {
     // will walk every node in the tree
     const paused = this.paused;
     this.paused = false;
