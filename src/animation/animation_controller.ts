@@ -72,7 +72,7 @@ export default class AnimationController {
   }
 
   pause() {
-    this.algoTimeline.break();
+    this.algoTimeline.pause();
   }
 
   reset() {

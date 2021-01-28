@@ -1182,16 +1182,6 @@ function anime(params) {
     engine();
   };
 
-  /**
-   * added by: Manuel Baun 
-   * 
-   * A break function to distinguish between the pause function.
-   * It will not reset the Time of the instance
-   * 
-   */
-  instance.break = function() {
-    instance.paused = true;
-  };
 
   /**
    * added by: Manuel Baun
@@ -1199,7 +1189,7 @@ function anime(params) {
    */
   instance.step = async function() {
     await instance.finished
-    instance.break();
+    instance.pause();
   };
 
 

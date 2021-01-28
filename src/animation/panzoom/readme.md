@@ -1,1 +1,0 @@
-https://github.com/ystreibel/panzoom/blob/master/index.d.ts
