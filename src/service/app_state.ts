@@ -33,6 +33,7 @@ export class AppState {
    * State is derived from event, first event changes -> state will change
    */
   readonly state = derived<Writable<EVENTS>, STATE>(this.event, (ev) => {
+    console.log("Event", ev);
     if (ev == "START") return "RUNNING";
     if (ev == "PAUSE") return "PAUSED";
     if (ev == "CONTINUE") return "RUNNING";
@@ -149,7 +150,11 @@ export class AppState {
   }
 
   get isRunning() {
-    return this.stateValue == "RUNNING";
+    return get(this.state) == "RUNNING";
+  }
+
+  get isInit() {
+    return get(this.state) == "INIT";
   }
 
   get stateValue() {

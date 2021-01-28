@@ -10,7 +10,7 @@
  */
 "use strict";
 import * as acorn from "acorn";
-import { appState } from "../service/app_state";
+// import { appState } from "../service/app_state";
 
 /**
  * Create a new interpreter.
@@ -3262,7 +3262,7 @@ Interpreter.prototype.unwind = function (type, value, label) {
         state.done = true;
         // Added by Manuel Baun: trigger app state to be done
 
-        appState.setDone();
+        // appState.setDone();
 
         break loop;
     }
@@ -3305,7 +3305,7 @@ Interpreter.prototype.unwind = function (type, value, label) {
     realError = String(value);
   }
 
-  appState.setError();
+  // appState.setError();
   throw realError;
 };
 
@@ -4373,15 +4373,15 @@ Interpreter.prototype["stepProgram"] = function (stack, state, node) {
   // Don't pop the stateStack.
   // Leave the root scope on the tree in case the program is appended to.
 
-  /**
-   * Added by Manuel Baun:
-   *
-   * trigger app state to be done
-   */
-  if (this.initComplete) {
-    appState.setDone();
-    // console.log('Interpreter Initial finished');
-  }
+  // /**
+  //  * Added by Manuel Baun:
+  //  *
+  //  * trigger app state to be done
+  //  */
+  // if (this.initComplete) {
+  //   appState.setDone();
+  //   // console.log('Interpreter Initial finished');
+  // }
 };
 
 Interpreter.prototype["stepReturnStatement"] = function (stack, state, node) {
@@ -4733,65 +4733,65 @@ class Stack {
  *
  * @param {() => Promise<any>) | () => Promise<any>[]} func
  */
-Interpreter.prototype.asyncCall = async function (func) {
-  const paused = this.paused_;
-  this.paused_ = true;
+// Interpreter.prototype.asyncCall = async function (func) {
+//   const paused = this.paused_;
+//   this.paused_ = true;
 
-  if (func instanceof Array) {
-    Promise.all(func);
-  } else {
-    await func();
-  }
-  this.paused_ = paused;
+//   if (func instanceof Array) {
+//     Promise.all(func);
+//   } else {
+//     await func();
+//   }
+//   this.paused_ = paused;
 
-  if (appState.isRunning) {
-    this.run();
-  }
-};
+//   if (appState.isRunning) {
+//     this.run();
+//   }
+// };
 
 /**
  * Call this function to stop the running interpreter
  */
-Interpreter.prototype.setPause = function () {
-  this.paused_ = true;
-};
+// Interpreter.prototype.setPause = function () {
+//   this.paused_ = true;
+// };
 
-Interpreter.prototype.unsetPause = function () {
-  this.paused_ = false;
-};
+// Interpreter.prototype.unsetPause = function () {
+//   this.paused_ = false;
+// };
 
 
 /** @type {Function(topStack) => void} */
-Interpreter.prototype.onStep;
+// Interpreter.prototype.onStep;
 
 /**
  * Utility function, which takes the scope of a state and filtes out
  * the global scope
  * @param {*} scope
  */
-Interpreter.prototype.getLocalScope = function (scope) {
-  // TODO: memoize
-  const globalKeys = Object.keys(this.globalObject.properties);
+// Interpreter.prototype.getLocalScope = function (scope) {
+//   // TODO: memoize
+//   const globalKeys = Object.keys(this.globalObject.properties);
 
-  const keys = Object.keys(scope.object.properties);
+//   const keys = Object.keys(scope.object.properties);
 
-  const difference = keys.filter(
-    (x) => !globalKeys.includes(x) && x != "arguments"
-  );
+//   const difference = keys.filter(
+//     (x) => !globalKeys.includes(x) && x != "arguments"
+//   );
 
-  const localScope = {};
+//   const localScope = {};
 
-  for (const k of difference) {
-    const prop = scope.object.properties[k];
+//   for (const k of difference) {
+//     const prop = scope.object.properties[k];
 
-    if (prop instanceof Interpreter.Object) {
-      localScope[k] = this.pseudoToNative(prop);
-    } else {
-      localScope[k] = prop;
-    }
-  }
+//     if (prop instanceof Interpreter.Object) {
+//       localScope[k] = this.pseudoToNative(prop);
+//     } else {
+//       localScope[k] = prop;
+//     }
+//   }
 
-  return localScope;
-};
+//   return localScope;
+// };
 
 export default Interpreter;

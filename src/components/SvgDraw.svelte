@@ -40,14 +40,15 @@
       panZoomer
     );
 
-    const setupDone = algorithm.setup();
-    await setupDone;
+    await algorithm.setup();
 
-    const wrapper = new InterpreterWrapper(algorithm);
-    await wrapper.setup();
+    const interpreter = new InterpreterWrapper(algorithm);
 
     panZoomer.centerOn(drawRoot.node);
 
+    /**
+     * Try the experimental Autofit feature
+     */
     appState.currentTime.subscribe((state) => {
       if (appState.autofitValue) {
         const { width, height } = viewBox;
@@ -65,12 +66,13 @@
       }
     });
 
-    appState.event.subscribe(async (event) => {
-      if (event == "START") {
-        await setupDone;
-        wrapper.run();
-      }
-    });
+    // appState.event.subscribe(async (event) => {
+    //   if (event == "START") {
+    //     await setupDone;
+    //     console.log("start interpreter!!!");
+    //     interpreter.execute();
+    //   }
+    // });
   });
 </script>
 

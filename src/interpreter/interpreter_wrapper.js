@@ -1,26 +1,116 @@
 import Interpreter from "./interpreter";
-import ComparisonSorts from "../algorithms/comparison";
 
+import ComparisonSorts from "../algorithms/comparison";
 import { appState } from "../service/app_state";
 
 export class InterpreterWrapper {
   /**
-   *
    * @param {ComparisonSorts} algorithm
    */
   constructor(algorithm) {
     this.algorithm = algorithm;
-    this.interpreterInitFunctions = () => {};
+
+    // should be from app state!
+    this.paused = false;
+
+    this.interpreter = new Interpreter(
+      "",
+      this.createInterpreterInitFunctions()
+    );
+
+    appState.state.subscribe((state) => {
+      if (state == "RUNNING") {
+        this.executingStepLoop();
+      }
+
+      if (state == "DONE") {
+        console.log("done");
+      }
+    });
+
+    appState.event.subscribe(async (event) => {
+      if (event == "START") {
+        await algorithm.setupDone;
+        this.execute();
+      }
+
+      this.handleStepAndStepIn(event);
+    });
   }
 
-  setup() {
+  /**
+   * @private
+   */
+  createInterpreterInitFunctions() {
     const algorithm = this.algorithm;
+
+    /**
+     * A utility function to stop the interpreter running and await async functions, then continue
+     * when the interpreter was in runnning state!
+     * @param {*} func
+     */
+    const asyncCall = async (func) => {
+      const paused = this.paused;
+      this.paused = true;
+
+      if (func instanceof Array) {
+        await Promise.all(func);
+      } else {
+        await func();
+      }
+
+      this.paused = paused;
+
+      if (appState.isRunning || paused == false) {
+        this.executingStepLoop();
+      }
+    };
 
     /**
      * @param {Interpreter} self
      * @param {Interpreter.Object} globalObject
      */
-    this.interpreterInitFunctions = function (self, globalObject) {
+    const initFunctions = function (self, globalObject) {
+      const globalKeys = Object.keys(globalObject.properties);
+
+      /**
+       * Function that returns an object as the local scope.
+       * It filters verything, that is in the globalobject
+       * and leave only the difference
+       * @param {*} scope
+       */
+      function getLocalScope(scope) {
+        const keys = Object.keys(scope.object.properties);
+
+        const difference = keys.filter(
+          (x) => !globalKeys.includes(x) && x != "arguments"
+        );
+
+        const localScope = {};
+
+        for (const k of difference) {
+          const prop = scope.object.properties[k];
+
+          if (prop instanceof Interpreter.Object) {
+            localScope[k] = self.pseudoToNative(prop);
+          } else {
+            localScope[k] = prop;
+          }
+        }
+
+        return localScope;
+      }
+      /**
+       * Function to highlight the code line
+       * and store local Scope at that node/state
+       * @param {string} color
+       */
+      const highlightAndScope = (color) => {
+        const state = self.stateStack.getTop();
+        appState.markNode(state.node, color, true);
+        appState.setLocalScope(getLocalScope(state.scope), true);
+      };
+
       /** **************** */
       /** Define Props     */
       /** **************** */
@@ -51,24 +141,12 @@ export class InterpreterWrapper {
         }, false)
       );
 
-      /**
-       * Function to highlight the code line
-       * and store local Scope at that node/state
-       * @param {string} color
-       */
-      const highlightAndScope = (color) => {
-        const state = self.stateStack.getTop();
-        appState.markNode(state.node, color, true);
-        appState.setLocalScope(self.getLocalScope(state.scope), true);
-      };
-
       /** **************** */
       /** Define functions */
       /** **************** */
 
       /// extends the array prototype of the interpreter! with a compare function
       self.setNativeFunctionPrototype(self.ARRAY, "compare", function (i, j) {
-        // do animation
         const arr = this.properties;
         const res = arr[i] > arr[j];
 
@@ -78,12 +156,14 @@ export class InterpreterWrapper {
             `Cannot compare elements, since either element at index i:${i}=>${arr[i]} OR j:${j}=>${arr[j]} does not exist on this array`
           );
         }
-
+        console.log("Start animate");
         // do animation
-        self.asyncCall(() => {
+        asyncCall(() => {
           highlightAndScope(algorithm.colors.compare);
           return algorithm.compare(this, i, j, res);
         });
+
+        console.log("End animate");
 
         return res;
       });
@@ -106,7 +186,7 @@ export class InterpreterWrapper {
         arr[j] = a;
 
         // do animation by real values
-        self.asyncCall(() => {
+        asyncCall(() => {
           highlightAndScope(algorithm.colors.swap);
           return algorithm.swap(this, i, j);
         });
@@ -119,7 +199,7 @@ export class InterpreterWrapper {
           const data = Array.prototype.splice.call(this.properties, start, end);
           const newObj = self.arrayNativeToPseudo(data);
 
-          self.asyncCall(() => {
+          asyncCall(() => {
             highlightAndScope(algorithm.colors.splice);
             return algorithm.splice(newObj);
           });
@@ -129,7 +209,7 @@ export class InterpreterWrapper {
 
       self.setNativeFunctionPrototype(self.ARRAY, "shift", function (args) {
         // First animate, then apply shift to Array
-        self.asyncCall(() => {
+        asyncCall(() => {
           highlightAndScope(algorithm.colors.shift);
           return algorithm.shift(this);
         });
@@ -141,7 +221,7 @@ export class InterpreterWrapper {
       self.setNativeFunctionPrototype(self.ARRAY, "push", function (args) {
         const res = Array.prototype.push.apply(this.properties, arguments);
 
-        self.asyncCall(() => {
+        asyncCall(() => {
           highlightAndScope(algorithm.colors.push);
           return algorithm.push(this);
         });
@@ -149,7 +229,7 @@ export class InterpreterWrapper {
       });
 
       self.setNativeFunctionPrototype(self.ARRAY, "get", function (index) {
-        self.asyncCall(() => {
+        asyncCall(() => {
           highlightAndScope(algorithm.colors.get);
           return algorithm.get(this, index);
         });
@@ -164,7 +244,7 @@ export class InterpreterWrapper {
         function (index, value) {
           this.properties[index] = value;
 
-          self.asyncCall(() => {
+          asyncCall(() => {
             highlightAndScope(algorithm.colors.set);
             return algorithm.set(this, index, value);
           });
@@ -206,103 +286,112 @@ export class InterpreterWrapper {
         const data = concat(this, arguments);
         const newArray = self.arrayNativeToPseudo(data);
 
-        self.asyncCall(() => {
+        asyncCall(() => {
           highlightAndScope(algorithm.colors.concat);
           return algorithm.concat(newArray);
         });
         return newArray;
       });
     };
+
+    return initFunctions;
   }
 
-  run() {
-    const interpreter = new Interpreter(
-      appState.sourceCodeValue,
-      this.interpreterInitFunctions
-    );
+  lastBreakPoint = [];
+  handleBreakPoints(top) {
+    const line = top.node.loc.start.line;
+    const lineEnd = top.node.loc.end.line;
 
-    // interpreter.onStep = (step) => {
-    //   console.log(step.node.loc.start.line, step.node.type, step);
-    // };
+    const isBreakPoint = appState.isBreakPoint(line);
 
-    appState.state.subscribe((state) => {
-      if (state == "RUNNING") {
-        interpreter.run();
+    if (isBreakPoint) {
+      if (!this.lastBreakPoint.includes(line)) {
+        this.lastBreakPoint.push(line);
+        interpreter.setPause();
+        appState.pause();
+        // deffer unset => otherwise the interpreter will not pause since other functions
+        // will trigge continue
+        setTimeout(() => {
+          interpreter.unsetPause();
+        }, 50);
       }
 
-      if (state == "DONE") {
-        /// TODO: needs to be called
-        console.log("done");
-      }
-    });
-
-    function handleStepAndStepIn(event) {
-      if (event == "STEPIN" || event == "STEP") {
-        const state = interpreter.stateStack.getTop();
-
-        if (event == "STEP") {
-          // // walks only editor line by editor line
-          // const startLine = node.loc.start.line;
-          // appState.toggleBreakPointsToIgnore(startLine);
-          // console.log("StartLine:", startLine);
-          // const paused = interpreter.paused_;
-          // interpreter.paused_ = false;
-          // while (!interpreter.paused_ && interpreter.step()) {
-          //   const state = interpreter.stateStack.getTop();
-          //   const node = state.node;
-          //   const line = node.loc.start.line;
-          //   const lineEnd = node.loc.end.line;
-          //   if (startLine != line && line == lineEnd) {
-          //     console.log("exitline", line, line == lineEnd);
-          //     break;
-          //   }
-          // }
-          // appState.toggleBreakPointsToIgnore(startLine);
-          // interpreter.paused_ = paused;
-          // appState.markNode(node, "#ffaafa");
-          // processLocalScope(state.scope);
-        } else {
-          // will walk every node in the tree
-          const paused = interpreter.paused_;
-          interpreter.paused_ = false;
-          const res = interpreter.step();
-          interpreter.paused_ = paused;
-
-          appState.markNode(state.node, "#ffaafa");
-          appState.setLocalScope(interpreter.getLocalScope(state.scope));
-        }
-      }
+      appState.markNode(top.node, "#ffaaaaaa");
     }
 
-    let lastBreakPoint = [];
-    function handleBreakPoints(top) {
-      const line = top.node.loc.start.line;
-      const lineEnd = top.node.loc.end.line;
+    if (line != lineEnd) {
+      this.lastBreakPoint.pop();
+    }
+  }
 
-      const isBreakPoint = appState.isBreakPoint(line);
+  handleStepAndStepIn(event) {
+    if (event == "STEPIN" || event == "STEP") {
+      const state = interpreter.stateStack.getTop();
 
-      if (isBreakPoint) {
-        if (!lastBreakPoint.includes(line)) {
-          lastBreakPoint.push(line);
-          interpreter.setPause();
-          appState.pause();
-          // deffer unset => otherwise the interpreter will not pause since other functions
-          // will trigge continue
-          setTimeout(() => {
-            interpreter.unsetPause();
-          }, 50);
-        }
+      if (event == "STEP") {
+        // // walks only editor line by editor line
+        // const startLine = node.loc.start.line;
+        // appState.toggleBreakPointsToIgnore(startLine);
+        // console.log("StartLine:", startLine);
+        // const paused = interpreter.paused_;
+        // interpreter.paused_ = false;
+        // while (!interpreter.paused_ && interpreter.step()) {
+        //   const state = interpreter.stateStack.getTop();
+        //   const node = state.node;
+        //   const line = node.loc.start.line;
+        //   const lineEnd = node.loc.end.line;
+        //   if (startLine != line && line == lineEnd) {
+        //     console.log("exitline", line, line == lineEnd);
+        //     break;
+        //   }
+        // }
+        // appState.toggleBreakPointsToIgnore(startLine);
+        // interpreter.paused_ = paused;
+        // appState.markNode(node, "#ffaafa");
+        // processLocalScope(state.scope);
+      } else {
+        // will walk every node in the tree
+        const paused = interpreter.paused_;
+        interpreter.paused_ = false;
+        const res = interpreter.step();
+        interpreter.paused_ = paused;
 
-        appState.markNode(top.node, "#ffaaaaaa");
-      }
-
-      if (line != lineEnd) {
-        lastBreakPoint.pop();
+        appState.markNode(state.node, "#ffaafa");
+        appState.setLocalScope(interpreter.getLocalScope(state.scope));
       }
     }
+  }
 
-    appState.event.subscribe((event) => handleStepAndStepIn(event));
-    interpreter.onStep = handleBreakPoints;
+  /**
+   * @private
+   * If loop was left, it needs to be entered again!
+   */
+  executingStepLoop() {
+    console.log("Start exe loop");
+    while (appState.isRunning && !this.paused && this.interpreter.step()) {
+      const topStack = this.interpreter.stateStack.getTop();
+      console.log("step");
+      this.handleBreakPoints(topStack);
+    }
+
+    console.log("leave while loop");
+
+    const state = this.interpreter.stateStack.getTop();
+
+    // Done can only happen
+    if (this.firstInit && state.done) {
+      console.log("why done now?", state);
+      appState.setDone();
+    } else {
+      this.firstInit = true;
+    }
+  }
+
+  execute() {
+    const code = appState.sourceCodeValue;
+    this.interpreter.appendCode(code);
+    this.firstInit = false;
+    this.executingStepLoop();
   }
 
   dispose() {

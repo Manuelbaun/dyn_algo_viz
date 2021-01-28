@@ -73,6 +73,7 @@ export default class ComparisonSorts {
     });
   }
 
+  setupDone: Promise<void> = Promise.resolve();
   /** * must await setup! */
   setup() {
     const tl = this.animationControl.initTimeline;
@@ -92,7 +93,8 @@ export default class ComparisonSorts {
       console.error("Speed of animation is 0, there nothing will happen");
     }
     /// wait till timeline animation is done
-    return tl.continue();
+    this.setupDone = tl.continue();
+    return this.setupDone;
   }
 
   async swap(array: Interpreter.Object, i: number, j: number) {
