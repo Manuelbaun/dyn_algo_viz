@@ -33,7 +33,6 @@ export class AppState {
    * State is derived from event, first event changes -> state will change
    */
   readonly state = derived<Writable<EVENTS>, STATE>(this.event, (ev) => {
-    console.log("Event", ev);
     if (ev == "START") return "RUNNING";
     if (ev == "PAUSE") return "PAUSED";
     if (ev == "CONTINUE") return "RUNNING";
@@ -65,7 +64,9 @@ export class AppState {
   readonly autoscroll = writable<boolean>(getItem("autoscroll") || false);
 
   // need a helper class(Set), since breakPoints wont trigger
-  private readonly breakPointsSet = new Set<number>();
+  private readonly breakPointsSet = new Set<number>(
+    getItem("breakPoints") || []
+  );
   readonly breakPoints = writable<number[]>(getItem("breakPoints") || []);
 
   readonly sourceCode = writable<string>(loadSourceCode());
