@@ -48,10 +48,10 @@ export class AppState {
    * A scale, which maps the domain from min, max/2 to values between 0.1 - 1.
    * This is used, so, that the middle of the input range slider is the animation speed 1
    */
-  leftScale = scaleLinear().domain([0.1, 5]).range([0.1, 1]);
+  private leftScale = scaleLinear().domain([0.1, 5]).range([0.1, 1]);
 
   /** this handles the values from max/2 -max, in the range of 1-10*/
-  rightScale = scaleLinear().domain([5, 10]).range([1, 10]);
+  private rightScale = scaleLinear().domain([5, 10]).range([1, 10]);
 
   readonly localScope = writable<object>({});
   readonly errors = writable<object>({});
@@ -77,8 +77,8 @@ export class AppState {
   });
 
   // for lookup the marked node,when slider range moves
-  markedNodeSeries = new TimeSeries<MarkedNode>();
-  localScopeSeries = new TimeSeries<object>();
+  private markedNodeSeries = new TimeSeries<MarkedNode>();
+  private localScopeSeries = new TimeSeries<object>();
 
   constructor() {
     // auto save speed to localstorage

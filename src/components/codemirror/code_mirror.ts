@@ -35,14 +35,18 @@ export class CodeMirrorWrapper {
   constructor(textArea: HTMLTextAreaElement) {
     this.textArea = textArea;
 
-    appState.sourceCode.subscribe((value) => {
-      // only set editor value, if the value changed
-      if (this.editor && value != this.editor.getValue()) {
-        this.editor.setValue(value);
-      }
-    });
+    this.unsubscriber.push(
+      appState.sourceCode.subscribe((value) => {
+        // only set editor value, if the value changed
+        if (this.editor && value != this.editor.getValue()) {
+          this.editor.setValue(value);
+        }
+      })
+    );
 
-    appState.markedNode.subscribe((mark) => this.markNode(mark));
+    this.unsubscriber.push(
+      appState.markedNode.subscribe((mark) => this.markNode(mark))
+    );
 
     this.editor = CodeMirror.fromTextArea(this.textArea, {
       gutters: ["CodeMirror-lint-markers", "breakpoints"],
@@ -78,6 +82,14 @@ export class CodeMirrorWrapper {
     });
 
     // this.updateHints();
+  }
+
+  /**
+   * cleanup
+   */
+  unsubscriber: Function[] = [];
+  dispose() {
+    this.unsubscriber.forEach((unsub) => unsub());
   }
 
   widgets: any[] = [];

@@ -10,9 +10,6 @@ export class InterpreterWrapper {
   initDone: boolean;
   interpreter: Interpreter;
 
-  stateSubscription: Function;
-  eventSubscription: Function;
-
   constructor(algorithm: ComparisonSorts) {
     this.algorithm = algorithm;
 
@@ -26,24 +23,28 @@ export class InterpreterWrapper {
      */
     this.interpreter = new Interpreter("", initFunction);
 
-    this.stateSubscription = appState.state.subscribe((state) => {
-      if (state == "RUNNING") {
-        this.mainExecutingLoop();
-      }
+    this.unsubscriber.push(
+      appState.state.subscribe((state) => {
+        if (state == "RUNNING") {
+          this.mainExecutingLoop();
+        }
 
-      if (state == "DONE") {
-        console.log("done");
-      }
-    });
+        if (state == "DONE") {
+          console.log("done");
+        }
+      })
+    );
 
-    this.eventSubscription = appState.event.subscribe(async (event) => {
-      if (event == "START") {
-        await algorithm.setupDone;
-        this.start();
-      }
+    this.unsubscriber.push(
+      appState.event.subscribe(async (event) => {
+        if (event == "START") {
+          await algorithm.setupDone;
+          this.start();
+        }
 
-      this.handleStepAndStepIn(event);
-    });
+        this.handleStepAndStepIn(event);
+      })
+    );
   }
 
   private interpreterInitFunctions(
@@ -443,8 +444,9 @@ export class InterpreterWrapper {
    * this dispose function must be called first, to clean up
    * this wrapper class!
    */
+
+  unsubscriber: Function[] = [];
   dispose() {
-    this.stateSubscription();
-    this.eventSubscription();
+    this.unsubscriber.forEach((unsub) => unsub());
   }
 }

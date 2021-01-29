@@ -40,27 +40,36 @@ export default class AnimationController {
       appState.currentDuration.set(timeline.duration);
     };
 
-    appState.animationSpeed.subscribe((data) => this.setSpeed(data));
+    this.unsubscriber.push(
+      appState.animationSpeed.subscribe((data) => this.setSpeed(data))
+    );
 
-    appState.progress.subscribe((data) => this.setProgress(data));
+    this.unsubscriber.push(
+      appState.progress.subscribe((data) => this.setProgress(data))
+    );
 
-    appState.event.subscribe((event) => {
-      if (event == "RESET") {
-        // in theory should now reset! and clear all animation
-      } else if (event == "PAUSE") {
-        this.pause();
-      } else if (event == "CONTINUE") {
-        this.continue();
-      } else if (event == "STEP") {
-        this.algoTimeline.step();
-      }
-    });
+    this.unsubscriber.push(
+      appState.event.subscribe((event) => {
+        if (event == "RESET") {
+          // in theory should now reset! and clear all animation
+        } else if (event == "PAUSE") {
+          this.pause();
+        } else if (event == "CONTINUE") {
+          this.continue();
+        } else if (event == "STEP") {
+          this.algoTimeline.step();
+        }
+      })
+    );
   }
 
   /**
    * cleanup
    */
-  dispose() {}
+  unsubscriber: Function[] = [];
+  dispose() {
+    this.unsubscriber.forEach((unsub) => unsub());
+  }
 
   play() {
     this.algoTimeline.play();
@@ -76,6 +85,12 @@ export default class AnimationController {
 
   reset() {
     this.algoTimeline.reset();
+  }
+
+  clear() {
+    /// todo: need to delete all animation children!
+    /// to acutally reset completly, since the reset method on the timelines
+    /// only resets the timing, and will start from the beginning.
   }
 
   getProgress() {
