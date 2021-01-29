@@ -1,11 +1,12 @@
-import type { PanZoom } from "panzoom";
+import { appState } from "./../service/app_state";
 import type { Box, G } from "@svgdotjs/svg.js";
 
-import type AnimationController from "../animation/animation_controller";
+import AnimationController from "../animation/animation_controller";
 import type Interpreter from "../interpreter/interpreter";
 import { generateData } from "../utils/helper_functions";
-
-import { ElementManager, DrawBasic, VisualElement } from "./helper_classes";
+import { DrawBasic } from "./helper/draw_basic";
+import { ElementManager } from "./helper/element_manager";
+import { VisualElement } from "./helper/visual_element";
 
 /**
  * BIG TODOS:
@@ -16,7 +17,6 @@ import { ElementManager, DrawBasic, VisualElement } from "./helper_classes";
 
 /** The comparisonSort Class */
 export default class ComparisonSorts {
-  panZoomControl: PanZoom;
   animationControl: AnimationController;
   data: number[];
   elementManager;
@@ -38,20 +38,9 @@ export default class ComparisonSorts {
     default: string;
   };
 
-  constructor(
-    rootDraw: G,
-    viewBox: Box,
-    animationControl: AnimationController,
-    panZoomer: PanZoom,
-    length = 10
-  ) {
+  constructor(rootDraw: G, viewBox: Box, length = 10) {
     this.data = generateData(length);
-    // this.data = Array(50)
-    // .fill(0)
-    // .map((a, i) => i);
-
-    this.panZoomControl = panZoomer;
-    this.animationControl = animationControl;
+    this.animationControl = new AnimationController(appState);
 
     this.drawing = new DrawBasic(rootDraw, viewBox, this.data);
     this.elementManager = new ElementManager(this.drawing);
@@ -67,6 +56,7 @@ export default class ComparisonSorts {
       set: this.drawing.colors.Gray,
       default: this.drawing.colors.Silver,
     };
+
     // create and add the the refsManager
     this.data.forEach((value) => {
       this.elementManager.setRef(value, new VisualElement(value, this.drawing));

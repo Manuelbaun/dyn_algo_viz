@@ -1,8 +1,8 @@
 import Interpreter from "./interpreter";
 
-import type ComparisonSorts from "../algorithms/comparison";
 import { appState } from "../service/app_state";
-import type { EVENTS } from "src/service/store_types";
+import type { EVENTS } from "../service/store_types";
+import type ComparisonSorts from "../algorithm_viz/comparison";
 
 export class InterpreterWrapper {
   algorithm: ComparisonSorts;

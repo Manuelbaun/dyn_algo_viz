@@ -4,7 +4,7 @@
   import panzoom from "panzoom";
 
   import { appState } from "../service/app_state";
-  import ComparisonSorts from "../algorithms/comparison";
+  import ComparisonSorts from "../algorithm_viz/comparison";
   import AnimationController from "../animation/animation_controller";
   // needs .js, since it is a javascript file
   import { InterpreterWrapper } from "../interpreter/interpreter_wrap";
@@ -31,14 +31,7 @@
       autocenter: true,
     });
 
-    const animationContorller = new AnimationController(appState);
-
-    const algorithm = new ComparisonSorts(
-      drawRoot,
-      viewBox,
-      animationContorller,
-      panZoomer
-    );
+    const algorithm = new ComparisonSorts(drawRoot, viewBox);
 
     await algorithm.setup();
 
