@@ -25,6 +25,33 @@ function setItem(key: string, value: any) {
 }
 
 export class AppState {
+  private static instance: AppState;
+  public static getInstance(): AppState {
+    if (!AppState.instance) {
+      AppState.instance = new AppState();
+    }
+
+    return AppState.instance;
+  }
+
+  constructor() {
+    // auto save speed to localstorage
+    this.animationSpeedSlider.subscribe((val) => setItem("speed", val));
+    this.breakPoints.subscribe((data) => setItem("breakPoints", data));
+    this.autofit.subscribe((data) => setItem("autofit", data));
+    this.autoscroll.subscribe((data) => setItem("autoscroll", data));
+    this.sourceCode.subscribe((data) => setItem("sourceCode", data));
+
+    /// Listen to time Series change!
+    this.currentTime.subscribe((ts) => {
+      const node = this.markedNodeSeries.getAtTime(ts);
+      this.markedNode.set(node);
+
+      const localScope = this.localScopeSeries.getAtTime(ts);
+      this.localScope.set(localScope);
+    });
+  }
+
   readonly progress = writable<number>(0);
   readonly currentTime = writable<number>(0);
   readonly currentDuration = writable<number>(0);
@@ -79,24 +106,6 @@ export class AppState {
   // for lookup the marked node,when slider range moves
   private markedNodeSeries = new TimeSeries<MarkedNode>();
   private localScopeSeries = new TimeSeries<object>();
-
-  constructor() {
-    // auto save speed to localstorage
-    this.animationSpeedSlider.subscribe((val) => setItem("speed", val));
-    this.breakPoints.subscribe((data) => setItem("breakPoints", data));
-    this.autofit.subscribe((data) => setItem("autofit", data));
-    this.autoscroll.subscribe((data) => setItem("autoscroll", data));
-    this.sourceCode.subscribe((data) => setItem("sourceCode", data));
-
-    /// Listen to time Series change!
-    this.currentTime.subscribe((ts) => {
-      const node = this.markedNodeSeries.getAtTime(ts);
-      this.markedNode.set(node);
-
-      const localScope = this.localScopeSeries.getAtTime(ts);
-      this.localScope.set(localScope);
-    });
-  }
 
   start() {
     this.event.set("START");
@@ -218,7 +227,7 @@ export class AppState {
     const markedNode = { ...old, node, color };
 
     if (shouldTrack) {
-      this.markedNodeSeries.add(appState.currentTimeValue, markedNode);
+      this.markedNodeSeries.add(this.currentTimeValue, markedNode);
     }
 
     this.markedNode.set(markedNode);
@@ -245,5 +254,3 @@ function loadSourceCode(): string {
   `
   );
 }
-
-export const appState = new AppState();

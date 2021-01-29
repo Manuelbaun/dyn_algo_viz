@@ -10,10 +10,11 @@ import "codemirror/addon/fold/comment-fold";
 import "codemirror/addon/hint/javascript-hint";
 
 import type { MarkedNode } from "../../service/store_types";
+import type { AppState } from "../../service/app_state";
 
 // @ts-ignore : missing types?
 import { JSHINT } from "jshint";
-import { appState } from "../../service/app_state";
+
 // @ts-ignore
 // Extends the window object with JSHINT in order for codemirror to work properly
 window.JSHINT = JSHINT;
@@ -32,7 +33,10 @@ export class CodeMirrorWrapper {
   marks: CodeMirror.TextMarker | undefined;
   textArea: HTMLTextAreaElement;
 
-  constructor(textArea: HTMLTextAreaElement) {
+  appState: AppState;
+
+  constructor(appState: AppState, textArea: HTMLTextAreaElement) {
+    this.appState = appState;
     this.textArea = textArea;
 
     this.unsubscriber.push(
@@ -165,7 +169,7 @@ export class CodeMirrorWrapper {
     });
 
     /// Disable here, if no scroll should happen
-    if (appState.autoscrollValue) {
+    if (this.appState.autoscrollValue) {
       this.editor.scrollIntoView(startPos, 200);
     }
   }

@@ -2,8 +2,9 @@
   import { onMount } from "svelte";
   /// import of webcomponent
   import "@alenaksu/json-viewer";
+  import type { AppState } from "../service/app_state";
 
-  import { appState } from "../service/app_state";
+  export let appState: AppState;
 
   const {
     progress,
@@ -32,12 +33,19 @@
         progress: $progress.toFixed(2) + " %",
         speed: $animationSpeed.toFixed(2),
         state: $state,
-        // event: $event,
       },
     };
   }
-  // autosubscribe and listen to data changes
-  $: $progress, $animationSpeed, $state, $event, $breakPoints, jsonData();
+  // autosubscribe, when one of the listen stores changes,
+  // then=> execute jsonData() => which updates the json-viewer
+  $: $progress,
+    $animationSpeed,
+    $state,
+    $event,
+    $breakPoints,
+    $currentDuration,
+    $currentTime,
+    jsonData();
 </script>
 
 <json-viewer id="json" {data} bind:this={jsonViewer} />

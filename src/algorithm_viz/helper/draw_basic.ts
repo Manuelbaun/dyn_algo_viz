@@ -53,9 +53,7 @@ export class DrawBasic {
 
   scales: Scales;
 
-  constructor(drawRoot: G, viewBox: Box, data: number[]) {
-    const { width, height } = viewBox;
-
+  constructor(drawRoot: G, width: number, height: number, data: number[]) {
     this.margin = {
       top: 50,
       bottom: 50,

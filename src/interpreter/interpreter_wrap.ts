@@ -1,6 +1,6 @@
 import Interpreter from "./interpreter";
 
-import { appState } from "../service/app_state";
+import type { AppState } from "../service/app_state";
 import type { EVENTS } from "../service/store_types";
 import type ComparisonSorts from "../algorithm_viz/comparison";
 
@@ -9,8 +9,10 @@ export class InterpreterWrapper {
   paused: boolean;
   initDone: boolean;
   interpreter: Interpreter;
+  appState: AppState;
 
-  constructor(algorithm: ComparisonSorts) {
+  constructor(appState: AppState, algorithm: ComparisonSorts) {
+    this.appState = appState;
     this.algorithm = algorithm;
 
     // should be from app state!
@@ -24,7 +26,7 @@ export class InterpreterWrapper {
     this.interpreter = new Interpreter("", initFunction);
 
     this.unsubscriber.push(
-      appState.state.subscribe((state) => {
+      this.appState.state.subscribe((state) => {
         if (state == "RUNNING") {
           this.mainExecutingLoop();
         }
@@ -36,7 +38,7 @@ export class InterpreterWrapper {
     );
 
     this.unsubscriber.push(
-      appState.event.subscribe(async (event) => {
+      this.appState.event.subscribe(async (event) => {
         if (event == "START") {
           await algorithm.setupDone;
           this.start();
@@ -79,7 +81,7 @@ export class InterpreterWrapper {
        * This needs to done, since, this function could also be called, when
        * the stepping mode is active
        */
-      if (appState.isRunning && paused == false) {
+      if (this.appState.isRunning && paused == false) {
         this.mainExecutingLoop();
       }
     };
@@ -91,8 +93,8 @@ export class InterpreterWrapper {
      */
     const highlightAndScope = (color: string) => {
       const state = self.stateStack.getTop();
-      appState.markNode(state.node, color, true);
-      appState.setLocalScope(this.getLocalScope(state.scope), true);
+      this.appState.markNode(state.node, color, true);
+      this.appState.setLocalScope(this.getLocalScope(state.scope), true);
     };
 
     /** **************** **/
@@ -333,13 +335,13 @@ export class InterpreterWrapper {
     const line = top.node.loc.start.line as number;
     const lineEnd = top.node.loc.end.line;
 
-    const isBreakPoint = appState.isBreakPoint(line);
+    const isBreakPoint = this.appState.isBreakPoint(line);
 
     if (isBreakPoint) {
       if (!this.lastBreakPoint.includes(line)) {
         this.lastBreakPoint.push(line);
         this.paused = true;
-        appState.pause();
+        this.appState.pause();
 
         /**
          * Defere the this.paused = false, since it will take some time,
@@ -351,7 +353,7 @@ export class InterpreterWrapper {
         setTimeout(() => (this.paused = false), 50);
       }
 
-      appState.markNode(top.node, "#ffaaaaaa");
+      this.appState.markNode(top.node, "#ffaaaaaa");
     }
 
     if (line != lineEnd) {
@@ -397,8 +399,8 @@ export class InterpreterWrapper {
     const res = this.interpreter.step();
     this.paused = paused;
 
-    appState.markNode(state.node, "#ffaafa");
-    appState.setLocalScope(this.getLocalScope(state.scope));
+    this.appState.markNode(state.node, "#ffaafa");
+    this.appState.setLocalScope(this.getLocalScope(state.scope));
   }
 
   /**
@@ -409,7 +411,7 @@ export class InterpreterWrapper {
    * @private
    */
   private mainExecutingLoop() {
-    while (!this.paused && appState.isRunning && this.interpreter.step()) {
+    while (!this.paused && this.appState.isRunning && this.interpreter.step()) {
       const topStack = this.interpreter.stateStack.getTop();
       this.handleBreakPoints(topStack);
 
@@ -419,7 +421,7 @@ export class InterpreterWrapper {
     /** Check if the interpreter is done with executing the user code */
     const state = this.interpreter.stateStack.getTop();
     if (this.initDone && state.done) {
-      appState.setDone();
+      this.appState.setDone();
     } else {
       this.initDone = true;
     }
@@ -430,7 +432,7 @@ export class InterpreterWrapper {
   start() {
     if (!this.started) {
       this.started = true;
-      this.interpreter.appendCode(appState.sourceCodeValue);
+      this.interpreter.appendCode(this.appState.sourceCodeValue);
 
       this.mainExecutingLoop();
     } else {

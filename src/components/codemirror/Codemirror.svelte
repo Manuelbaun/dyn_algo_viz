@@ -1,13 +1,15 @@
 <script lang="ts">
+  import type { AppState } from "../../service/app_state";
+
   import { onMount } from "svelte";
   import { CodeMirrorWrapper } from "./code_mirror";
+
+  export let appState: AppState;
 
   let textRef: HTMLTextAreaElement;
   let codemirror: CodeMirrorWrapper;
 
-  onMount(() => {
-    codemirror = new CodeMirrorWrapper(textRef);
-  });
+  onMount(() => (codemirror = new CodeMirrorWrapper(appState, textRef)));
 </script>
 
 <div class="editor">
@@ -17,7 +19,5 @@
 <style>
   .editor {
     text-align: left;
-    /* width: 100%; */
-    /* height: 100%; */
   }
 </style>

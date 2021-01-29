@@ -1,7 +1,5 @@
-import { appState } from "./../service/app_state";
 import type { Box, G } from "@svgdotjs/svg.js";
-
-import AnimationController from "../animation/animation_controller";
+import type AnimationController from "../animation/animation_controller";
 import type Interpreter from "../interpreter/interpreter";
 import { generateData } from "../utils/helper_functions";
 import { DrawBasic } from "./helper/draw_basic";
@@ -38,11 +36,17 @@ export default class ComparisonSorts {
     default: string;
   };
 
-  constructor(rootDraw: G, viewBox: Box, length = 10) {
+  constructor(
+    animationControl: AnimationController,
+    rootDraw: G,
+    width: number,
+    height: number,
+    length = 10
+  ) {
     this.data = generateData(length);
-    this.animationControl = new AnimationController(appState);
+    this.animationControl = animationControl;
 
-    this.drawing = new DrawBasic(rootDraw, viewBox, this.data);
+    this.drawing = new DrawBasic(rootDraw, width, height, this.data);
     this.elementManager = new ElementManager(this.drawing);
 
     this.colorMapping = {

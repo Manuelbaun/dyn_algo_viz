@@ -1,13 +1,14 @@
 <script lang="ts">
-  import { appState } from "../service/app_state";
+  import type { AppState } from "../service/app_state";
   import Slider from "./Slider.svelte";
+
+  export let appState: AppState;
+
   const {
-    event,
     progress,
     animationSpeed,
     animationSpeedSlider,
     state,
-    autofit,
     autoscroll,
   } = appState;
 
@@ -15,10 +16,6 @@
   const pause = () => appState.pause();
   const continueing = () => appState.continue();
   const stepIn = () => appState.stepIn();
-
-  // currently only stepIn works properly
-  // const step = () => appState.step();
-  // const reset = () => appState.reset();
 </script>
 
 <div class="container">
@@ -63,10 +60,6 @@
 
   <div class="columns">
     <div class="form-group ">
-      <!-- <label class="form-checkbox form-inline">
-        <input type="checkbox" bind:checked={$autofit} />
-        <i class="form-icon" />Autofit (Experimental)
-      </label> -->
       <label class="form-checkbox form-inline">
         <input type="checkbox" bind:checked={$autoscroll} />
         <i class="form-icon" />AutoScroll
