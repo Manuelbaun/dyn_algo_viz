@@ -32,7 +32,7 @@
         progress: $progress.toFixed(2) + " %",
         speed: $animationSpeed.toFixed(2),
         state: $state,
-        event: $event,
+        // event: $event,
       },
     };
   }
