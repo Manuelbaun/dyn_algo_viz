@@ -13,6 +13,7 @@
     currentTime,
     breakPoints,
     localScope,
+    currentDuration,
   } = appState;
 
   let jsonViewer: any;
@@ -26,11 +27,12 @@
       localScope: $localScope,
       breakPoints: $breakPoints,
       control: {
+        duration: +$currentDuration.toFixed(2) + " ms",
+        currentTime: +$currentTime.toFixed(2) + " ms",
         progress: $progress.toFixed(2) + " %",
         speed: $animationSpeed.toFixed(2),
         state: $state,
         event: $event,
-        currentTime: +$currentTime.toFixed(2) + " ms",
       },
     };
   }

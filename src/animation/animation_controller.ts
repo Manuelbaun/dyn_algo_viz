@@ -35,17 +35,16 @@ export default class AnimationController {
 
   constructor(appState: AppState) {
     this.algoTimeline.update = async (timeline) => {
-      appState.setProgress(timeline.progress);
-      appState.setCurrentTime(timeline.currentTime);
+      appState.progress.set(timeline.progress);
+      appState.currentTime.set(timeline.currentTime);
+      appState.currentDuration.set(timeline.duration);
     };
 
-    const { progress, animationSpeed, event } = appState;
+    appState.animationSpeed.subscribe((data) => this.setSpeed(data));
 
-    animationSpeed.subscribe((data) => this.setSpeed(data));
+    appState.progress.subscribe((data) => this.setProgress(data));
 
-    progress.subscribe((data) => this.setProgress(data));
-
-    event.subscribe((event) => {
+    appState.event.subscribe((event) => {
       if (event == "RESET") {
         // in theory should now reset! and clear all animation
       } else if (event == "PAUSE") {

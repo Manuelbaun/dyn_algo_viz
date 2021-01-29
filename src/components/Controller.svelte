@@ -11,30 +11,9 @@
     autoscroll,
   } = appState;
 
-  let mainButtonText = "Start";
-
-  // reactive button text assignment
-  $: {
-    if ($state == "INIT") {
-      mainButtonText = "START";
-    } else if ($state == "RUNNING") {
-      mainButtonText = "RUNNING";
-    } else if ($state == "PAUSED") {
-      mainButtonText = "Continue";
-    } else if ($state == "DONE") {
-      mainButtonText = "DONE";
-    }
-  }
-
-  const handleMainButton = () => {
-    if ($state == "INIT") appState.start();
-    else if ($state == "PAUSED" || $state == "STEPPING") appState.continue();
-  };
-
-  const pause = () => {
-    if ($state == "RUNNING") appState.pause();
-  };
-
+  const start = () => appState.start();
+  const pause = () => appState.pause();
+  const continueing = () => appState.continue();
   const stepIn = () => appState.stepIn();
 
   // currently only stepIn works properly
@@ -66,13 +45,12 @@
   </div>
 
   <div class="btn-group btn-group-block">
-    <button
-      class="btn"
-      on:click={handleMainButton}
-      disabled={$state == "DONE" || $state == "RUNNING"}>
-      {mainButtonText}
+    <button class="btn" on:click={start} disabled={$state != "INIT"}>
+      START
     </button>
-
+    <button class="btn" on:click={continueing} disabled={$state != "PAUSED"}>
+      CONTINUE
+    </button>
     <button
       class="btn"
       on:click={pause}
@@ -85,10 +63,10 @@
 
   <div class="columns">
     <div class="form-group ">
-      <label class="form-checkbox form-inline">
+      <!-- <label class="form-checkbox form-inline">
         <input type="checkbox" bind:checked={$autofit} />
         <i class="form-icon" />Autofit (Experimental)
-      </label>
+      </label> -->
       <label class="form-checkbox form-inline">
         <input type="checkbox" bind:checked={$autoscroll} />
         <i class="form-icon" />AutoScroll

@@ -27,6 +27,7 @@ function setItem(key: string, value: any) {
 export class AppState {
   readonly progress = writable<number>(0);
   readonly currentTime = writable<number>(0);
+  readonly currentDuration = writable<number>(0);
   readonly event = writableModified<EVENTS>("INIT");
 
   /**
