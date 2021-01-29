@@ -16,27 +16,30 @@
   // reactive button text assignment
   $: {
     if ($state == "INIT") {
-      mainButtonText = "Start";
+      mainButtonText = "START";
     } else if ($state == "RUNNING") {
-      mainButtonText = "Pause";
+      mainButtonText = "RUNNING";
     } else if ($state == "PAUSED") {
       mainButtonText = "Continue";
     } else if ($state == "DONE") {
-      mainButtonText = "Done";
+      mainButtonText = "DONE";
     }
   }
 
   const handleMainButton = () => {
     if ($state == "INIT") appState.start();
-    else if ($state == "RUNNING") appState.pause();
     else if ($state == "PAUSED" || $state == "STEPPING") appState.continue();
   };
 
-  /// carefull, when binding click event directly to appState.step
-  /// this will be undefined then!
-  const step = () => appState.step();
+  const pause = () => {
+    if ($state == "RUNNING") appState.pause();
+  };
+
   const stepIn = () => appState.stepIn();
-  const reset = () => appState.reset();
+
+  // currently only stepIn works properly
+  // const step = () => appState.step();
+  // const reset = () => appState.reset();
 </script>
 
 <div class="container">
@@ -63,31 +66,24 @@
   </div>
 
   <div class="btn-group btn-group-block">
-    <button class="btn" on:click={handleMainButton} disabled={$state == "DONE"}>
+    <button
+      class="btn"
+      on:click={handleMainButton}
+      disabled={$state == "DONE" || $state == "RUNNING"}>
       {mainButtonText}
     </button>
 
     <button
       class="btn"
-      on:click={step}
-      disabled={$state != "PAUSED" && $state != "STEPPING"}> STEP </button>
+      on:click={pause}
+      disabled={$state != "RUNNING" && $state != "STEPPING"}> PAUSE </button>
     <button
       class="btn"
       on:click={stepIn}
-      disabled={$state != "PAUSED" && $state != "STEPPING"}> STEP IN </button>
-    <button class="btn" on:click={reset} disabled={$state == "INIT"}>
-      RESET
-    </button>
+      disabled={$state != "PAUSED" && $state != "STEPPING"}> STEP </button>
   </div>
 
   <div class="columns">
-    <div class="column col-6">
-      <span>Last Event: {$event}</span>
-    </div>
-    <div class="column col-6">
-      <div>State: {$state}</div>
-    </div>
-
     <div class="form-group ">
       <label class="form-checkbox form-inline">
         <input type="checkbox" bind:checked={$autofit} />
