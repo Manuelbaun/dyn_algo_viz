@@ -2,7 +2,7 @@
   import type { AppState } from "../../service/app_state";
 
   import { onMount } from "svelte";
-  import { CodeMirrorWrapper } from "./code_mirror";
+  import { CodeMirrorWrapper } from "./code_mirror_wrapper";
 
   export let appState: AppState;
 

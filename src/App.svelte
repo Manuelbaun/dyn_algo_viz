@@ -5,7 +5,7 @@
   import ComparisonSorts from "./algorithm_viz/comparison";
   import AnimationController from "./animation/animation_controller";
 
-  import Codemirror from "./components/codemirror/Codemirror.svelte";
+  import Codemirror from "./components/editor/Editor.svelte";
   import Controller from "./components/Controller.svelte";
   import JsonViewer from "./components/JsonViewer.svelte";
   import SvgDraw from "./components/SvgDraw.svelte";

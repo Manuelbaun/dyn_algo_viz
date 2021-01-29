@@ -14,7 +14,7 @@
 
   const start = () => appState.start();
   const pause = () => appState.pause();
-  const continueing = () => appState.continue();
+  const doContinue = () => appState.continue();
   const stepIn = () => appState.stepIn();
 </script>
 
@@ -45,13 +45,13 @@
     <button class="btn" on:click={start} disabled={$state != "INIT"}>
       START
     </button>
-    <button class="btn" on:click={continueing} disabled={$state != "PAUSED"}>
-      CONTINUE
-    </button>
     <button
       class="btn"
-      on:click={pause}
-      disabled={$state != "RUNNING" && $state != "STEPPING"}> PAUSE </button>
+      on:click={doContinue}
+      disabled={$state != "PAUSED" && $state != "STEPPING"}> CONTINUE </button>
+    <button class="btn" on:click={pause} disabled={$state != "RUNNING"}>
+      PAUSE
+    </button>
     <button
       class="btn"
       on:click={stepIn}
@@ -62,7 +62,7 @@
     <div class="form-group ">
       <label class="form-checkbox form-inline">
         <input type="checkbox" bind:checked={$autoscroll} />
-        <i class="form-icon" />AutoScroll
+        <i class="form-icon" /> AutoScroll
       </label>
     </div>
   </div>
