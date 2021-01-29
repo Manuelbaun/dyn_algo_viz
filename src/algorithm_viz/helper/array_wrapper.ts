@@ -1,5 +1,5 @@
-import type Interpreter from "src/interpreter/interpreter";
-import { genID } from "src/utils/helper_functions";
+import type Interpreter from "../../interpreter/interpreter";
+import { genID } from "../../utils/helper_functions";
 import type { VisualElement } from "./visual_element";
 
 /**

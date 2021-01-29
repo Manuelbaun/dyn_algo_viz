@@ -1,4 +1,4 @@
-import type Interpreter from "src/interpreter/interpreter";
+import type Interpreter from "../../interpreter/interpreter";
 import { ArrayWrapper } from "./array_wrapper";
 import type { DrawBasic } from "./draw_basic";
 import type { VisualElement } from "./visual_element";
