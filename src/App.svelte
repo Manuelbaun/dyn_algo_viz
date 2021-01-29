@@ -8,13 +8,13 @@
   import Codemirror from "./components/editor/Editor.svelte";
   import Controller from "./components/Controller.svelte";
   import JsonViewer from "./components/JsonViewer.svelte";
-  import SvgDraw from "./components/SvgDraw.svelte";
+  import VisualArea from "./components/VisualArea.svelte";
 
   import { InterpreterWrapper } from "./interpreter/interpreter_wrap";
   import { AppState } from "./service/app_state";
 
   // get the reference of the svgDraw, to get the needed references!
-  let svgDraw: SvgDraw;
+  let svgDraw: VisualArea;
 
   // init State
   const appState = AppState.getInstance();
@@ -38,7 +38,7 @@
 <div class="container">
   <div class="columns">
     <div class="column">
-      <SvgDraw bind:this={svgDraw} />
+      <VisualArea bind:this={svgDraw} />
     </div>
     <div class="divider-vert" />
 
