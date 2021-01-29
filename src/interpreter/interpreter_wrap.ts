@@ -79,7 +79,7 @@ export class InterpreterWrapper {
        * This needs to done, since, this function could also be called, when
        * the stepping mode is active
        */
-      if (appState.isRunning || paused == false) {
+      if (appState.isRunning && paused == false) {
         this.mainExecutingLoop();
       }
     };
@@ -392,7 +392,6 @@ export class InterpreterWrapper {
   }
 
   private stepHighlighted(state: any) {
-    // will walk every node in the tree
     const paused = this.paused;
     this.paused = false;
     const res = this.interpreter.step();
@@ -410,7 +409,7 @@ export class InterpreterWrapper {
    * @private
    */
   private mainExecutingLoop() {
-    while (appState.isRunning && !this.paused && this.interpreter.step()) {
+    while (!this.paused && appState.isRunning && this.interpreter.step()) {
       const topStack = this.interpreter.stateStack.getTop();
       this.handleBreakPoints(topStack);
 
