@@ -5,7 +5,7 @@
   import ComparisonSorts from "./algorithm_viz/comparison";
   import AnimationController from "./animation/animation_controller";
 
-  import Codemirror from "./components/editor/Editor.svelte";
+  import Editor from "./components/editor/Editor.svelte";
   import Controller from "./components/Controller.svelte";
   import JsonViewer from "./components/JsonViewer.svelte";
   import VisualArea from "./components/VisualArea.svelte";
@@ -21,6 +21,7 @@
 
   onMount(async () => {
     const aniController = new AnimationController(appState);
+    
     const algorithm = new ComparisonSorts(
       aniController,
       svgDraw.getDrawRoot(),
@@ -43,7 +44,7 @@
     <div class="divider-vert" />
 
     <div class="column">
-      <Codemirror {appState} />
+      <Editor {appState} />
     </div>
   </div>
   <div class="divider text-center" data-content="Control" />
