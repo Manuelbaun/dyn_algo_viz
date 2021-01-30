@@ -69,6 +69,11 @@ export default class AnimationController {
   unsubscriber: Function[] = [];
   dispose() {
     this.unsubscriber.forEach((unsub) => unsub());
+    /// so help the garbage collector
+    // @ts-ignore
+    this.initTimeline = undefined;
+    // @ts-ignore
+    this.algoTimeline = undefined;
   }
 
   play() {

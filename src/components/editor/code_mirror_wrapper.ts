@@ -86,6 +86,15 @@ export class CodeMirrorWrapper {
     });
 
     // this.updateHints();
+
+    this.unsubscriber.push(
+      appState.event.subscribe((ev) => {
+        if (ev == "RESET") {
+          /// clear if a node is marked
+          this.marks?.clear();
+        }
+      })
+    );
   }
 
   /**

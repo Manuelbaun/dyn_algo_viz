@@ -5,11 +5,12 @@
   import { CodeMirrorWrapper } from "./code_mirror_wrapper";
 
   export let appState: AppState;
-
   let textRef: HTMLTextAreaElement;
   let codemirror: CodeMirrorWrapper;
 
-  onMount(() => (codemirror = new CodeMirrorWrapper(appState, textRef)));
+  onMount(() => {
+    codemirror = new CodeMirrorWrapper(appState, textRef);
+  });
 </script>
 
 <div class="editor">

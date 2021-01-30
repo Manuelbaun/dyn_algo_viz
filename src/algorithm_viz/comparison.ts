@@ -1,4 +1,4 @@
-import type { Box, G } from "@svgdotjs/svg.js";
+import type { G } from "@svgdotjs/svg.js";
 import type AnimationController from "../animation/animation_controller";
 import type Interpreter from "../interpreter/interpreter";
 import { generateData } from "../utils/helper_functions";
@@ -7,13 +7,19 @@ import { ElementManager } from "./helper/element_manager";
 import { VisualElement } from "./helper/visual_element";
 
 /**
- * BIG TODOS:
+ * The comparisonSort Class
  *
+ * Due how SVGjs works, to acutally display an svg element,
+ * it needs a parent element. Therefore, the drawRoot
+ * is given to this algorithm class, together with the width and the hight
+ * of the svg element
+ *
+ *
+ *
+ * TODO:
  * find a way, how the x- and y-position of an element can be inteligentily guessed
  * since just adding
  */
-
-/** The comparisonSort Class */
 export default class ComparisonSorts {
   animationControl: AnimationController;
   data: number[];
@@ -65,6 +71,14 @@ export default class ComparisonSorts {
     this.data.forEach((value) => {
       this.elementManager.setRef(value, new VisualElement(value, this.drawing));
     });
+  }
+
+  /**
+   * This does not really work, does it?
+   */
+  dispose() {
+    // @ts-ignore
+    this.elementManager = undefined;
   }
 
   setupDone: Promise<void> = Promise.resolve();

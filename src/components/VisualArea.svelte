@@ -9,34 +9,41 @@
    *  1. Just refresh the browser
    */
   import { onMount } from "svelte";
-  import { Box, G, Svg, SVG } from "@svgdotjs/svg.js";
+  import { G, Svg, SVG } from "@svgdotjs/svg.js";
   import panzoom from "panzoom";
   import type { PanZoom } from "panzoom";
 
   let svgElement: SVGElement;
   let panZoomer: PanZoom;
-  let viewBox: Box;
+  let drawRoot: G;
+  let svgJS: Svg;
+
+  /**
+   * Note:
+   * the width and hight does not set the width and height
+   * of the svg element itself, but rather sets the viewport
+   */
+  export let width: number;
+  export let height: number;
+  const viewBoxStr = `0 0 ${width} ${height}`;
 
   /// create getters until a better solution is proposed
   export const getDrawRoot = () => drawRoot;
   export const getWidth = () => width;
   export const getHeight = () => height;
 
-  let drawRoot: G;
-  let width: number;
-  let height: number;
+  onMount(() => clearAndInit());
 
-  onMount(() => {
-    const svgJS = SVG(svgElement) as Svg;
-    viewBox = svgJS.viewbox();
-
-    width = viewBox.width;
-    height = viewBox.height;
+  export function clearAndInit() {
+    svgJS = SVG(svgElement) as Svg;
+    // clear the entire svg area
+    svgJS?.clear();
 
     const panzoomNode = svgJS.group();
     drawRoot = panzoomNode.group();
     drawRoot.attr("id", "draw-root");
 
+    // create the pan and zoom component and add to the svg!
     panZoomer = panzoom(panzoomNode.node, {
       zoomSpeed: 0.2, // 6.5% per mouse wheel event
       minZoom: 0.1,
@@ -47,7 +54,7 @@
       boundsPadding: 0.0,
       autocenter: true,
     });
-  });
+  }
 
   export function center() {
     panZoomer.centerOn(drawRoot.node);
@@ -69,7 +76,7 @@
   }
 </script>
 
-<svg id="animejsID" viewBox="0 0 600 400" bind:this={svgElement} />
+<svg id="animejsID" viewBox={viewBoxStr} bind:this={svgElement} />
 
 <style>
   svg {

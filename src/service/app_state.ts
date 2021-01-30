@@ -119,7 +119,20 @@ export class AppState {
     this.event.set("CONTINUE");
   }
 
+  /**
+   * This method will reset the app state, and trigger all other components to reset
+   *
+   */
   reset() {
+    this.currentTime.set(0);
+    this.progress.set(0);
+    this.localScope.set({});
+    this.currentDuration.set(0);
+
+    // overrides the timeseries for markednodes and localScope
+    this.markedNodeSeries = new TimeSeries<MarkedNode>();
+    this.localScopeSeries = new TimeSeries<object>();
+
     this.event.set("RESET");
   }
 

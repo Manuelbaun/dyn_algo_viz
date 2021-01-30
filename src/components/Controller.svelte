@@ -16,6 +16,7 @@
   const pause = () => appState.pause();
   const doContinue = () => appState.continue();
   const stepIn = () => appState.stepIn();
+  const reset = () => appState.reset();
 </script>
 
 <div class="container">
@@ -56,6 +57,8 @@
       class="btn"
       on:click={stepIn}
       disabled={$state != "PAUSED" && $state != "STEPPING"}> STEP </button>
+
+    <button class="btn" on:click={reset}> RESET </button>
   </div>
 
   <div class="columns">

@@ -20,9 +20,9 @@ export class InterpreterWrapper {
     this.initDone = false;
 
     const initFunction = this.interpreterInitFunctions.bind(this);
-    /**
-     *
-     */
+
+    // setup the interpreter, but add user code, only when start button is pressed
+    // see start method.
     this.interpreter = new Interpreter("", initFunction);
 
     this.unsubscriber.push(

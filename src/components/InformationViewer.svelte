@@ -6,11 +6,11 @@
 
   export let appState: AppState;
 
+  // extract the stores, that are interesting to display
   const {
     progress,
     animationSpeed,
     state,
-    event,
     currentTime,
     breakPoints,
     localScope,
@@ -18,34 +18,26 @@
   } = appState;
 
   let jsonViewer: any;
-  onMount(() => jsonViewer.expand("**.localScope"));
-
   // init data
   let data: object = {};
 
-  function jsonData() {
-    data = {
-      localScope: $localScope,
-      breakPoints: $breakPoints,
-      control: {
-        duration: +$currentDuration.toFixed(2) + " ms",
-        currentTime: +$currentTime.toFixed(2) + " ms",
-        progress: $progress.toFixed(2) + " %",
-        speed: $animationSpeed.toFixed(2),
-        state: $state,
-      },
-    };
-  }
+  /// open the localScope, once the component is mounted
+  onMount(() => jsonViewer?.expand("**.localScope"));
+
   // autosubscribe, when one of the listen stores changes,
-  // then=> execute jsonData() => which updates the json-viewer
-  $: $progress,
-    $animationSpeed,
-    $state,
-    $event,
-    $breakPoints,
-    $currentDuration,
-    $currentTime,
-    jsonData();
+  // then=>  compose the data => which updates the json-viewer
+  // this triggers an update of the json-viewer
+  $: data = {
+    localScope: $localScope,
+    breakPoints: $breakPoints,
+    control: {
+      duration: +$currentDuration.toFixed(2) + " ms",
+      currentTime: +$currentTime.toFixed(2) + " ms",
+      progress: $progress.toFixed(2) + " %",
+      speed: $animationSpeed.toFixed(2),
+      state: $state,
+    },
+  };
 </script>
 
 <json-viewer id="json" {data} bind:this={jsonViewer} />
