@@ -42,14 +42,14 @@ export class VisualElement {
   }
 
   // X position of the element (invert of the scales)
-  get x() {
+  get xIndex() {
     return Math.round(
       this.draw.scales.xInvert(this.transformMatrix.translateX)
     );
   }
 
   // Y position of the element (invert of the scales)
-  get y() {
+  get yIndex() {
     // normally d3 scale have an inverse function,
     // but it does not work properly on the y scale???
     // bug in y.inverse()
@@ -59,12 +59,12 @@ export class VisualElement {
   }
 
   // Pixel X position of the element
-  get posX() {
+  get xPixel() {
     return this.transformMatrix.translateX;
   }
 
   // Pixel Y position of the element
-  get posY() {
+  get yPixel() {
     return this.transformMatrix.translateY;
   }
 

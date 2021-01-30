@@ -27,7 +27,7 @@ export class ElementManager {
       .fill(0)
       .map((v, i) => Array<number>(els.length).fill(0));
 
-    els.forEach(({ x, y }) => (m[y][x] = 1));
+    els.forEach(({ xIndex: x, yIndex: y }) => (m[y][x] = 1));
 
     return m;
   }
@@ -53,7 +53,7 @@ export class ElementManager {
       }
     }
 
-    return { x: m[first.y].findIndex((e) => e == 0), y: first.y };
+    return { x: m[first.yIndex].findIndex((e) => e == 0), y: first.yIndex };
   }
 
   has(array: Interpreter.Object) {
