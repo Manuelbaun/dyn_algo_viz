@@ -8,6 +8,7 @@
   let textRef: HTMLTextAreaElement;
   let codemirror: CodeMirrorWrapper;
 
+  // wait, till children are mounted
   onMount(() => {
     codemirror = new CodeMirrorWrapper(appState, textRef);
   });

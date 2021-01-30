@@ -1,4 +1,3 @@
-// import { speed, progress, state, event } from "./store";
 import { derived, get, Writable, writable } from "svelte/store";
 import type { CustomAcornNode, EVENTS, MarkedNode, STATE } from "./store_types";
 import { writableModified } from "../utils/custom_store";
@@ -55,19 +54,19 @@ export class AppState {
   readonly progress = writable<number>(0);
   readonly currentTime = writable<number>(0);
   readonly currentDuration = writable<number>(0);
-  readonly event = writableModified<EVENTS>("INIT");
+  readonly event = writableModified<EVENTS>("init");
 
   /**
    * State is derived from event, first event changes -> state will change
    */
   readonly state = derived<Writable<EVENTS>, STATE>(this.event, (ev) => {
-    if (ev == "START") return "RUNNING";
-    if (ev == "PAUSE") return "PAUSED";
-    if (ev == "CONTINUE") return "RUNNING";
-    if (ev == "RESET" || ev == "INIT") return "INIT";
-    if (ev == "STEP") return "STEPPING";
-    if (ev == "STEPIN") return "STEPPING";
-    if (ev == "FINISH") return "DONE";
+    if (ev == "start") return "RUNNING";
+    if (ev == "pause") return "PAUSED";
+    if (ev == "contine") return "RUNNING";
+    if (ev == "reset" || ev == "init") return "INIT";
+    if (ev == "step") return "STEPPING";
+    if (ev == "stepin") return "STEPPING";
+    if (ev == "finish") return "DONE";
     return "ERROR";
   });
 
@@ -108,20 +107,20 @@ export class AppState {
   private localScopeSeries = new TimeSeries<object>();
 
   start() {
-    this.event.set("START");
+    this.event.set("start");
   }
 
   pause() {
-    this.event.set("PAUSE");
+    this.event.set("pause");
   }
 
   continue() {
-    this.event.set("CONTINUE");
+    this.event.set("contine");
   }
 
   /**
-   * This method will reset the app state, and trigger all other components to reset
-   *
+   * This method will reset the app state, 
+   * and trigger all other components to reset
    */
   reset() {
     this.currentTime.set(0);
@@ -133,15 +132,15 @@ export class AppState {
     this.markedNodeSeries = new TimeSeries<MarkedNode>();
     this.localScopeSeries = new TimeSeries<object>();
 
-    this.event.set("RESET");
+    this.event.set("reset");
   }
 
   step() {
-    this.event.set("STEP");
+    this.event.set("step");
   }
 
   stepIn() {
-    this.event.set("STEPIN");
+    this.event.set("stepin");
   }
 
   setSpeed(value: number) {
@@ -158,11 +157,11 @@ export class AppState {
   }
 
   setDone() {
-    this.event.set("FINISH");
+    this.event.set("finish");
   }
 
   setError() {
-    this.event.set("SOME_ERROR");
+    this.event.set("some_error");
   }
 
   get autofitValue() {
@@ -197,7 +196,7 @@ export class AppState {
     return get(this.autoscroll);
   }
 
-  toggleBreakPoint(line: number) {
+  setOrUnsetBreakPoint(line: number) {
     if (this.breakPointsSet.has(line)) {
       this.breakPointsSet.delete(line);
     } else {
@@ -231,7 +230,7 @@ export class AppState {
    * @param node
    * @param color
    */
-  markNode(
+  setMarkedNode(
     node: CustomAcornNode | undefined,
     color: string,
     shouldTrack = false

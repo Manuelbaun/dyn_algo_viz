@@ -5,7 +5,7 @@
 
   import Editor from "./components/editor/Editor.svelte";
   import Controller from "./components/Controller.svelte";
-  import JsonViewer from "./components/InformationViewer.svelte";
+  import DebugViewer from "./components/DebugViewer.svelte";
   import VisualArea from "./components/VisualArea.svelte";
 
   import { InterpreterWrapper } from "./interpreter/interpreter_wrap";
@@ -26,7 +26,7 @@
   let algorithm: ComparisonSorts;
   let interpreter: InterpreterWrapper;
 
-  // wait, until component is mountet, to init the algoviz
+  // wait, till children are mounted
   onMount(() => initAlgoViz());
 
   // autosubscribe to the reset event
@@ -38,7 +38,7 @@
    * 2. it reinits the algoviz
    */
   function onReset(event: EVENTS) {
-    if (event == "RESET") {
+    if (event == "reset") {
       svgDraw.clearAndInit();
       interpreter.dispose();
       algorithm.dispose();
@@ -87,7 +87,7 @@
     <div class="divider-vert" />
 
     <div class="column">
-      <JsonViewer {appState} />
+      <DebugViewer {appState} />
     </div>
   </div>
 </div>

@@ -77,7 +77,7 @@ export class CodeMirrorWrapper {
       const info = cm.lineInfo(line);
       const marker = info.gutterMarkers ? null : makeMarker();
       cm.setGutterMarker(line, "breakpoints", marker);
-      appState.toggleBreakPoint(info.line + 1);
+      appState.setOrUnsetBreakPoint(info.line + 1);
     });
 
     // if any breakpoints where set from before, apply them
@@ -89,7 +89,7 @@ export class CodeMirrorWrapper {
 
     this.unsubscriber.push(
       appState.event.subscribe((ev) => {
-        if (ev == "RESET") {
+        if (ev == "reset") {
           /// clear if a node is marked
           this.marks?.clear();
         }

@@ -9,15 +9,15 @@ export type STATE =
   | "STEPPING";
 
 export type EVENTS =
-  | "CONTINUE"
-  | "FINISH"
-  | "INIT"
-  | "PAUSE"
-  | "RESET"
-  | "SOME_ERROR"
-  | "START"
-  | "STEP"
-  | "STEPIN";
+  | "contine"
+  | "finish"
+  | "init"
+  | "pause"
+  | "reset"
+  | "some_error"
+  | "start"
+  | "step"
+  | "stepin";
 
 export interface CustomAcornNode extends acorn.Node {
   loc: acorn.SourceLocation;

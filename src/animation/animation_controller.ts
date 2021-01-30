@@ -50,13 +50,13 @@ export default class AnimationController {
 
     this.unsubscriber.push(
       appState.event.subscribe((event) => {
-        if (event == "RESET") {
+        if (event == "reset") {
           // in theory should now reset! and clear all animation
-        } else if (event == "PAUSE") {
+        } else if (event == "pause") {
           this.pause();
-        } else if (event == "CONTINUE") {
+        } else if (event == "contine") {
           this.continue();
-        } else if (event == "STEP") {
+        } else if (event == "step") {
           this.algoTimeline.step();
         }
       })

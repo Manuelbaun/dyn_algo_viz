@@ -32,6 +32,7 @@
   export const getWidth = () => width;
   export const getHeight = () => height;
 
+  // wait, till children are mounted
   onMount(() => clearAndInit());
 
   export function clearAndInit() {

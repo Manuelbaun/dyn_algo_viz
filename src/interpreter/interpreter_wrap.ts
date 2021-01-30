@@ -39,7 +39,7 @@ export class InterpreterWrapper {
 
     this.unsubscriber.push(
       this.appState.event.subscribe(async (event) => {
-        if (event == "START") {
+        if (event == "start") {
           await algorithm.setupDone;
           this.start();
         }
@@ -93,7 +93,7 @@ export class InterpreterWrapper {
      */
     const highlightAndScope = (color: string) => {
       const state = self.stateStack.getTop();
-      this.appState.markNode(state.node, color, true);
+      this.appState.setMarkedNode(state.node, color, true);
       this.appState.setLocalScope(this.getLocalScope(state.scope), true);
     };
 
@@ -353,7 +353,7 @@ export class InterpreterWrapper {
         setTimeout(() => (this.paused = false), 50);
       }
 
-      this.appState.markNode(top.node, "#ffaaaaaa");
+      this.appState.setMarkedNode(top.node, "#ffaaaaaa");
     }
 
     if (line != lineEnd) {
@@ -362,10 +362,10 @@ export class InterpreterWrapper {
   }
 
   private handleStepAndStepIn(event: EVENTS) {
-    if (event == "STEPIN" || event == "STEP") {
+    if (event == "stepin" || event == "step") {
       const state = this.interpreter.stateStack.getTop();
 
-      if (event == "STEP") {
+      if (event == "step") {
         // // walks only editor line by editor line
         // const startLine = node.loc.start.line;
         // appState.toggleBreakPointsToIgnore(startLine);
@@ -399,7 +399,7 @@ export class InterpreterWrapper {
     const res = this.interpreter.step();
     this.paused = paused;
 
-    this.appState.markNode(state.node, "#ffaafa");
+    this.appState.setMarkedNode(state.node, "#ffaafa");
     this.appState.setLocalScope(this.getLocalScope(state.scope));
   }
 
