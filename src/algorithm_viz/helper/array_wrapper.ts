@@ -9,7 +9,6 @@ import type { VisualElement } from "./visual_element";
 export class ArrayWrapper {
   private self;
   private allElementRefs;
-
   readonly id: string = genID();
 
   constructor(
@@ -31,13 +30,13 @@ export class ArrayWrapper {
   // Access the rectangle svg nodes directly to only color them!!!
   // do not tranlate them here
   get rectNodes() {
-    return this.mapRef((e) => e.rectNode);
+    return this.map((e) => e.rectNode);
   }
 
   // access the svg group node, to translate etc the group
   // setting color on the group element wont work
   get groupNodes() {
-    return this.mapRef((e) => e.node);
+    return this.map((e) => e.node);
   }
 
   private get(index: number) {
@@ -48,20 +47,20 @@ export class ArrayWrapper {
     return this.allElementRefs.get(value);
   }
 
-  getRef(index: number) {
+  getByIndex(index: number) {
     const val = this.get(index);
     return this.getByValue(val);
   }
 
-  forEach(cb: (element: number, index: number, self: this) => void) {
+  forEachByIndex(cb: (element: number, index: number, self: this) => void) {
     for (let i = 0; i < this.length; i++) {
       cb(this.get(i), i, this);
     }
   }
 
-  forEachRef(cb: (element: VisualElement, index: number, self: this) => void) {
+  forEach(cb: (element: VisualElement, index: number, self: this) => void) {
     for (let i = 0; i < this.length; i++) {
-      const el = this.getRef(i);
+      const el = this.getByIndex(i);
       if (el) {
         cb(el, i, this);
       } else {
@@ -70,10 +69,10 @@ export class ArrayWrapper {
     }
   }
 
-  mapRef<T>(cb: (element: VisualElement, index: number, array: T[]) => T): T[] {
+  map<T>(cb: (element: VisualElement, index: number, array: T[]) => T): T[] {
     const result: T[] = [];
     for (let i = 0; i < this.length; i++) {
-      const el = this.getRef(i);
+      const el = this.getByIndex(i);
 
       if (el) {
         result.push(cb(el, i, result));

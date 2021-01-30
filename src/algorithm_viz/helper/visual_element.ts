@@ -8,14 +8,12 @@ export class VisualElement {
   private rectEl: Rect;
   private textEl: Text;
   private draw: DrawBasic;
-  private scales: Scales;
 
   constructor(value: number, draw: DrawBasic) {
     this.draw = draw;
     // set initial transform of Y
     // create group element, to group rect and text together => less work
     this.root = draw.drawRoot.group().attr({ opacity: 0.0 });
-    this.scales = this.draw.scales;
     this.value = value;
 
     /// create rect in previous created group
@@ -45,7 +43,9 @@ export class VisualElement {
 
   // X position of the element (invert of the scales)
   get x() {
-    return Math.round(this.scales.xInvert(this.matrix.translateX));
+    return Math.round(
+      this.draw.scales.xInvert(this.transformMatrix.translateX)
+    );
   }
 
   // Y position of the element (invert of the scales)
@@ -53,17 +53,19 @@ export class VisualElement {
     // normally d3 scale have an inverse function,
     // but it does not work properly on the y scale???
     // bug in y.inverse()
-    return Math.round(this.scales.yInvert(this.matrix.translateY));
+    return Math.round(
+      this.draw.scales.yInvert(this.transformMatrix.translateY)
+    );
   }
 
   // Pixel X position of the element
   get posX() {
-    return this.matrix.translateX;
+    return this.transformMatrix.translateX;
   }
 
   // Pixel Y position of the element
   get posY() {
-    return this.matrix.translateY;
+    return this.transformMatrix.translateY;
   }
 
   /**
@@ -73,7 +75,7 @@ export class VisualElement {
    *
    * this is a workaround
    */
-  private get matrix() {
+  private get transformMatrix() {
     const matrix = new WebKitCSSMatrix(this.node.style.transform);
     return { translateX: matrix.e, translateY: matrix.f };
   }

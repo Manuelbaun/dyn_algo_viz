@@ -119,8 +119,8 @@ export default class ComparisonSortsVisualizer {
     const ref = this.elementManager.getArrayWrapper(array);
 
     // get visual elements
-    const el1 = ref.getRef(i);
-    const el2 = ref.getRef(j);
+    const el1 = ref.getByIndex(i);
+    const el2 = ref.getByIndex(j);
 
     // at this point, the js interpreter would have thrown an error
     if (!el1 || !el2) return;
@@ -175,8 +175,8 @@ export default class ComparisonSortsVisualizer {
     const ref = this.elementManager.getArrayWrapper(array);
 
     // get visual objects
-    const el1 = ref.getRef(i);
-    const el2 = ref.getRef(j);
+    const el1 = ref.getByIndex(i);
+    const el2 = ref.getByIndex(j);
 
     // if an element at pos i or j does not exist, the interpreter would have thrown error
     if (!el1 || !el2) return;
@@ -206,7 +206,7 @@ export default class ComparisonSortsVisualizer {
   async splice(array: Interpreter.Object) {
     const tl = this.animationControl.algoTimeline;
     const ref = this.elementManager.getArrayWrapper(array);
-    const first = ref?.getRef(0);
+    const first = ref?.getByIndex(0);
 
     if (!first) return;
 
@@ -229,7 +229,7 @@ export default class ComparisonSortsVisualizer {
     const tl = this.animationControl.algoTimeline;
     const ref = this.elementManager.getArrayWrapper(array);
 
-    const first = ref?.getRef(0);
+    const first = ref?.getByIndex(0);
     if (!first) return;
 
     const translateX = first.posX;
@@ -246,7 +246,7 @@ export default class ComparisonSortsVisualizer {
       translateX: translateX + this.drawing.scales.x(-1),
     });
 
-    ref.forEachRef((d, i) => {
+    ref.forEach((d, i) => {
       if (d != first) {
         tl.add(
           {
@@ -268,8 +268,8 @@ export default class ComparisonSortsVisualizer {
     const ref = this.elementManager.getArrayWrapper(array);
 
     // get last element! since the value is already added by the interpreter!
-    const group = ref.getRef(ref.length - 1);
-    const first = ref.getRef(0);
+    const group = ref.getByIndex(ref.length - 1);
+    const first = ref.getByIndex(0);
 
     if (!group || !first) return;
 
@@ -315,7 +315,7 @@ export default class ComparisonSortsVisualizer {
     const tl = this.animationControl.algoTimeline;
 
     const ref = this.elementManager.getArrayWrapper(array);
-    const first = ref?.getRef(0);
+    const first = ref?.getByIndex(0);
     if (!first) return;
 
     const translateX = first.posX;
@@ -327,7 +327,7 @@ export default class ComparisonSortsVisualizer {
       fill: this.colorMapping.concat,
     });
 
-    ref.forEachRef((e, i) => {
+    ref.forEach((e, i) => {
       tl.add(
         {
           targets: e.node,
@@ -345,7 +345,7 @@ export default class ComparisonSortsVisualizer {
   async set(array: Interpreter.Object, i: number, value: number) {
     const tl = this.animationControl.algoTimeline;
     const ref = this.elementManager.getArrayWrapper(array);
-    const first = ref.getRef(0);
+    const first = ref.getByIndex(0);
 
     if (!first) return;
 
@@ -375,7 +375,7 @@ export default class ComparisonSortsVisualizer {
     const ref = this.elementManager.getArrayWrapper(array);
 
     // get visual objects
-    const group = ref.getRef(i);
+    const group = ref.getByIndex(i);
 
     // if an element at pos i or j does not exist, the interpreter would have thrown error
     if (!group) return;
