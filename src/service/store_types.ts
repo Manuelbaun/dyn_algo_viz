@@ -1,23 +1,23 @@
 import type acorn from "acorn";
 
 export type STATE =
-  | "RUNNING"
-  | "PAUSED"
-  | "INIT"
   | "DONE"
-  | "STEPPING"
-  | "ERROR";
+  | "ERROR"
+  | "INIT"
+  | "PAUSED"
+  | "RUNNING"
+  | "STEPPING";
 
 export type EVENTS =
-  | "START"
-  | "PAUSE"
   | "CONTINUE"
-  | "INIT"
-  | "RESET"
-  | "STEP"
-  | "STEPIN"
   | "FINISH"
-  | "SOME_ERROR";
+  | "INIT"
+  | "PAUSE"
+  | "RESET"
+  | "SOME_ERROR"
+  | "START"
+  | "STEP"
+  | "STEPIN";
 
 export interface CustomAcornNode extends acorn.Node {
   loc: acorn.SourceLocation;
