@@ -3,13 +3,13 @@ import type { DrawBasic, Scales } from "./draw_basic";
 
 export class VisualElement {
   // the root group, which contains the text and rectangle
-  root: G;
-  rectEl: Rect;
-  textEl: Text;
-  value: number;
-  draw: DrawBasic;
-
+  readonly value: number;
+  private root: G;
+  private rectEl: Rect;
+  private textEl: Text;
+  private draw: DrawBasic;
   private scales: Scales;
+
   constructor(value: number, draw: DrawBasic) {
     this.draw = draw;
     // set initial transform of Y
@@ -21,10 +21,10 @@ export class VisualElement {
     /// create rect in previous created group
     /// the dy(bottomline - height), means where to put the start of the bar
     /// since coordinate systems start from top left corner
-    const height = this.draw.scales.yHeight(value);
+    const height = this.draw.scales.elementHeight(value);
 
     this.rectEl = this.root
-      .rect(this.draw.rect.width, height)
+      .rect(this.draw.elementWidth, height)
       .attr({ fill: this.draw.colors.Silver })
       .dy(this.draw.bottomLine - height);
 
@@ -45,7 +45,7 @@ export class VisualElement {
 
   // X position of the element (invert of the scales)
   get x() {
-    return Math.round(this.scales.xInv(this.matrix.translateX));
+    return Math.round(this.scales.xInvert(this.matrix.translateX));
   }
 
   // Y position of the element (invert of the scales)
@@ -53,7 +53,7 @@ export class VisualElement {
     // normally d3 scale have an inverse function,
     // but it does not work properly on the y scale???
     // bug in y.inverse()
-    return Math.round(this.scales.yInv(this.matrix.translateY));
+    return Math.round(this.scales.yInvert(this.matrix.translateY));
   }
 
   // Pixel X position of the element

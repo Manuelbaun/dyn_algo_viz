@@ -31,7 +31,7 @@ export class ArrayWrapper {
   // Access the rectangle svg nodes directly to only color them!!!
   // do not tranlate them here
   get rectNodes() {
-    return this.mapRef((e) => e.rectEl.node);
+    return this.mapRef((e) => e.rectNode);
   }
 
   // access the svg group node, to translate etc the group

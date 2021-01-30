@@ -26,10 +26,10 @@ import { VisualElement } from "./helper/visual_element";
  * since just adding
  */
 export default class ComparisonSortsVisualizer {
-  animationControl: AnimationController;
   data: number[];
-  elementManager;
-  drawing: DrawBasic;
+  private animationControl: AnimationController;
+  private elementManager: ElementManager;
+  private drawing: DrawBasic;
 
   get colors() {
     return this.colorMapping;
@@ -52,9 +52,9 @@ export default class ComparisonSortsVisualizer {
     drawRoot: G,
     width: number,
     height: number,
-    length = 10
+    length = 20
   ) {
-    this.data = Array.from(new Set(generateData(length)));
+    this.data = Array.from(new Set(generateData(length).map((e) => e + 1)));
 
     this.animationControl = animationControl;
 

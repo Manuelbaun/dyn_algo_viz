@@ -1,12 +1,12 @@
-import type { Box, G } from "@svgdotjs/svg.js";
+import type { G } from "@svgdotjs/svg.js";
 import { max, scaleLinear, ScaleLinear } from "d3";
 
 export type Scales = {
   x: ScaleLinear<number, number, never>;
   y: ScaleLinear<number, number, never>;
-  xInv: (val: number) => number;
-  yInv: (val: number) => number;
-  yHeight: ScaleLinear<number, number, never>;
+  xInvert: (val: number) => number;
+  yInvert: (val: number) => number;
+  elementHeight: ScaleLinear<number, number, never>;
 };
 
 /**
@@ -34,8 +34,8 @@ export class DrawBasic {
   };
 
   drawRoot: G;
-  svgWidth: number;
-  svgHeight: number;
+  width: number;
+  height: number;
 
   margin: {
     top: number;
@@ -47,9 +47,8 @@ export class DrawBasic {
   drawHeight: number;
   drawWidth: number;
   bottomLine: number;
-  rect: {
-    width: number;
-  };
+
+  elementWidth: number;
 
   scales: Scales;
 
@@ -62,17 +61,15 @@ export class DrawBasic {
     };
 
     this.drawRoot = drawRoot;
-    this.svgHeight = height;
-    this.svgWidth = width;
+    this.height = height;
+    this.width = width;
 
     this.drawHeight = height - this.margin.top - this.margin.bottom;
     this.drawWidth = width - this.margin.left - this.margin.right;
     this.bottomLine = height - this.margin.bottom;
 
     const length = data.length;
-    this.rect = {
-      width: this.drawWidth / length - 2.5,
-    };
+    this.elementWidth = this.drawWidth / length - 2.5;
 
     /**
      * Scales, to map between pixels and the data vales
@@ -84,9 +81,9 @@ export class DrawBasic {
       y: scaleLinear()
         .domain([0, 1])
         .range([0, height / 2]),
-      xInv: (val: number) => val / xStep,
-      yInv: (val: number) => val / yStep,
-      yHeight: scaleLinear()
+      xInvert: (val: number) => val / xStep,
+      yInvert: (val: number) => val / yStep,
+      elementHeight: scaleLinear()
         .domain([0, max(data)] as number[]) // the max value of the data
         .range([0, height / 2 - this.margin.top - 20]), // height minus bottom marginopen
     };
