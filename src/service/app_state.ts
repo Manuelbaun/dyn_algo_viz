@@ -53,7 +53,7 @@ export class AppState {
 
   readonly progress = writable<number>(0);
   readonly currentTime = writable<number>(0);
-  readonly currentDuration = writable<number>(0);
+  readonly duration = writable<number>(0);
   readonly event = writableModified<EVENTS>("init");
 
   /**
@@ -126,7 +126,7 @@ export class AppState {
     this.currentTime.set(0);
     this.progress.set(0);
     this.localScope.set({});
-    this.currentDuration.set(0);
+    this.duration.set(0);
 
     // overrides the timeseries for markednodes and localScope
     this.markedNodeSeries = new TimeSeries<MarkedNode>();

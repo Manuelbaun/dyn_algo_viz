@@ -39,7 +39,7 @@ export default class AnimationController {
     this.algoTimeline.update = async (timeline) => {
       appState.progress.set(timeline.progress);
       appState.currentTime.set(timeline.currentTime);
-      appState.currentDuration.set(timeline.duration);
+      appState.duration.set(timeline.duration);
     };
 
     // update speed from state
