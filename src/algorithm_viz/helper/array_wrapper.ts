@@ -8,16 +8,16 @@ import type { VisualElement } from "./visual_element";
  */
 export class ArrayWrapper {
   private self;
-  private groupRefs;
+  private allElementRefs;
 
   readonly id: string = genID();
 
   constructor(
     array: Interpreter.Object,
-    groupRefs: Map<number, VisualElement>
+    allElementRefs: Map<number, VisualElement>
   ) {
     this.self = array;
-    this.groupRefs = groupRefs;
+    this.allElementRefs = allElementRefs;
   }
 
   get length() {
@@ -45,7 +45,7 @@ export class ArrayWrapper {
   }
 
   getByValue(value: number) {
-    return this.groupRefs.get(value);
+    return this.allElementRefs.get(value);
   }
 
   getRef(index: number) {

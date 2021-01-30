@@ -1,6 +1,5 @@
 import type Interpreter from "../../interpreter/interpreter";
 import { ArrayWrapper } from "./array_wrapper";
-import type { DrawBasic } from "./draw_basic";
 import type { VisualElement } from "./visual_element";
 
 export class ElementManager {
@@ -9,13 +8,9 @@ export class ElementManager {
 
   /** A map,of value to visual svg elements */
   private elements: Map<number, VisualElement> = new Map();
-  drawing: DrawBasic;
 
-  constructor(drawing: DrawBasic) {
-    this.drawing = drawing;
-  }
+  // todo memoize
   private get groupRefsList() {
-    // todo memoize
     return Array.from(this.elements.values());
   }
 
@@ -38,11 +33,9 @@ export class ElementManager {
   }
 
   /**
-   * A very simple algorithm, to find a free space, in that "2d" grid.
-   * This algorithm is not working properly and needs more checks
-   * starting point it x=0 and y=0 and searches first vertically,
-   * @param first
-   * @param findFreeSpot
+   * A very simple algorithm to find a free space in a 2d grid.
+   * Starting point it x=0 and y=0 and searches first vertically,
+   * This algorithm needs more checks
    */
   findFree(first: VisualElement, findFreeSpot: boolean = false) {
     const m = this.helpMatrix(first);
@@ -50,8 +43,8 @@ export class ElementManager {
     let y: number, x: number;
 
     if (findFreeSpot) {
-      for (x = 0; x < 8; x++) {
-        for (y = 0; y < 8; y++) {
+      for (x = 0; x < m.length; x++) {
+        for (y = 0; y < m.length; y++) {
           // check also one on the left..
           if (m[y][x] == 0 && m[y][x + 1] == 0) {
             return { x, y };

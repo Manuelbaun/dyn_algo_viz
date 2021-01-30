@@ -12,6 +12,8 @@ function bubbleSort(array) {
 }
 
 print(bubbleSort(root));
+
+
 /**
  * MergeSort
  * @param {*} left
@@ -45,9 +47,9 @@ function insertion_Sort(nums) {
   for (var i = 1; i < nums.length; i++) {
     var j = i - 1;
     var temp = nums.get(i);
-		
+
     while (j >= 0 && nums[j] > temp) {
-			var val = nums.get(j);
+      var val = nums.get(j);
       nums.set(j + 1, val);
       j--;
     }

@@ -14,7 +14,12 @@ import { VisualElement } from "./helper/visual_element";
  * is given to this algorithm class, together with the width and the hight
  * of the svg element
  *
+ * A limitation of the current approach:
  *
+ * only unique values are allows, since the simple map, used in the element
+ * mananger, maps number to visual element.
+ *
+ * so it will override any doublications
  *
  * TODO:
  * find a way, how the x- and y-position of an element can be inteligentily guessed
@@ -44,16 +49,17 @@ export default class ComparisonSorts {
 
   constructor(
     animationControl: AnimationController,
-    rootDraw: G,
+    drawRoot: G,
     width: number,
     height: number,
     length = 10
   ) {
-    this.data = generateData(length);
+    this.data = Array.from(new Set(generateData(length)));
+
     this.animationControl = animationControl;
 
-    this.drawing = new DrawBasic(rootDraw, width, height, this.data);
-    this.elementManager = new ElementManager(this.drawing);
+    this.drawing = new DrawBasic(drawRoot, width, height, this.data);
+    this.elementManager = new ElementManager();
 
     this.colorMapping = {
       get: this.drawing.colors.Aqua,
@@ -69,11 +75,13 @@ export default class ComparisonSorts {
 
     // create and add the the refsManager
     this.data.forEach((value) => {
-      this.elementManager.setRef(value, new VisualElement(value, this.drawing));
+      const el = new VisualElement(value, this.drawing);
+      this.elementManager.setRef(value, el);
     });
   }
 
   /**
+   * set to undefine, to let the GC do its work
    * This does not really work, does it?
    */
   dispose() {
@@ -85,16 +93,20 @@ export default class ComparisonSorts {
   /** * must await setup! */
   setup() {
     const tl = this.animationControl.initTimeline;
-    const { scales } = this.drawing;
 
     // position
     this.elementManager.forEachRef((d, i) => {
-      tl.add({
-        targets: d.node,
-        duration: 50,
-        translateX: scales.x(i),
-        opacity: 1,
-      });
+      // this lets everybody start at the same time
+      const correct = i ? 50 : 0;
+      tl.add(
+        {
+          targets: d.node,
+          duration: 50,
+          translateX: this.drawing.scales.x(i),
+          opacity: 1,
+        },
+        `-=${correct}`
+      );
     });
 
     if (this.animationControl.getSpeed() == 0) {
