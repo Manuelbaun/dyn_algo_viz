@@ -4,15 +4,16 @@ import anime from "./animejs/anime";
 /**
  * The animation Controller
  * call dispose, when the animation should be cleared up
+ *
+ * There are two timelines used:
+ * The initial timeline is used, to setup the start states of the algorithm
+ * You be advised, that animejs uses the internally `requestAnimationFrame` browser api
+ * the update the animation.
+ * When a timeline is created, the the startpoint is set
+ *
  */
 export default class AnimationController {
-  /**
-   * The initial timeline is used, to setup the start states of the algorithm
-   * You be advised, that animejs uses the internally `requestAnimationFrame` browser api
-   * the update the animation.
-   * When a timeline is created, the the startpoint is set
-   */
-  initTimeline = anime.timeline(
+  public initTimeline = anime.timeline(
     {
       easing: "easeInOutQuad",
       duration: 200,
@@ -22,7 +23,7 @@ export default class AnimationController {
     false
   );
 
-  algoTimeline = anime.timeline(
+  public algoTimeline = anime.timeline(
     {
       easing: "easeInOutQuad",
       duration: 200,
@@ -34,28 +35,33 @@ export default class AnimationController {
   );
 
   constructor(appState: AppState) {
+    // update appstate with progress, current time and duration
     this.algoTimeline.update = async (timeline) => {
       appState.progress.set(timeline.progress);
       appState.currentTime.set(timeline.currentTime);
       appState.currentDuration.set(timeline.duration);
     };
 
+    // update speed from state
     this.unsubscriber.push(
       appState.animationSpeed.subscribe((data) => this.setSpeed(data))
     );
 
+    // update progress from state
     this.unsubscriber.push(
       appState.progress.subscribe((data) => this.setProgress(data))
     );
 
+    // subscribe to state events
     this.unsubscriber.push(
       appState.event.subscribe((event) => {
         if (event == "reset") {
           // in theory should now reset! and clear all animation
+          // but will be handled via dispose for now!
         } else if (event == "pause") {
-          this.pause();
+          this.algoTimeline.pause();
         } else if (event == "contine") {
-          this.continue();
+          this.algoTimeline.continue();
         } else if (event == "step") {
           this.algoTimeline.step();
         }
@@ -66,8 +72,8 @@ export default class AnimationController {
   /**
    * cleanup
    */
-  unsubscriber: Function[] = [];
-  dispose() {
+  private unsubscriber: Function[] = [];
+  public dispose() {
     this.unsubscriber.forEach((unsub) => unsub());
     /// so help the garbage collector
     // @ts-ignore
@@ -76,50 +82,18 @@ export default class AnimationController {
     this.algoTimeline = undefined;
   }
 
-  play() {
-    this.algoTimeline.play();
-  }
+  /** (0.1-10) */
+  private setSpeed(value: number) {
+    if (value < 0.1) value = 0.1;
+    if (value > 10) value = 10;
 
-  continue() {
-    this.algoTimeline.continue();
-  }
-
-  pause() {
-    this.algoTimeline.pause();
-  }
-
-  reset() {
-    this.algoTimeline.reset();
-  }
-
-  clear() {
-    /// todo: need to delete all animation children!
-    /// to acutally reset completly, since the reset method on the timelines
-    /// only resets the timing, and will start from the beginning.
-  }
-
-  getProgress() {
-    return this.algoTimeline.progress;
-  }
-
-  getSpeed() {
-    return anime.speed;
-  }
-
-  /**
-   * @param {number} speed (0.1-10)
-   */
-  setSpeed(speed: number) {
-    anime.speed = speed;
+    anime.speed = value;
   }
 
   /**
    * @param {number} value  (0-100)
-   *      * Needs to prevent to set the seek time to 100, because,
-   * the finished promise will be fulfilled and the animation
-   * continues, without that the continue button beeing pressed
    */
-  setProgress(value: number) {
+  private setProgress(value: number) {
     const seekTime = (value / 100) * this.algoTimeline.duration;
     this.algoTimeline.seek(seekTime);
   }

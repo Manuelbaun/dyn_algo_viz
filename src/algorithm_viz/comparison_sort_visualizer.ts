@@ -25,7 +25,7 @@ import { VisualElement } from "./helper/visual_element";
  * find a way, how the x- and y-position of an element can be inteligentily guessed
  * since just adding
  */
-export default class ComparisonSorts {
+export default class ComparisonSortsVisualizer {
   animationControl: AnimationController;
   data: number[];
   elementManager;
@@ -109,9 +109,6 @@ export default class ComparisonSorts {
       );
     });
 
-    if (this.animationControl.getSpeed() == 0) {
-      console.error("Speed of animation is 0, there nothing will happen");
-    }
     /// wait till timeline animation is done
     this.setupDone = tl.continue();
     return this.setupDone;

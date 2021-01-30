@@ -2,16 +2,16 @@ import Interpreter from "./interpreter";
 
 import type { AppState } from "../service/app_state";
 import type { EVENTS } from "../service/store_types";
-import type ComparisonSorts from "../algorithm_viz/comparison";
+import type ComparisonSortsVisualizer from "../algorithm_viz/comparison_sort_visualizer";
 
 export class InterpreterWrapper {
-  algorithm: ComparisonSorts;
+  algorithm: ComparisonSortsVisualizer;
   paused: boolean;
   initDone: boolean;
   interpreter: Interpreter;
   appState: AppState;
 
-  constructor(appState: AppState, algorithm: ComparisonSorts) {
+  constructor(appState: AppState, algorithm: ComparisonSortsVisualizer) {
     this.appState = appState;
     this.algorithm = algorithm;
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import ComparisonSorts from "./algorithm_viz/comparison";
+  import ComparisonSorts from "./algorithm_viz/comparison_sort_visualizer";
   import AnimationController from "./animation/animation_controller";
 
   import Editor from "./components/editor/Editor.svelte";
