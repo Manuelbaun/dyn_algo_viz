@@ -10,7 +10,7 @@ export class ElementManager {
   private elements: Map<number, VisualElement> = new Map();
 
   // todo memoize
-  private get groupRefsList() {
+  private get elementsAsList() {
     return Array.from(this.elements.values());
   }
 
@@ -19,7 +19,7 @@ export class ElementManager {
    * and 1 represents the present of an visual element
    * @param first
    */
-  helpMatrix(first: VisualElement) {
+  private helpMatrix(first: VisualElement) {
     const els = Array.from(this.elements.values()).filter((e) => e != first);
 
     // y-x 2d matrix
@@ -79,8 +79,8 @@ export class ElementManager {
     this.elements.set(value, ref);
   }
 
-  forEachRef(callbackfn: (element: VisualElement, index: number) => void) {
-    this.groupRefsList.forEach((e, i) => callbackfn(e, i));
+  forEachElement(callbackfn: (element: VisualElement, index: number) => void) {
+    this.elementsAsList.forEach((e, i) => callbackfn(e, i));
   }
 }
 

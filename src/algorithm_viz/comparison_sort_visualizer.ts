@@ -95,7 +95,7 @@ export default class ComparisonSortsVisualizer {
     const tl = this.animationControl.initTimeline;
 
     // position
-    this.elementManager.forEachRef((d, i) => {
+    this.elementManager.forEachElement((d, i) => {
       // this lets everybody start at the same time
       const correct = i ? 50 : 0;
       tl.add(
