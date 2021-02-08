@@ -1136,29 +1136,24 @@ function anime(params) {
 
     /**
      * added by: Manuel Baun 
-     * This snippet is a little hack, to fix the jumping animation, when using break and continue functions:
      * 
-     * Background:
-     * When the animation is started, it sets the startTime to now. When the break/Pause button is pressed, 
-     * the animation is paused, but the tick time is still running, (caused by the requestFrameRate callback)
-     * When the break function is hit, we need to reset the start time, so that the animation progress, continues
-     * where it last stopped. Otherwise, the animation will "jump".
-     * CurrentTime gives the time, of the animation timeline.
+     * The useDeltaTime will apply the speed on the 1000/60 => 60 fps or 16.6 
+     * and adds it to the instance currentTime this way, we don't influence the progress, 
+     * when we change the animation speed on the play. 
      * 
-     * The useDeltaTime will apply the speed on the 1000/60 => 60 fps or 16.6 and adds it to the instance currentTime
-     * this way, we dont influence the progress, when we change the animation speed on the play!
-     * 
-     * 
-     * Also, when animaiton is paused, we dont get wired artifacts, when resume animation
+     * Also, when animation is paused, we don't get wired artifacts, when resume animation
      * 
      * Possible idea:
      * Every instance could have its own speed!
      * 
      */
     if (instance.useDeltaTime) {
-      const progress = instance.currentTime + 16.6 * anime.speed;
+      // fixed calculation
+      const fps = 1000/60;
+      const progress = instance.currentTime + fps * anime.speed;
       setInstanceProgress(progress);
     } else {
+      // old calculation
       const progress = (now + (lastTime - startTime)) * anime.speed;
       setInstanceProgress(progress);
     }
@@ -1204,6 +1199,7 @@ function anime(params) {
    * @returns {Promise<void>}
    */
   instance.continue = function () {
+    
     if (!instance.paused) { return; }
        
     if (instance.completed) {
@@ -1374,8 +1370,8 @@ function timeline(params) {
     /**
      *  Added by Manuel Baun
      * 
-     *  added here, so that we do not reset, after we add a new animation
-     *  default behavoir is == true
+     *  added here, so that we do not reset after we add a new animation
+     *  default behavior is == true
      */
     if (params.shouldReset == undefined || params.shouldReset == true) {
         tl.seek(0);
