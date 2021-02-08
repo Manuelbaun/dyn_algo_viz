@@ -173,7 +173,7 @@ declare namespace anime {
    * @param params 
    * @param shouldUseDeltaTime will apply the the animation speed on 60 fps and add it to the instance current time
    */
-  function timeline(params?: AnimeParams | ReadonlyArray<AnimeInstance>, shouldUseDeltaTime:boolean): AnimeTimelineInstance;
+  function timeline(params?: AnimeParams | ReadonlyArray<AnimeInstance>): AnimeTimelineInstance;
   function random(min: number, max: number): number;
 }
 
