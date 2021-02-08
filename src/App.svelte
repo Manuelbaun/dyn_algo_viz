@@ -11,6 +11,7 @@
   import { InterpreterWrapper } from "./interpreter/interpreter_wrap";
   import { AppState } from "./service/app_state";
   import type { EVENTS } from "./service/store_types";
+  import Slider from "./components/Slider.svelte";
 
   // get the reference of the svgDraw, to get the needed references!
   let svgDraw: VisualArea;
@@ -26,27 +27,27 @@
   let algorithm: ComparisonSorts;
   let interpreter: InterpreterWrapper;
 
+  let count: number = 20;
+
   // wait, till children are mounted
   onMount(() => initAlgoViz());
 
   // autosubscribe to the reset event
-  $: onReset($event);
+  $: if ($event == "reset") reset();
 
   /**
    * Reset function does two things:
    * 1. it clears everything, first
    * 2. it reinits the algoviz
    */
-  function onReset(event: EVENTS) {
-    if (event == "reset") {
-      svgDraw.clearAndInit();
-      interpreter.dispose();
-      algorithm.dispose();
-      animationController.dispose();
+  function reset() {
+    svgDraw?.clearAndInit();
+    interpreter?.dispose();
+    algorithm?.dispose();
+    animationController?.dispose();
 
-      // re init
-      initAlgoViz();
-    }
+    // re init
+    initAlgoViz();
   }
 
   // init the algoviz components
@@ -57,7 +58,8 @@
       animationController,
       svgDraw.getDrawRoot(),
       width,
-      height
+      height,
+      count
     );
     await algorithm.setup();
 
@@ -79,7 +81,6 @@
     </div>
   </div>
   <div class="divider text-center" data-content="Control" />
-
   <div class="columns">
     <div class="column">
       <Controller {appState} />
