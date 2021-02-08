@@ -101,6 +101,7 @@ export class InterpreterWrapper {
     /** Define Props     **/
     /** **************** **/
     const root = self.nativeToPseudo(algorithm.data);
+    console.log(root);
     if (root) {
       // @ts-ignore
       root.id = "root";
@@ -342,6 +343,7 @@ export class InterpreterWrapper {
         this.lastBreakPoint.push(line);
         this.paused = true;
         this.appState.pause();
+        console.log("breakpoint");
 
         /**
          * Defere the this.paused = false, since it will take some time,
@@ -404,17 +406,16 @@ export class InterpreterWrapper {
   }
 
   /**
-   *
    * This is the main execution loop, that steps through the tree.
    * It does basically the same, as the interpreter.run() method.
    *
    * @private
    */
-  private mainExecutingLoop() {
+  private async mainExecutingLoop() {
     while (!this.paused && this.appState.isRunning && this.interpreter.step()) {
-      const topStack = this.interpreter.stateStack.getTop();
-      this.handleBreakPoints(topStack);
-
+      const state = this.interpreter.stateStack.getTop();
+      this.handleBreakPoints(state);
+      await this.analyseCurrentAstExpression(state);
       /** Add handlers that should run on each step as needed,to enhance interpreter */
     }
 
@@ -445,9 +446,64 @@ export class InterpreterWrapper {
    * this dispose function must be called first, to clean up
    * this wrapper class!
    */
-
   unsubscriber: Function[] = [];
   dispose() {
     this.unsubscriber.forEach((unsub) => unsub());
+  }
+
+  /**
+   * Analyses the current top expression of the stack
+   * @param current
+   */
+  private async analyseCurrentAstExpression(state: any) {
+    if (SemantikAnalysis.isCompareExpression(state)) {
+      const scopeObjectProp = state.scope.object.properties;
+      const left = state.node.left;
+      const right = state.node.left;
+
+      const leftValue = state.leftValue_;
+      const rightValue = state.value;
+      console.log("Highlight", leftValue, rightValue);
+
+      if (left.object && right.object) {
+        const leftObjName = left.object?.name;
+        const rightObjName = right.object?.name;
+
+        const leftObj = scopeObjectProp[leftObjName];
+        const rightObj = scopeObjectProp[rightObjName];
+
+        // mark code in editor
+        this.appState.setMarkedNode(
+          state.node,
+          this.algorithm.colors.signal,
+          true
+        );
+        // save local scope
+        this.appState.setLocalScope(this.getLocalScope(state.scope), true);
+
+        /// highlight current value of array
+        this.algorithm.highlight(leftObj, leftValue);
+        this.algorithm.highlight(rightObj, rightValue, "-=300");
+        await this.algorithm.awaitAnimation();
+        this.algorithm.unhighlight(leftObj, leftValue);
+        this.algorithm.unhighlight(rightObj, rightValue, "-=300");
+        await this.algorithm.awaitAnimation();
+      }
+    }
+  }
+}
+
+class SemantikAnalysis {
+  static compareOperators = ["<", "<=", ">", ">=", "==", "===", "!=", "!=="];
+
+  static isCompareExpression(expression: any) {
+    return (
+      expression.node.type === "BinaryExpression" &&
+      this.compareOperators.includes(expression.node.operator) &&
+      // check if left evaluation is finshed
+      expression.doneLeft_ &&
+      // check if right evaluation is finshed
+      expression.doneRight_
+    );
   }
 }

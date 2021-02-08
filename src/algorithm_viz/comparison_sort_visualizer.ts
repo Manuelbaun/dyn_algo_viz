@@ -45,6 +45,7 @@ export default class ComparisonSortsVisualizer {
     concat: string;
     set: string;
     default: string;
+    signal: string;
   };
 
   constructor(
@@ -71,6 +72,7 @@ export default class ComparisonSortsVisualizer {
       concat: this.drawing.colors.Lime,
       set: this.drawing.colors.Gray,
       default: this.drawing.colors.Silver,
+      signal: this.drawing.colors.Yellow,
     };
 
     // create and add the the refsManager
@@ -201,6 +203,55 @@ export default class ComparisonSortsVisualizer {
         })
         .continue();
     }
+  }
+
+  async highlight(
+    array: Interpreter.Object,
+    value: number,
+    timeCorrection: string = "-=0"
+  ) {
+    const tl = this.animationControl.algoTimeline;
+    const ref = this.elementManager.getArrayWrapper(array);
+
+    // get visual objects
+    const el1 = ref.getByValue(value);
+    if (!el1) return;
+
+    // Highligh rects
+    tl.add(
+      {
+        targets: el1.rectNode,
+        fill: this.colorMapping.signal,
+        duration: 300,
+      },
+      timeCorrection
+    );
+  }
+
+  async unhighlight(
+    array: Interpreter.Object,
+    value: number,
+    timeCorrection: string = "-=0"
+  ) {
+    const tl = this.animationControl.algoTimeline;
+    const ref = this.elementManager.getArrayWrapper(array);
+
+    // get visual objects
+    const el1 = ref.getByValue(value);
+    if (!el1) return;
+
+    // Highligh rects
+    tl.add(
+      {
+        targets: el1.rectNode,
+        fill: this.colorMapping.default,
+        duration: 300,
+      },
+      timeCorrection
+    );
+  }
+  awaitAnimation() {
+    return this.animationControl.algoTimeline.continue();
   }
 
   async splice(array: Interpreter.Object) {
