@@ -19,8 +19,7 @@ export default class AnimationController {
       duration: 200,
       autoplay: false,
       shouldReset: false,
-    },
-    false
+    }
   );
 
   public algoTimeline = anime.timeline(
@@ -30,8 +29,7 @@ export default class AnimationController {
       autoplay: false,
       shouldReset: false,
       useDeltaTime: true,
-    },
-    true
+    }
   );
 
   constructor(appState: AppState) {
