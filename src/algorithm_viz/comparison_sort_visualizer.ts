@@ -104,7 +104,7 @@ export default class ComparisonSortsVisualizer {
         {
           targets: d.node,
           duration: 50,
-          translateX: this.drawing.scales.x(i),
+          translateX: this.drawing.xScale(i),
           opacity: 1,
         },
         `-=${correct}`
@@ -261,7 +261,7 @@ export default class ComparisonSortsVisualizer {
 
     if (!first) return;
 
-    const translateY = first.yPixel + this.drawing.scales.y(1);
+    const translateY = first.yPixel + this.drawing.yScale(1);
 
     tl.add({
       targets: ref.rectNodes,
@@ -294,7 +294,7 @@ export default class ComparisonSortsVisualizer {
       targets: first.node,
       duration: 500,
       opacity: 0,
-      translateX: translateX + this.drawing.scales.x(-1),
+      translateX: translateX + this.drawing.xScale(-1),
     });
 
     ref.forEach((d, i) => {
@@ -303,7 +303,7 @@ export default class ComparisonSortsVisualizer {
           {
             targets: d.node,
             duration: 400,
-            translateX: translateX + this.drawing.scales.x(i - 1),
+            translateX: translateX + this.drawing.xScale(i - 1),
           },
           "-=400"
         );
@@ -329,12 +329,12 @@ export default class ComparisonSortsVisualizer {
     const xy = this.elementManager.findFree(first, newArray);
 
     const translateY = newArray
-      ? this.drawing.scales.y(xy.y)
-      : this.drawing.scales.y(first.yIndex);
+      ? this.drawing.yScale(xy.y)
+      : this.drawing.yScale(first.yIndex);
 
     const translateX = newArray
-      ? this.drawing.scales.x(xy.x)
-      : first.xPixel + this.drawing.scales.x(ref.length - 1);
+      ? this.drawing.xScale(xy.x)
+      : first.xPixel + this.drawing.xScale(ref.length - 1);
 
     tl.add({
       targets: group.node,
@@ -383,7 +383,7 @@ export default class ComparisonSortsVisualizer {
         {
           targets: e.node,
           duration: 500,
-          translateX: translateX + this.drawing.scales.x(i),
+          translateX: translateX + this.drawing.xScale(i),
           translateY,
         },
         "-=200"
@@ -413,7 +413,7 @@ export default class ComparisonSortsVisualizer {
       duration: 100,
     }).add({
       targets: group.node,
-      translateX: first.xPixel + this.drawing.scales.x(i),
+      translateX: first.xPixel + this.drawing.xScale(i),
       translateY: first.yPixel,
       duration: 200,
     });
@@ -438,7 +438,7 @@ export default class ComparisonSortsVisualizer {
       duration: 100,
     }).add({
       targets: group.node,
-      translateY: group.yPixel + this.drawing.scales.y(1),
+      translateY: group.yPixel + this.drawing.yScale(1),
       duration: 200,
     });
 

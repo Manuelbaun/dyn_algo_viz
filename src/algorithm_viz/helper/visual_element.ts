@@ -1,5 +1,5 @@
 import type { G, Rect, Text } from "@svgdotjs/svg.js";
-import type { DrawBasic, Scales } from "./draw_basic";
+import type { DrawBasic } from "./draw_basic";
 
 export class VisualElement {
   // the root group, which contains the text and rectangle
@@ -19,7 +19,7 @@ export class VisualElement {
     /// create rect in previous created group
     /// the dy(bottomline - height), means where to put the start of the bar
     /// since coordinate systems start from top left corner
-    const height = this.draw.scales.elementHeight(value);
+    const height = this.draw.elementHeightScale(value);
 
     this.rectEl = this.root
       .rect(this.draw.elementWidth, height)
@@ -43,9 +43,7 @@ export class VisualElement {
 
   // X position of the element (invert of the scales)
   get xIndex() {
-    return Math.round(
-      this.draw.scales.xInvert(this.transformMatrix.translateX)
-    );
+    return Math.round(this.draw.xScaleInvert(this.transformMatrix.translateX));
   }
 
   // Y position of the element (invert of the scales)
@@ -53,9 +51,7 @@ export class VisualElement {
     // normally d3 scale have an inverse function,
     // but it does not work properly on the y scale???
     // bug in y.inverse()
-    return Math.round(
-      this.draw.scales.yInvert(this.transformMatrix.translateY)
-    );
+    return Math.round(this.draw.yScaleInvert(this.transformMatrix.translateY));
   }
 
   // Pixel X position of the element

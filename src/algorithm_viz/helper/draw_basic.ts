@@ -1,14 +1,6 @@
 import type { G } from "@svgdotjs/svg.js";
 import { max, scaleLinear, ScaleLinear } from "d3";
 
-export type Scales = {
-  x: ScaleLinear<number, number, never>;
-  y: ScaleLinear<number, number, never>;
-  xInvert: (val: number) => number;
-  yInvert: (val: number) => number;
-  elementHeight: ScaleLinear<number, number, never>;
-};
-
 /**
  * This class contains the drawing sizes colors, scales etc..
  */
@@ -50,7 +42,43 @@ export class DrawBasic {
 
   elementWidth: number;
 
-  scales: Scales;
+  /**
+   * X-Axis Scale of the 2d-Grid
+   * It takes an x-index value and returns the pixel position on the x-axis
+   **/
+  xScale: ScaleLinear<number, number, never>;
+
+  /**
+   * y-Axis Scale of the 2d-Grid
+   * It takes an y-index value and returns the pixel position on the y-axis
+   *
+   * This is basically a multiplier of the 2d-Grids height.
+   * The full height is the hight of the svg.
+   *
+   * if the Scale takes a 2 it return 2* (height/2), if 3 => 3*(height/2) etc.
+   **/
+  yScale: ScaleLinear<number, number, never>;
+
+  /**
+   * X-Axis Inverted Scale of the 2d-Grid
+   *
+   * It takes x-pixel values and returns the x-index of the 2d-grid
+   */
+  xScaleInvert: (val: number) => number;
+
+  /**
+   * Y-Axis Inverted Scale of the 2d-Grid
+   *
+   * It takes y-pixel values and returns the y-index of the 2d-grid
+   */
+  yScaleInvert: (val: number) => number;
+
+  /**
+   * This Scale is used, to scale the elements height in such a way,
+   * that the maximum of the value never exceeds the allowed drawing height,
+   * regardless what the maximum value of that data array is.
+   */
+  elementHeightScale: ScaleLinear<number, number, never>;
 
   constructor(drawRoot: G, width: number, height: number, data: number[]) {
     this.margin = {
@@ -68,29 +96,23 @@ export class DrawBasic {
     this.drawWidth = width - this.margin.left - this.margin.right;
     this.bottomLine = height - this.margin.bottom;
 
-    const length = data.length;
-    this.elementWidth = this.drawWidth / length - 2.5;
+    this.elementWidth = this.drawWidth / data.length - 2.5;
 
-    /**
-     * Scales, to map between pixels and the data vales
-     * domain: data domain
-     * range from to pixels
-     */
-    this.scales = {
-      x: scaleLinear().domain([0, length]).range([0, width]),
-      y: scaleLinear()
-        .domain([0, 1])
-        .range([0, height / 2]),
-      xInvert: (val: number) => val / xStep,
-      yInvert: (val: number) => val / yStep,
-      elementHeight: scaleLinear()
-        .domain([0, max(data)] as number[]) // the max value of the data
-        .range([0, height / 2 - this.margin.top - 20]), // height minus bottom marginopen
-    };
+    this.xScale = scaleLinear().domain([0, data.length]).range([0, width]);
+    this.yScale = scaleLinear()
+      .domain([0, 1])
+      .range([0, height / 2]);
+
+    this.xScaleInvert = (val: number) => val / xStep;
+    this.yScaleInvert = (val: number) => val / yStep;
+
+    this.elementHeightScale = scaleLinear()
+      .domain([0, max(data)] as number[]) // the max value of the data
+      .range([0, height / 2 - this.margin.top - 20]); // height minus bottom margin open
 
     // created step for inversion function!
     // somehow the d3 inverse does not work on y-axis
-    const xStep = this.scales.x(1);
-    const yStep = this.scales.y(1);
+    const xStep = this.xScale(1);
+    const yStep = this.yScale(1);
   }
 }
