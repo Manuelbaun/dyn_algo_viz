@@ -103,7 +103,7 @@ export class DrawBasic {
       .domain([0, 1])
       .range([0, height / 2]);
 
-    // created step for inversion function!
+    // WORK-Around: created step for inversion function!
     // somehow the d3 inverse does not work on y-axis
     const xStep = this.xScale(1);
     const yStep = this.yScale(1);
