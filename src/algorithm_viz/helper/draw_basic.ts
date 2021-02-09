@@ -103,16 +103,16 @@ export class DrawBasic {
       .domain([0, 1])
       .range([0, height / 2]);
 
+    // created step for inversion function!
+    // somehow the d3 inverse does not work on y-axis
+    const xStep = this.xScale(1);
+    const yStep = this.yScale(1);
+
     this.xScaleInvert = (val: number) => val / xStep;
     this.yScaleInvert = (val: number) => val / yStep;
 
     this.elementHeightScale = scaleLinear()
       .domain([0, max(data)] as number[]) // the max value of the data
       .range([0, height / 2 - this.margin.top - 20]); // height minus bottom margin open
-
-    // created step for inversion function!
-    // somehow the d3 inverse does not work on y-axis
-    const xStep = this.xScale(1);
-    const yStep = this.yScale(1);
   }
 }
