@@ -62,7 +62,7 @@ export class AppState {
   readonly state = derived<Writable<EVENTS>, STATE>(this.event, (ev) => {
     if (ev == "start") return "RUNNING";
     if (ev == "pause") return "PAUSED";
-    if (ev == "contine") return "RUNNING";
+    if (ev == "continue") return "RUNNING";
     if (ev == "reset" || ev == "init") return "INIT";
     if (ev == "step") return "STEPPING";
     if (ev == "stepin") return "STEPPING";
@@ -115,7 +115,7 @@ export class AppState {
   }
 
   continue() {
-    this.event.set("contine");
+    this.event.set("continue");
   }
 
   /**

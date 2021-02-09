@@ -13,24 +13,20 @@ import anime from "./animejs/anime";
  *
  */
 export default class AnimationController {
-  public initTimeline = anime.timeline(
-    {
-      easing: "easeInOutQuad",
-      duration: 200,
-      autoplay: false,
-      shouldReset: false,
-    }
-  );
+  public initTimeline = anime.timeline({
+    easing: "easeInOutQuad",
+    duration: 200,
+    autoplay: false,
+    shouldReset: false,
+  });
 
-  public algoTimeline = anime.timeline(
-    {
-      easing: "easeInOutQuad",
-      duration: 200,
-      autoplay: false,
-      shouldReset: false,
-      useDeltaTime: true,
-    }
-  );
+  public algoTimeline = anime.timeline({
+    easing: "easeInOutQuad",
+    duration: 200,
+    autoplay: false,
+    shouldReset: false,
+    useDeltaTime: true,
+  });
 
   constructor(appState: AppState) {
     // update appstate with progress, current time and duration
@@ -58,7 +54,7 @@ export default class AnimationController {
           // but will be handled via dispose for now!
         } else if (event == "pause") {
           this.algoTimeline.pause();
-        } else if (event == "contine") {
+        } else if (event == "continue") {
           this.algoTimeline.continue();
         } else if (event == "step") {
           this.algoTimeline.step();

@@ -9,7 +9,7 @@ export type STATE =
   | "STEPPING";
 
 export type EVENTS =
-  | "contine"
+  | "continue"
   | "finish"
   | "init"
   | "pause"
