@@ -1,6 +1,6 @@
 export class TimeSeries<T> {
-  ts: number[] = [];
-  data: T[] = [];
+  private ts: number[] = [];
+  private data: T[] = [];
 
   add(ts: number, data: T) {
     this.ts.push(ts);
