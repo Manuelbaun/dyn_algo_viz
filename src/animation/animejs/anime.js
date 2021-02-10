@@ -1148,9 +1148,9 @@ function anime(params) {
      * 
      */
     if (instance.useDeltaTime) {
-      // fixed calculation
-      const fps = 1000/60;
-      const progress = instance.currentTime + fps * anime.speed;
+      // fixed calculation 1000 ms / 60 fps = 16.6
+      const deltaTime = 1000/60;
+      const progress = instance.currentTime + deltaTime * anime.speed;
       setInstanceProgress(progress);
     } else {
       // old calculation
