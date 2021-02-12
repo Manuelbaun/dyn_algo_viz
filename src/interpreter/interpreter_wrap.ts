@@ -52,7 +52,7 @@ export class InterpreterWrapper {
       this.interpreter.step();
       this.paused = paused;
 
-      this.highlightAndSetLocalScope("#ffaafa");
+      this.highlightAndSetLocalScope("#ffaafa", false);
     }
   }
 
@@ -88,10 +88,10 @@ export class InterpreterWrapper {
    * and store local Scope at that node/state
    * @param {string} color
    */
-  highlightAndSetLocalScope(color: string) {
+  highlightAndSetLocalScope(color: string, shouldStore = true) {
     const state = this.interpreter.stateStack.getTop();
-    this.appState.setMarkedNode(state.node, color, true);
-    this.appState.setLocalScope(this.getLocalScope(state.scope), true);
+    this.appState.setMarkedNode(state.node, color, shouldStore);
+    this.appState.setLocalScope(this.getLocalScope(state.scope), shouldStore);
   }
 
   private interpreterInitFunctions(
