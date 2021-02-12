@@ -1,7 +1,7 @@
 import Interpreter from "./interpreter";
 
 import type { AppState } from "../service/app_state";
-import type { EVENTS, STATE } from "../service/store_types";
+import type { EVENTS } from "../service/store_types";
 import type ComparisonSortsVisualizer from "../algorithm_viz/comparison_sort_visualizer";
 
 export class InterpreterWrapper {
@@ -20,11 +20,15 @@ export class InterpreterWrapper {
     this.paused = false;
     this.initDone = false;
 
-    const initFunction = this.interpreterInitFunctions.bind(this);
+    // make sure, that `this` within the functions is references the
+    // InterpreterWrapper class and not
+    this.interpreterInitFunctions = this.interpreterInitFunctions.bind(this);
+    this.asyncCall = this.asyncCall.bind(this);
+    this.highlightAndSetLocalScope = this.highlightAndSetLocalScope.bind(this);
 
     // setup the interpreter, but add user code, only when start button is pressed
     // see start method.
-    this.interpreter = new Interpreter("", initFunction);
+    this.interpreter = new Interpreter("", this.interpreterInitFunctions);
 
     this.unsubscriber.push(
       appState.event.subscribe((e) => this.handleEvents(e))
@@ -41,15 +45,53 @@ export class InterpreterWrapper {
     } else if (event === "continue") {
       this.mainExecutingLoop();
     } else if (event == "stepin" || event == "step") {
-      const state = this.interpreter.stateStack.getTop();
+      // remember the value of paused == should actually always be true
+      // when these lines are executed
       const paused = this.paused;
       this.paused = false;
-      const res = this.interpreter.step();
+      this.interpreter.step();
       this.paused = paused;
 
-      this.appState.setMarkedNode(state.node, "#ffaafa");
-      this.appState.setLocalScope(this.getLocalScope(state.scope));
+      this.highlightAndSetLocalScope("#ffaafa");
     }
+  }
+
+  /**
+   * A utility function to stop the interpreter running and await async functions, then continue
+   * when the interpreter was in runnning state!
+   * It is expected, that the func returns a promise, or multiple Promises
+   */
+  private async asyncCall(func: (() => Promise<any>) | (() => Promise<any>[])) {
+    const paused = this.paused;
+    this.paused = true;
+
+    if (func instanceof Array) {
+      await Promise.all(func);
+    } else {
+      await func();
+    }
+
+    this.paused = paused;
+
+    /**
+     * If interpreter was in running mode, => continue to execute
+     * This needs to done, since, this function could also be called, when
+     * the stepping mode is active
+     */
+    if (this.appState.isRunning && paused == false) {
+      this.mainExecutingLoop();
+    }
+  }
+
+  /**
+   * Function to highlight the code line
+   * and store local Scope at that node/state
+   * @param {string} color
+   */
+  highlightAndSetLocalScope(color: string) {
+    const state = this.interpreter.stateStack.getTop();
+    this.appState.setMarkedNode(state.node, color, true);
+    this.appState.setLocalScope(this.getLocalScope(state.scope), true);
   }
 
   private interpreterInitFunctions(
@@ -59,56 +101,25 @@ export class InterpreterWrapper {
     // extra variable for algorithm, since the context within the wrapper is a different one!
     // and this.algorithm wont be available within the wrapper functions
     const algorithm = this.algorithm;
-    /**
-     * A utility function to stop the interpreter running and await async functions, then continue
-     * when the interpreter was in runnning state!
-     * It is expected, that the func returns a promise, or multiple Promises
-     * @private
-     */
-    const asyncCall = async (
-      func: (() => Promise<any>) | (() => Promise<any>[])
-    ) => {
-      const paused = this.paused;
-      this.paused = true;
 
-      if (func instanceof Array) {
-        await Promise.all(func);
-      } else {
-        await func();
-      }
-
-      this.paused = paused;
-
-      /**
-       * If interpreter was in running mode, => continue to execute
-       * This needs to done, since, this function could also be called, when
-       * the stepping mode is active
-       */
-      if (this.appState.isRunning && paused == false) {
-        this.mainExecutingLoop();
-      }
-    };
-
-    /**
-     * Function to highlight the code line
-     * and store local Scope at that node/state
-     * @param {string} color
-     */
-    const highlightAndScope = (color: string) => {
-      const state = self.stateStack.getTop();
-      this.appState.setMarkedNode(state.node, color, true);
-      this.appState.setLocalScope(this.getLocalScope(state.scope), true);
-    };
-
+    // make locally available, because using `this` within the interpreter wrapper functions
+    // would not work, because of the scope of the used arrays
+    const asyncCall = this.asyncCall;
+    const highlightAndScope = this.highlightAndSetLocalScope;
     /** **************** **/
     /** Define Props     **/
     /** **************** **/
     const root = self.nativeToPseudo(algorithm.data);
-    console.log(root);
+
+    // should always exist =>extends with id
     if (root) {
-      // @ts-ignore
-      root.id = "root";
+      (root as any).id = "root";
+    } else {
+      throw Error(
+        "Cannot create the  initial value 'root'-array for the interpreter!"
+      );
     }
+
     self.setProperty(globalObject, "root", root);
 
     /** **************** **/
