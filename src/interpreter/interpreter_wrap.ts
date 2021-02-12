@@ -11,7 +11,6 @@ export class InterpreterWrapper {
   private interpreter: Interpreter;
   private appState: AppState;
   private lastBreakPoint: number[] = [];
-  private started = false;
   private unsubscriber: Function[] = [];
   constructor(appState: AppState, algorithm: ComparisonSortsVisualizer) {
     this.appState = appState;
@@ -43,7 +42,10 @@ export class InterpreterWrapper {
       this.appState.event.subscribe(async (event) => {
         if (event == "start") {
           await algorithm.setupDone;
-          this.start();
+
+          this.started = true;
+          this.interpreter.appendCode(this.appState.sourceCodeValue);
+          this.mainExecutingLoop();
         }
 
         this.handleStep(event);
@@ -396,18 +398,6 @@ export class InterpreterWrapper {
       this.appState.setDone();
     } else {
       this.initDone = true;
-    }
-  }
-
-  /** Start Method, executes only once */
-  private start() {
-    if (!this.started) {
-      this.started = true;
-      this.interpreter.appendCode(this.appState.sourceCodeValue);
-
-      this.mainExecutingLoop();
-    } else {
-      console.error("Cannot start the interpreter again!");
     }
   }
 
