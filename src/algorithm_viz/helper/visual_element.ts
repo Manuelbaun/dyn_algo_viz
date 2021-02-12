@@ -1,5 +1,5 @@
 import type { G, Rect, Text } from "@svgdotjs/svg.js";
-import type { DrawBasic } from "./draw_basic";
+import type { DrawUtilities } from "./draw_utilities";
 
 export class VisualElement {
   // the root group, which contains the text and rectangle
@@ -7,9 +7,9 @@ export class VisualElement {
   private root: G;
   private rectEl: Rect;
   private textEl: Text;
-  private draw: DrawBasic;
+  private draw: DrawUtilities;
 
-  constructor(value: number, draw: DrawBasic) {
+  constructor(value: number, draw: DrawUtilities) {
     this.draw = draw;
     // set initial transform of Y
     // create group element, to group rect and text together => less work

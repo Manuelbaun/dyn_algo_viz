@@ -4,7 +4,7 @@ import { max, scaleLinear, ScaleLinear } from "d3";
 /**
  * This class contains the drawing sizes colors, scales etc..
  */
-export class DrawBasic {
+export class DrawUtilities {
   // https://htmlcolorcodes.com/
   colors = {
     White: "#FFFFFF",

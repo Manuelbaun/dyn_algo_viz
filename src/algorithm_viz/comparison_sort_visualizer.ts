@@ -2,14 +2,14 @@ import type { G } from "@svgdotjs/svg.js";
 import type AnimationController from "../animation/animation_controller";
 import type Interpreter from "../interpreter/interpreter";
 import { generateData } from "../utils/helper_functions";
-import { DrawBasic } from "./helper/draw_basic";
+import { DrawUtilities } from "./helper/draw_utilities";
 import { ElementManager } from "./helper/element_manager";
 import { VisualElement } from "./helper/visual_element";
 
 /**
  * The comparisonSort Class
  *
- * Due how SVGjs works, to acutally display an svg element,
+ * Due how SVGjs works, to actually display an svg element,
  * it needs a parent element. Therefore, the drawRoot
  * is given to this algorithm class, together with the width and the hight
  * of the svg element
@@ -19,17 +19,17 @@ import { VisualElement } from "./helper/visual_element";
  * only unique values are allows, since the simple map, used in the element
  * mananger, maps number to visual element.
  *
- * so it will override any doublications
+ * so it will override any duplications
  *
  * TODO:
- * find a way, how the x- and y-position of an element can be inteligentily guessed
+ * find a way, how the x- and y-position of an element can be intelligently guessed
  * since just adding
  */
 export default class ComparisonSortsVisualizer {
   data: number[];
   private animationControl: AnimationController;
   private elementManager: ElementManager;
-  private drawing: DrawBasic;
+  private drawUtils: DrawUtilities;
 
   get colors() {
     return this.colorMapping;
@@ -59,25 +59,25 @@ export default class ComparisonSortsVisualizer {
 
     this.animationControl = animationControl;
 
-    this.drawing = new DrawBasic(drawRoot, width, height, this.data);
+    this.drawUtils = new DrawUtilities(drawRoot, width, height, this.data);
     this.elementManager = new ElementManager();
 
     this.colorMapping = {
-      get: this.drawing.colors.Aqua,
-      push: this.drawing.colors.Green,
-      swap: this.drawing.colors.Red,
-      compare: this.drawing.colors.Navy,
-      splice: this.drawing.colors.Purple,
-      shift: this.drawing.colors.Fuchsia,
-      concat: this.drawing.colors.Lime,
-      set: this.drawing.colors.Gray,
-      default: this.drawing.colors.Silver,
-      signal: this.drawing.colors.Yellow,
+      get: this.drawUtils.colors.Aqua,
+      push: this.drawUtils.colors.Green,
+      swap: this.drawUtils.colors.Red,
+      compare: this.drawUtils.colors.Navy,
+      splice: this.drawUtils.colors.Purple,
+      shift: this.drawUtils.colors.Fuchsia,
+      concat: this.drawUtils.colors.Lime,
+      set: this.drawUtils.colors.Gray,
+      default: this.drawUtils.colors.Silver,
+      signal: this.drawUtils.colors.Yellow,
     };
 
     // create and add the the refsManager
     this.data.forEach((value) => {
-      const el = new VisualElement(value, this.drawing);
+      const el = new VisualElement(value, this.drawUtils);
       this.elementManager.setRef(value, el);
     });
   }
@@ -104,7 +104,7 @@ export default class ComparisonSortsVisualizer {
         {
           targets: d.node,
           duration: 50,
-          translateX: this.drawing.xScale(i),
+          translateX: this.drawUtils.xScale(i),
           opacity: 1,
         },
         `-=${correct}`
@@ -261,7 +261,7 @@ export default class ComparisonSortsVisualizer {
 
     if (!first) return;
 
-    const translateY = first.yPixel + this.drawing.yScale(1);
+    const translateY = first.yPixel + this.drawUtils.yScale(1);
 
     tl.add({
       targets: ref.rectNodes,
@@ -294,7 +294,7 @@ export default class ComparisonSortsVisualizer {
       targets: first.node,
       duration: 500,
       opacity: 0,
-      translateX: translateX + this.drawing.xScale(-1),
+      translateX: translateX + this.drawUtils.xScale(-1),
     });
 
     ref.forEach((d, i) => {
@@ -303,7 +303,7 @@ export default class ComparisonSortsVisualizer {
           {
             targets: d.node,
             duration: 400,
-            translateX: translateX + this.drawing.xScale(i - 1),
+            translateX: translateX + this.drawUtils.xScale(i - 1),
           },
           "-=400"
         );
@@ -329,12 +329,12 @@ export default class ComparisonSortsVisualizer {
     const xy = this.elementManager.findFree(first, newArray);
 
     const translateY = newArray
-      ? this.drawing.yScale(xy.y)
-      : this.drawing.yScale(first.yIndex);
+      ? this.drawUtils.yScale(xy.y)
+      : this.drawUtils.yScale(first.yIndex);
 
     const translateX = newArray
-      ? this.drawing.xScale(xy.x)
-      : first.xPixel + this.drawing.xScale(ref.length - 1);
+      ? this.drawUtils.xScale(xy.x)
+      : first.xPixel + this.drawUtils.xScale(ref.length - 1);
 
     tl.add({
       targets: group.node,
@@ -383,7 +383,7 @@ export default class ComparisonSortsVisualizer {
         {
           targets: e.node,
           duration: 500,
-          translateX: translateX + this.drawing.xScale(i),
+          translateX: translateX + this.drawUtils.xScale(i),
           translateY,
         },
         "-=200"
@@ -413,7 +413,7 @@ export default class ComparisonSortsVisualizer {
       duration: 100,
     }).add({
       targets: group.node,
-      translateX: first.xPixel + this.drawing.xScale(i),
+      translateX: first.xPixel + this.drawUtils.xScale(i),
       translateY: first.yPixel,
       duration: 200,
     });
@@ -438,7 +438,7 @@ export default class ComparisonSortsVisualizer {
       duration: 100,
     }).add({
       targets: group.node,
-      translateY: group.yPixel + this.drawing.yScale(1),
+      translateY: group.yPixel + this.drawUtils.yScale(1),
       duration: 200,
     });
 

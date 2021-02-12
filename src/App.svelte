@@ -10,8 +10,6 @@
 
   import { InterpreterWrapper } from "./interpreter/interpreter_wrap";
   import { AppState } from "./service/app_state";
-  import type { EVENTS } from "./service/store_types";
-  import Slider from "./components/Slider.svelte";
 
   // get the reference of the svgDraw, to get the needed references!
   let svgDraw: VisualArea;
