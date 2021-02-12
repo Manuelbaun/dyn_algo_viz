@@ -43,7 +43,6 @@ export class InterpreterWrapper {
         if (event == "start") {
           await algorithm.setupDone;
 
-          this.started = true;
           this.interpreter.appendCode(this.appState.sourceCodeValue);
           this.mainExecutingLoop();
         }
