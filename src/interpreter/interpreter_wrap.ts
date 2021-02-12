@@ -1,7 +1,7 @@
 import Interpreter from "./interpreter";
 
 import type { AppState } from "../service/app_state";
-import type { EVENTS } from "../service/store_types";
+import type { EVENTS, STATE } from "../service/store_types";
 import type ComparisonSortsVisualizer from "../algorithm_viz/comparison_sort_visualizer";
 
 export class InterpreterWrapper {
@@ -27,29 +27,41 @@ export class InterpreterWrapper {
     this.interpreter = new Interpreter("", initFunction);
 
     this.unsubscriber.push(
-      this.appState.state.subscribe((state) => {
-        if (state == "RUNNING") {
-          this.mainExecutingLoop();
-        }
-
-        if (state == "DONE") {
-          console.log("done");
-        }
-      })
+      ...[
+        appState.state.subscribe((s) => this.handleStateChanges(s)),
+        appState.event.subscribe((e) => this.handleEvents(e)),
+      ]
     );
+  }
 
-    this.unsubscriber.push(
-      this.appState.event.subscribe(async (event) => {
-        if (event == "start") {
-          await algorithm.setupDone;
+  private handleStateChanges(state: STATE) {
+    if (state == "RUNNING") {
+      this.mainExecutingLoop();
+    }
 
-          this.interpreter.appendCode(this.appState.sourceCodeValue);
-          this.mainExecutingLoop();
-        }
+    if (state == "DONE") {
+      console.log("done");
+    }
+  }
 
-        this.handleStep(event);
-      })
-    );
+  private async handleEvents(event: EVENTS) {
+    if (event == "start") {
+      await this.algorithm.setupDone;
+
+      this.interpreter.appendCode(this.appState.sourceCodeValue);
+      this.mainExecutingLoop();
+    }
+
+    if (event == "stepin" || event == "step") {
+      const state = this.interpreter.stateStack.getTop();
+      const paused = this.paused;
+      this.paused = false;
+      const res = this.interpreter.step();
+      this.paused = paused;
+
+      this.appState.setMarkedNode(state.node, "#ffaafa");
+      this.appState.setLocalScope(this.getLocalScope(state.scope));
+    }
   }
 
   private interpreterInitFunctions(
@@ -363,19 +375,6 @@ export class InterpreterWrapper {
 
     if (line != lineEnd) {
       this.lastBreakPoint.pop();
-    }
-  }
-
-  private handleStep(event: EVENTS) {
-    if (event == "stepin" || event == "step") {
-      const state = this.interpreter.stateStack.getTop();
-      const paused = this.paused;
-      this.paused = false;
-      const res = this.interpreter.step();
-      this.paused = paused;
-
-      this.appState.setMarkedNode(state.node, "#ffaafa");
-      this.appState.setLocalScope(this.getLocalScope(state.scope));
     }
   }
 
