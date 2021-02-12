@@ -27,32 +27,20 @@ export class InterpreterWrapper {
     this.interpreter = new Interpreter("", initFunction);
 
     this.unsubscriber.push(
-      ...[
-        appState.state.subscribe((s) => this.handleStateChanges(s)),
-        appState.event.subscribe((e) => this.handleEvents(e)),
-      ]
+      appState.event.subscribe((e) => this.handleEvents(e))
     );
   }
 
-  private handleStateChanges(state: STATE) {
-    if (state == "RUNNING") {
-      this.mainExecutingLoop();
-    }
-
-    if (state == "DONE") {
-      console.log("done");
-    }
-  }
-
   private async handleEvents(event: EVENTS) {
+    console.log(event);
     if (event == "start") {
       await this.algorithm.setupDone;
-
       this.interpreter.appendCode(this.appState.sourceCodeValue);
-      this.mainExecutingLoop();
-    }
 
-    if (event == "stepin" || event == "step") {
+      this.mainExecutingLoop();
+    } else if (event === "continue") {
+      this.mainExecutingLoop();
+    } else if (event == "stepin" || event == "step") {
       const state = this.interpreter.stateStack.getTop();
       const paused = this.paused;
       this.paused = false;
