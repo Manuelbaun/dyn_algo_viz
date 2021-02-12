@@ -346,9 +346,9 @@ export class InterpreterWrapper {
   /**
    * A function to handle the breakpoints
    */
-  private handleBreakPoints(top: any) {
-    const line = top.node.loc.start.line as number;
-    const lineEnd = top.node.loc.end.line;
+  private handleBreakPoints(currentState: any) {
+    const line = currentState.node.loc.start.line as number;
+    const lineEnd = currentState.node.loc.end.line;
 
     const isBreakPoint = this.appState.isBreakPoint(line);
 
@@ -369,7 +369,7 @@ export class InterpreterWrapper {
         setTimeout(() => (this.paused = false), 50);
       }
 
-      this.appState.setMarkedNode(top.node, "#ffaaaaaa");
+      this.appState.setMarkedNode(currentState.node, "#ffaaaaaa");
     }
 
     if (line != lineEnd) {
@@ -410,15 +410,14 @@ export class InterpreterWrapper {
   /**
    * Analyses the current top expression of the stack
    */
-  private async analyseCurrentAstExpression(state: any) {
-    if (SemantikAnalysis.isCompareExpression(state)) {
-      const scopeObjectProp = state.scope.object.properties;
-      const left = state.node.left;
-      const right = state.node.left;
+  private async analyseCurrentAstExpression(currentState: any) {
+    if (SemantikAnalysis.isCompareExpression(currentState)) {
+      const scopeObjectProp = currentState.scope.object.properties;
+      const left = currentState.node.left;
+      const right = currentState.node.left;
 
-      const leftValue = state.leftValue_;
-      const rightValue = state.value;
-      console.log("Highlight", leftValue, rightValue);
+      const leftValue = currentState.leftValue_;
+      const rightValue = currentState.value;
 
       if (left.object && right.object) {
         const leftObjName = left.object?.name;
@@ -429,12 +428,15 @@ export class InterpreterWrapper {
 
         // mark code in editor
         this.appState.setMarkedNode(
-          state.node,
+          currentState.node,
           this.algorithm.colors.signal,
           true
         );
         // save local scope
-        this.appState.setLocalScope(this.getLocalScope(state.scope), true);
+        this.appState.setLocalScope(
+          this.getLocalScope(currentState.scope),
+          true
+        );
 
         /// highlight current value of array
         this.algorithm.highlight(leftObj, leftValue);
