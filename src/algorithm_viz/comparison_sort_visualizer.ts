@@ -228,7 +228,7 @@ export default class ComparisonSortsVisualizer {
     );
   }
 
-  async unhighlight(
+  async unHighlight(
     array: Interpreter.Object,
     value: number,
     timeCorrection: string = "-=0"

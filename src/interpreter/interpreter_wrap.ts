@@ -5,12 +5,14 @@ import type { EVENTS } from "../service/store_types";
 import type ComparisonSortsVisualizer from "../algorithm_viz/comparison_sort_visualizer";
 
 export class InterpreterWrapper {
-  algorithm: ComparisonSortsVisualizer;
-  paused: boolean;
-  initDone: boolean;
-  interpreter: Interpreter;
-  appState: AppState;
-
+  private algorithm: ComparisonSortsVisualizer;
+  private paused: boolean;
+  private initDone: boolean;
+  private interpreter: Interpreter;
+  private appState: AppState;
+  private lastBreakPoint: number[] = [];
+  private started = false;
+  private unsubscriber: Function[] = [];
   constructor(appState: AppState, algorithm: ComparisonSortsVisualizer) {
     this.appState = appState;
     this.algorithm = algorithm;
@@ -44,7 +46,7 @@ export class InterpreterWrapper {
           this.start();
         }
 
-        this.handleStepAndStepIn(event);
+        this.handleStep(event);
       })
     );
   }
@@ -303,7 +305,7 @@ export class InterpreterWrapper {
 
   /**
    * Function that returns an object as the local scope.
-   * It filters verything, that is in the globalobject
+   * It filters everything out, that is in the global object
    * and leave only the difference
    */
   private getLocalScope(scope: any) {
@@ -328,10 +330,10 @@ export class InterpreterWrapper {
 
     return localScope;
   }
+
   /**
    * A function to handle the breakpoints
    */
-  lastBreakPoint: number[] = [];
   private handleBreakPoints(top: any) {
     const line = top.node.loc.start.line as number;
     const lineEnd = top.node.loc.end.line;
@@ -363,53 +365,22 @@ export class InterpreterWrapper {
     }
   }
 
-  private handleStepAndStepIn(event: EVENTS) {
+  private handleStep(event: EVENTS) {
     if (event == "stepin" || event == "step") {
       const state = this.interpreter.stateStack.getTop();
+      const paused = this.paused;
+      this.paused = false;
+      const res = this.interpreter.step();
+      this.paused = paused;
 
-      if (event == "step") {
-        // // walks only editor line by editor line
-        // const startLine = node.loc.start.line;
-        // appState.toggleBreakPointsToIgnore(startLine);
-        // console.log("StartLine:", startLine);
-        // const paused = interpreter.paused_;
-        // interpreter.paused_ = false;
-        // while (!interpreter.paused_ && interpreter.step()) {
-        //   const state = interpreter.stateStack.getTop();
-        //   const node = state.node;
-        //   const line = node.loc.start.line;
-        //   const lineEnd = node.loc.end.line;
-        //   if (startLine != line && line == lineEnd) {
-        //     console.log("exitline", line, line == lineEnd);
-        //     break;
-        //   }
-        // }
-        // appState.toggleBreakPointsToIgnore(startLine);
-        // interpreter.paused_ = paused;
-        // appState.markNode(node, "#ffaafa");
-        // processLocalScope(state.scope);
-      } else {
-        // will walk every node in the tree
-        this.stepHighlighted(state);
-      }
+      this.appState.setMarkedNode(state.node, "#ffaafa");
+      this.appState.setLocalScope(this.getLocalScope(state.scope));
     }
-  }
-
-  private stepHighlighted(state: any) {
-    const paused = this.paused;
-    this.paused = false;
-    const res = this.interpreter.step();
-    this.paused = paused;
-
-    this.appState.setMarkedNode(state.node, "#ffaafa");
-    this.appState.setLocalScope(this.getLocalScope(state.scope));
   }
 
   /**
    * This is the main execution loop, that steps through the tree.
    * It does basically the same, as the interpreter.run() method.
-   *
-   * @private
    */
   private async mainExecutingLoop() {
     while (!this.paused && this.appState.isRunning && this.interpreter.step()) {
@@ -428,9 +399,8 @@ export class InterpreterWrapper {
     }
   }
 
-  /** Start Method, executre only once */
-  started = false;
-  start() {
+  /** Start Method, executes only once */
+  private start() {
     if (!this.started) {
       this.started = true;
       this.interpreter.appendCode(this.appState.sourceCodeValue);
@@ -446,14 +416,12 @@ export class InterpreterWrapper {
    * this dispose function must be called first, to clean up
    * this wrapper class!
    */
-  unsubscriber: Function[] = [];
   dispose() {
     this.unsubscriber.forEach((unsub) => unsub());
   }
 
   /**
    * Analyses the current top expression of the stack
-   * @param current
    */
   private async analyseCurrentAstExpression(state: any) {
     if (SemantikAnalysis.isCompareExpression(state)) {
@@ -485,8 +453,8 @@ export class InterpreterWrapper {
         this.algorithm.highlight(leftObj, leftValue);
         this.algorithm.highlight(rightObj, rightValue, "-=300");
         await this.algorithm.awaitAnimation();
-        this.algorithm.unhighlight(leftObj, leftValue);
-        this.algorithm.unhighlight(rightObj, rightValue, "-=300");
+        this.algorithm.unHighlight(leftObj, leftValue);
+        this.algorithm.unHighlight(rightObj, rightValue, "-=300");
         await this.algorithm.awaitAnimation();
       }
     }
