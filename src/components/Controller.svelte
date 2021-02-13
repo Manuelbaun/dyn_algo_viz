@@ -1,22 +1,36 @@
 <script lang="ts">
+  import { scaleLinear } from "d3";
+
   import type { AppState } from "../service/app_state";
   import Slider from "./Slider.svelte";
 
   export let appState: AppState;
 
-  const {
-    progress,
-    animationSpeed,
-    animationSpeedSlider,
-    state,
-    autoscroll,
-  } = appState;
+  const { progress, animationSpeed, state, autoscroll } = appState;
 
   const start = () => appState.start();
   const pause = () => appState.pause();
   const doContinue = () => appState.continue();
   const step = () => appState.step();
   const reset = () => appState.reset();
+
+  /**
+   * A scale, which maps the domain from min, max/2 to values between 0.1 - 1.
+   * This is used, so, that the middle of the input range slider is the animation speed 1
+   */
+  const leftScale = scaleLinear().domain([0.1, 5]).range([0.1, 1]);
+  /** this handles the values from max/2 -max, in the range of 1-10*/
+  const rightScale = scaleLinear().domain([5, 10]).range([1, 10]);
+
+  let sliderValue = 5;
+
+  $: calcAnimationSpeed(sliderValue);
+
+  function calcAnimationSpeed(sliderValue: number) {
+    const val =
+      sliderValue > 5 ? rightScale(sliderValue) : leftScale(sliderValue);
+    animationSpeed.set(val);
+  }
 </script>
 
 <div class="container">
@@ -35,7 +49,7 @@
         step=".01"
         min="0.1"
         max="10"
-        bind:value={$animationSpeedSlider}
+        bind:value={sliderValue}
         displayValue={$animationSpeed.toFixed(2)}
         hint="Animation Speed"
       />
