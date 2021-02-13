@@ -22,17 +22,17 @@ export class InterpreterWrapper {
 
     // make sure, that `this` within the functions is references the
     // InterpreterWrapper class and not
-    this.interpreterInitFunctions = this.interpreterInitFunctions.bind(this);
     this.asyncCall = this.asyncCall.bind(this);
+    this.handleEvents = this.handleEvents.bind(this);
     this.highlightAndSetLocalScope = this.highlightAndSetLocalScope.bind(this);
+    this.interpreterInitFunctions = this.interpreterInitFunctions.bind(this);
 
     // setup the interpreter, but add user code, only when start button is pressed
     // see start method.
     this.interpreter = new Interpreter("", this.interpreterInitFunctions);
 
-    this.unsubscriber.push(
-      appState.event.subscribe((e) => this.handleEvents(e))
-    );
+    // listen to events
+    this.unsubscriber.push(appState.event.subscribe(this.handleEvents));
   }
 
   private async handleEvents(event: EVENTS) {
