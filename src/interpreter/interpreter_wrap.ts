@@ -363,7 +363,7 @@ export class InterpreterWrapper {
          * Defer the this.paused = false, since it will take some time,
          * until appState.pause() will be updated.
          *
-         * in the time, the executen loop could contine!
+         * in the time, the mainExecutionLoop could continue!
          */
 
         setTimeout(() => (this.paused = false), 50);
