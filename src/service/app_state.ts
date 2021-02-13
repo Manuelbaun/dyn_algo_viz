@@ -65,7 +65,6 @@ export class AppState {
     if (ev == "continue") return "RUNNING";
     if (ev == "reset" || ev == "init") return "INIT";
     if (ev == "step") return "STEPPING";
-    if (ev == "stepin") return "STEPPING";
     if (ev == "finish") return "DONE";
     return "ERROR";
   });
@@ -119,7 +118,7 @@ export class AppState {
   }
 
   /**
-   * This method will reset the app state, 
+   * This method will reset the app state,
    * and trigger all other components to reset
    */
   reset() {
@@ -137,10 +136,6 @@ export class AppState {
 
   step() {
     this.event.set("step");
-  }
-
-  stepIn() {
-    this.event.set("stepin");
   }
 
   setSpeed(value: number) {

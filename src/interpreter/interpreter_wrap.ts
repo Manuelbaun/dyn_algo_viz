@@ -31,9 +31,6 @@ export class InterpreterWrapper {
     // see start method.
     this.interpreter = new Interpreter("", this.interpreterInitFunctions);
 
-    // this basically runs the polyfill codes
-    // this.interpreter.run();
-    console.log("run Done");
     // listen to events
     this.unsubscriber.push(appState.event.subscribe(this.handleEvents));
   }
@@ -47,7 +44,7 @@ export class InterpreterWrapper {
     } else if ("continue" === event) {
       this.paused = false;
       this.mainExecutingLoop();
-    } else if ("stepin" === event || "step" === event) {
+    } else if ("step" === event) {
       this.executeInterpreterStep();
       this.highlightAndSetLocalScope("#ffaafa", false);
     }

@@ -16,8 +16,7 @@ export type EVENTS =
   | "reset"
   | "some_error"
   | "start"
-  | "step"
-  | "stepin";
+  | "step";
 
 export interface CustomAcornNode extends acorn.Node {
   loc: acorn.SourceLocation;

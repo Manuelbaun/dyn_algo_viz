@@ -15,7 +15,7 @@
   const start = () => appState.start();
   const pause = () => appState.pause();
   const doContinue = () => appState.continue();
-  const stepIn = () => appState.stepIn();
+  const step = () => appState.step();
   const reset = () => appState.reset();
 </script>
 
@@ -49,14 +49,20 @@
     <button
       class="btn"
       on:click={doContinue}
-      disabled={$state != "PAUSED" && $state != "STEPPING"}> CONTINUE </button>
+      disabled={$state != "PAUSED" && $state != "STEPPING"}
+    >
+      CONTINUE
+    </button>
     <button class="btn" on:click={pause} disabled={$state != "RUNNING"}>
       PAUSE
     </button>
     <button
       class="btn"
-      on:click={stepIn}
-      disabled={$state != "PAUSED" && $state != "STEPPING"}> STEP </button>
+      on:click={step}
+      disabled={$state != "PAUSED" && $state != "STEPPING"}
+    >
+      STEP
+    </button>
 
     <button class="btn" on:click={reset}> RESET </button>
   </div>
