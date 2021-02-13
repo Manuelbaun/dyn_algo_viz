@@ -88,10 +88,10 @@ export class InterpreterWrapper {
    * and store local Scope at that node/state
    * @param {string} color
    */
-  private highlightAndSetLocalScope(color: string, shouldStore = true) {
+  private highlightAndSetLocalScope(color: string, shouldTrack = true) {
     const state = this.interpreter.stateStack.getTop();
-    this.appState.setMarkedNode(state.node, color, shouldStore);
-    this.appState.setLocalScope(this.getLocalScope(state.scope), shouldStore);
+    this.appState.setMarkedNode(state.node, color, shouldTrack);
+    this.appState.setLocalScope(this.getLocalScope(state.scope), shouldTrack);
   }
 
   private interpreterInitFunctions(
@@ -426,17 +426,7 @@ export class InterpreterWrapper {
         const leftObj = scopeObjectProp[leftObjName];
         const rightObj = scopeObjectProp[rightObjName];
 
-        // mark code in editor
-        this.appState.setMarkedNode(
-          currentState.node,
-          this.algorithm.colors.signal,
-          true
-        );
-        // save local scope
-        this.appState.setLocalScope(
-          this.getLocalScope(currentState.scope),
-          true
-        );
+        this.highlightAndSetLocalScope(this.algorithm.colors.signal, true);
 
         /// highlight current value of array
         this.algorithm.highlight(leftObj, leftValue);
