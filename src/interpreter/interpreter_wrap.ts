@@ -360,8 +360,8 @@ export class InterpreterWrapper {
         console.log("breakpoint");
 
         /**
-         * Defere the this.paused = false, since it will take some time,
-         * untile appState.pause() will be updated.
+         * Defer the this.paused = false, since it will take some time,
+         * until appState.pause() will be updated.
          *
          * in the time, the executen loop could contine!
          */
