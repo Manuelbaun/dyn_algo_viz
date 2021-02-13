@@ -38,9 +38,8 @@ export class InterpreterWrapper {
     this.unsubscriber.push(appState.event.subscribe(this.handleEvents));
   }
 
-  private async handleEvents(event: EVENTS) {
+  private handleEvents(event: EVENTS) {
     if ("start" === event) {
-      await this.algorithm.setupDone;
       this.interpreter.appendCode(this.appState.sourceCodeValue);
       this.mainExecutingLoop();
     } else if ("pause" === event) {
@@ -379,7 +378,8 @@ export class InterpreterWrapper {
     const state = this.interpreter.stateStack.getTop();
     this.handleBreakPoints(state);
     await this.analyseCurrentAstExpression(state);
-    /** Add handlers that should run on each step as needed,to enhance interpreter */
+
+    /** Add step handlers as needed **/
 
     return executed;
   }
