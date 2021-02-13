@@ -40,9 +40,11 @@ export class InterpreterWrapper {
     if (event == "start") {
       await this.algorithm.setupDone;
       this.interpreter.appendCode(this.appState.sourceCodeValue);
-
       this.mainExecutingLoop();
+    } else if (event == "pause") {
+      this.paused = true;
     } else if (event === "continue") {
+      this.paused = false;
       this.mainExecutingLoop();
     } else if (event == "stepin" || event == "step") {
       // remember the value of paused == should actually always be true
@@ -58,7 +60,7 @@ export class InterpreterWrapper {
 
   /**
    * A utility function to stop the interpreter running and await async functions, then continue
-   * when the interpreter was in runnning state!
+   * when the interpreter was in running state!
    * It is expected, that the func returns a promise, or multiple Promises
    */
   private async asyncCall(func: (() => Promise<any>) | (() => Promise<any>[])) {
@@ -357,15 +359,12 @@ export class InterpreterWrapper {
         this.lastBreakPoint.push(line);
         this.paused = true;
         this.appState.pause();
-        console.log("breakpoint");
 
         /**
          * Defer the this.paused = false, since it will take some time,
          * until appState.pause() will be updated.
-         *
          * in the time, the mainExecutionLoop could continue!
          */
-
         setTimeout(() => (this.paused = false), 50);
       }
 
