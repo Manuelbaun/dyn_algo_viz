@@ -116,7 +116,7 @@ export default class ComparisonSortsVisualizer {
     return this.setupDone;
   }
 
-  async swap(array: Interpreter.Object, i: number, j: number) {
+  async visualizeSwap(array: Interpreter.Object, i: number, j: number) {
     const tl = this.animationControl.algoTimeline;
     const ref = this.elementManager.getArrayWrapper(array);
 
@@ -167,7 +167,7 @@ export default class ComparisonSortsVisualizer {
       .continue();
   }
 
-  async compare(
+  async visualizeCompare(
     array: Interpreter.Object,
     i: number,
     j: number,
@@ -205,7 +205,7 @@ export default class ComparisonSortsVisualizer {
     }
   }
 
-  async highlight(
+  async visualizeHighlight(
     array: Interpreter.Object,
     value: number,
     timeCorrection: string = "-=0"
@@ -228,7 +228,7 @@ export default class ComparisonSortsVisualizer {
     );
   }
 
-  async unHighlight(
+  async visualizeUnHighlight(
     array: Interpreter.Object,
     value: number,
     timeCorrection: string = "-=0"
@@ -254,7 +254,7 @@ export default class ComparisonSortsVisualizer {
     return this.animationControl.algoTimeline.continue();
   }
 
-  async splice(array: Interpreter.Object) {
+  async visualizeSplice(array: Interpreter.Object) {
     const tl = this.animationControl.algoTimeline;
     const ref = this.elementManager.getArrayWrapper(array);
     const first = ref?.getByIndex(0);
@@ -276,7 +276,7 @@ export default class ComparisonSortsVisualizer {
     await tl.continue();
   }
 
-  async shift(array: Interpreter.Object) {
+  async visualizeShift(array: Interpreter.Object) {
     const tl = this.animationControl.algoTimeline;
     const ref = this.elementManager.getArrayWrapper(array);
 
@@ -313,7 +313,7 @@ export default class ComparisonSortsVisualizer {
     return tl.continue();
   }
 
-  async push(array: Interpreter.Object) {
+  async visualizePush(array: Interpreter.Object) {
     const tl = this.animationControl.algoTimeline;
 
     const ref = this.elementManager.getArrayWrapper(array);
@@ -362,7 +362,7 @@ export default class ComparisonSortsVisualizer {
     await tl.continue();
   }
 
-  async concat(array: Interpreter.Object) {
+  async visualizeConcat(array: Interpreter.Object) {
     const tl = this.animationControl.algoTimeline;
 
     const ref = this.elementManager.getArrayWrapper(array);
@@ -393,7 +393,7 @@ export default class ComparisonSortsVisualizer {
     return await tl.continue();
   }
 
-  async set(array: Interpreter.Object, i: number, value: number) {
+  async visualizeSet(array: Interpreter.Object, i: number, value: number) {
     const tl = this.animationControl.algoTimeline;
     const ref = this.elementManager.getArrayWrapper(array);
     const first = ref.getByIndex(0);
@@ -421,7 +421,7 @@ export default class ComparisonSortsVisualizer {
     await tl.continue();
   }
 
-  async get(array: Interpreter.Object, i: number) {
+  async visualizeGet(array: Interpreter.Object, i: number) {
     const tl = this.animationControl.algoTimeline;
     const ref = this.elementManager.getArrayWrapper(array);
 

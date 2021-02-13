@@ -55,16 +55,10 @@ export class InterpreterWrapper {
    * when the interpreter was in running state!
    * It is expected, that the func returns a promise, or Array of Promises
    */
-  private async asyncCall(func: (() => Promise<any>) | (() => Promise<any>[])) {
+  private async asyncCall(func: () => Promise<any>) {
     const paused = this.paused;
     this.paused = true;
-
-    if (func instanceof Array) {
-      await Promise.all(func);
-    } else {
-      await func();
-    }
-
+    await func();
     this.paused = paused;
 
     /**
@@ -161,10 +155,8 @@ export class InterpreterWrapper {
         }
 
         // do animation
-        asyncCall(() => {
-          highlightAndScope(algorithm.colors.compare);
-          return algorithm.compare(this, i, j, res);
-        });
+        highlightAndScope(algorithm.colors.compare);
+        asyncCall(() => algorithm.visualizeCompare(this, i, j, res));
 
         return res;
       }
@@ -192,10 +184,8 @@ export class InterpreterWrapper {
         arr[j] = a;
 
         // do animation by real values
-        asyncCall(() => {
-          highlightAndScope(algorithm.colors.swap);
-          return algorithm.swap(this, i, j);
-        });
+        highlightAndScope(algorithm.colors.swap);
+        asyncCall(() => algorithm.visualizeSwap(this, i, j));
       }
     );
 
@@ -206,20 +196,16 @@ export class InterpreterWrapper {
         const data = Array.prototype.splice.call(this.properties, start, end);
         const newObj = self.arrayNativeToPseudo(data);
 
-        asyncCall(() => {
-          highlightAndScope(algorithm.colors.splice);
-          return algorithm.splice(newObj);
-        });
+        highlightAndScope(algorithm.colors.splice);
+        asyncCall(() => algorithm.visualizeSplice(newObj));
         return newObj;
       }
     );
 
     self.setNativeFunctionPrototype(self.ARRAY, "shift", function () {
       // First animate, then apply shift to Array
-      asyncCall(() => {
-        highlightAndScope(algorithm.colors.shift);
-        return algorithm.shift(this);
-      });
+      highlightAndScope(algorithm.colors.shift);
+      asyncCall(() => algorithm.visualizeShift(this));
 
       /// shift the element on the array AFTER, the animation..
       return Array.prototype.shift.call(this.properties);
@@ -231,19 +217,15 @@ export class InterpreterWrapper {
       function (...args: any[]) {
         const res = Array.prototype.push.apply(this.properties, args);
 
-        asyncCall(() => {
-          highlightAndScope(algorithm.colors.push);
-          return algorithm.push(this);
-        });
+        highlightAndScope(algorithm.colors.push);
+        asyncCall(() => algorithm.visualizePush(this));
         return res;
       }
     );
 
     self.setNativeFunctionPrototype(self.ARRAY, "get", function (index: any) {
-      asyncCall(() => {
-        highlightAndScope(algorithm.colors.get);
-        return algorithm.get(this, index);
-      });
+      highlightAndScope(algorithm.colors.get);
+      asyncCall(() => algorithm.visualizeGet(this, index));
 
       return this.properties[index];
     });
@@ -254,10 +236,8 @@ export class InterpreterWrapper {
       function (index: any, value: any) {
         this.properties[index] = value;
 
-        asyncCall(() => {
-          highlightAndScope(algorithm.colors.set);
-          return algorithm.set(this, index, value);
-        });
+        highlightAndScope(algorithm.colors.set);
+        asyncCall(() => algorithm.visualizeSet(this, index, value));
       }
     );
 
@@ -299,10 +279,8 @@ export class InterpreterWrapper {
         const data = concat(this, args);
         const newArray = self.arrayNativeToPseudo(data);
 
-        asyncCall(() => {
-          highlightAndScope(algorithm.colors.concat);
-          return algorithm.concat(newArray);
-        });
+        highlightAndScope(algorithm.colors.concat);
+        asyncCall(() => algorithm.visualizeConcat(newArray));
 
         return newArray;
       }
@@ -430,11 +408,11 @@ export class InterpreterWrapper {
         this.highlightAndSetLocalScope(this.algorithm.colors.signal, true);
 
         /// highlight current value of array
-        this.algorithm.highlight(leftObj, leftValue);
-        this.algorithm.highlight(rightObj, rightValue, "-=300");
+        this.algorithm.visualizeHighlight(leftObj, leftValue);
+        this.algorithm.visualizeHighlight(rightObj, rightValue, "-=300");
         await this.algorithm.awaitAnimation();
-        this.algorithm.unHighlight(leftObj, leftValue);
-        this.algorithm.unHighlight(rightObj, rightValue, "-=300");
+        this.algorithm.visualizeUnHighlight(leftObj, leftValue);
+        this.algorithm.visualizeUnHighlight(rightObj, rightValue, "-=300");
         await this.algorithm.awaitAnimation();
       }
     }
