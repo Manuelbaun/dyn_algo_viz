@@ -88,7 +88,7 @@ export class InterpreterWrapper {
    * and store local Scope at that node/state
    * @param {string} color
    */
-  highlightAndSetLocalScope(color: string, shouldStore = true) {
+  private highlightAndSetLocalScope(color: string, shouldStore = true) {
     const state = this.interpreter.stateStack.getTop();
     this.appState.setMarkedNode(state.node, color, shouldStore);
     this.appState.setLocalScope(this.getLocalScope(state.scope), shouldStore);
