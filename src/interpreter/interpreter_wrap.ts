@@ -36,24 +36,17 @@ export class InterpreterWrapper {
   }
 
   private async handleEvents(event: EVENTS) {
-    console.log(event);
-    if (event == "start") {
+    if ("start" === event) {
       await this.algorithm.setupDone;
       this.interpreter.appendCode(this.appState.sourceCodeValue);
       this.mainExecutingLoop();
-    } else if (event == "pause") {
+    } else if ("pause" === event) {
       this.paused = true;
-    } else if (event === "continue") {
+    } else if ("continue" === event) {
       this.paused = false;
       this.mainExecutingLoop();
-    } else if (event == "stepin" || event == "step") {
-      // remember the value of paused == should actually always be true
-      // when these lines are executed
-      const paused = this.paused;
-      this.paused = false;
-      this.interpreter.step();
-      this.paused = paused;
-
+    } else if ("stepin" === event || "step" === event) {
+      this.executeInterpreterStep();
       this.highlightAndSetLocalScope("#ffaafa", false);
     }
   }
@@ -61,7 +54,7 @@ export class InterpreterWrapper {
   /**
    * A utility function to stop the interpreter running and await async functions, then continue
    * when the interpreter was in running state!
-   * It is expected, that the func returns a promise, or multiple Promises
+   * It is expected, that the func returns a promise, or Array of Promises
    */
   private async asyncCall(func: (() => Promise<any>) | (() => Promise<any>[])) {
     const paused = this.paused;
@@ -77,10 +70,10 @@ export class InterpreterWrapper {
 
     /**
      * If interpreter was in running mode, => continue to execute
-     * This needs to done, since, this function could also be called, when
-     * the stepping mode is active
+     * This needs to be done, since, this function could also be called,
+     * when the stepping mode is active
      */
-    if (this.appState.isRunning && paused == false) {
+    if (this.appState.isRunning && paused === false) {
       this.mainExecutingLoop();
     }
   }
@@ -365,7 +358,9 @@ export class InterpreterWrapper {
          * until appState.pause() will be updated.
          * in the time, the mainExecutionLoop could continue!
          */
-        setTimeout(() => (this.paused = false), 50);
+        setTimeout(() => {
+          this.paused = false;
+        }, 50);
       }
 
       this.appState.setMarkedNode(currentState.node, "#ffaaaaaa");
@@ -376,16 +371,25 @@ export class InterpreterWrapper {
     }
   }
 
+  private async executeInterpreterStep() {
+    const exeSuccess = this.interpreter.step();
+    const state = this.interpreter.stateStack.getTop();
+    this.handleBreakPoints(state);
+    await this.analyseCurrentAstExpression(state);
+    /** Add handlers that should run on each step as needed,to enhance interpreter */
+
+    return exeSuccess;
+  }
+
   /**
    * This is the main execution loop, that steps through the tree.
    * It does basically the same, as the interpreter.run() method.
    */
   private async mainExecutingLoop() {
-    while (!this.paused && this.appState.isRunning && this.interpreter.step()) {
-      const state = this.interpreter.stateStack.getTop();
-      this.handleBreakPoints(state);
-      await this.analyseCurrentAstExpression(state);
-      /** Add handlers that should run on each step as needed,to enhance interpreter */
+    let exeSuccess = true;
+
+    while (!this.paused && this.appState.isRunning && exeSuccess) {
+      exeSuccess = await this.executeInterpreterStep();
     }
 
     /** Check if the interpreter is done with executing the user code */
