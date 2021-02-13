@@ -7,18 +7,18 @@ import type ComparisonSortsVisualizer from "../algorithm_viz/comparison_sort_vis
 export class InterpreterWrapper {
   private algorithm: ComparisonSortsVisualizer;
   private paused: boolean;
-  private initDone: boolean;
   private interpreter: Interpreter;
   private appState: AppState;
+
   private lastBreakPoint: number[] = [];
   private unsubscriber: Function[] = [];
+
   constructor(appState: AppState, algorithm: ComparisonSortsVisualizer) {
     this.appState = appState;
     this.algorithm = algorithm;
 
     // should be from app state!
     this.paused = false;
-    this.initDone = false;
 
     // make sure, that `this` within the functions is references the
     // InterpreterWrapper class and not
@@ -31,6 +31,9 @@ export class InterpreterWrapper {
     // see start method.
     this.interpreter = new Interpreter("", this.interpreterInitFunctions);
 
+    // this basically runs the polyfill codes
+    // this.interpreter.run();
+    console.log("run Done");
     // listen to events
     this.unsubscriber.push(appState.event.subscribe(this.handleEvents));
   }
@@ -372,13 +375,13 @@ export class InterpreterWrapper {
   }
 
   private async executeInterpreterStep() {
-    const exeSuccess = this.interpreter.step();
+    const executed = this.interpreter.step();
     const state = this.interpreter.stateStack.getTop();
     this.handleBreakPoints(state);
     await this.analyseCurrentAstExpression(state);
     /** Add handlers that should run on each step as needed,to enhance interpreter */
 
-    return exeSuccess;
+    return executed;
   }
 
   /**
@@ -386,18 +389,16 @@ export class InterpreterWrapper {
    * It does basically the same, as the interpreter.run() method.
    */
   private async mainExecutingLoop() {
-    let exeSuccess = true;
+    let executed = true;
 
-    while (!this.paused && this.appState.isRunning && exeSuccess) {
-      exeSuccess = await this.executeInterpreterStep();
+    while (!this.paused && this.appState.isRunning && executed) {
+      executed = await this.executeInterpreterStep();
     }
 
     /** Check if the interpreter is done with executing the user code */
     const state = this.interpreter.stateStack.getTop();
-    if (this.initDone && state.done) {
+    if (state.done) {
       this.appState.setDone();
-    } else {
-      this.initDone = true;
     }
   }
 
