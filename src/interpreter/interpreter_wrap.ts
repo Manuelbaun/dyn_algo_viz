@@ -352,7 +352,7 @@ export class InterpreterWrapper {
     const executed = this.interpreter.step();
     const state = this.interpreter.stateStack.getTop();
     this.handleBreakPoints(state);
-    await this.analyseCurrentAstExpression(state);
+    await this.analyseCurrentStateExpression(state);
 
     /** Add step handlers as needed **/
 
@@ -389,7 +389,7 @@ export class InterpreterWrapper {
   /**
    * Analyses the current top expression of the stack
    */
-  private async analyseCurrentAstExpression(currentState: any) {
+  private async analyseCurrentStateExpression(currentState: any) {
     if (SemantikAnalysis.isCompareExpression(currentState)) {
       const scopeObjectProp = currentState.scope.object.properties;
       const left = currentState.node.left;
