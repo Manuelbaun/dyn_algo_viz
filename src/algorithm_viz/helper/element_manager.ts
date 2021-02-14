@@ -8,9 +8,6 @@ export class ElementManager {
   /** Map of the interpreter Array to the wrapped classes */
   private wrappedArrays: Map<Interpreter.Object, ArrayWrapper> = new Map();
 
-  private get elementsAsList() {
-    return Array.from(this.elements.values());
-  }
 
   /**
    * Creates a 2d Array, where 0 represents the absents of an visual element
@@ -66,12 +63,12 @@ export class ElementManager {
    * @param value the value is the hight of the rectangle bar
    * @param ref  is the svg groupref of the rectangle bar and the text
    */
-  mapValueToVisual(value: number, ref: VisualElement) {
+  setVisualElementRef(value: number, ref: VisualElement) {
     this.elements.set(value, ref);
   }
 
   forEachElement(callbackfn: (element: VisualElement, index: number) => void) {
-    this.elementsAsList.forEach((e, i) => callbackfn(e, i));
+    Array.from(this.elements.values()).forEach((e, i) => callbackfn(e, i));
   }
 }
 

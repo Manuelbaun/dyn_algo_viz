@@ -73,7 +73,7 @@ export default class ComparisonSortsVisualizer {
     // create and add the the refsManager
     this.data.forEach((value) => {
       const el = new VisualElement(value, this.drawUtils);
-      this.elementManager.mapValueToVisual(value, el);
+      this.elementManager.setVisualElementRef(value, el);
     });
   }
 
