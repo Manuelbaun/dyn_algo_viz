@@ -25,7 +25,7 @@
   let algorithm: ComparisonSorts;
   let interpreter: InterpreterWrapper;
 
-  let count: number = 5;
+  let count: number = 20;
 
   // wait, till children are mounted
   onMount(() => initAlgoViz());
