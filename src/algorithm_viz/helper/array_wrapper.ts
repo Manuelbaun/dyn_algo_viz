@@ -1,5 +1,4 @@
 import type Interpreter from "../../interpreter/interpreter";
-import { genID } from "../../utils/helper_functions";
 import type { VisualElement } from "./visual_element";
 
 /**
@@ -7,16 +6,15 @@ import type { VisualElement } from "./visual_element";
  * and gives some utility methods
  */
 export class ArrayWrapper {
-  private self;
-  private allElementRefs;
-  readonly id: string = genID();
+  private self: Interpreter.Object;
+  private allVisualElements: Map<number, VisualElement>;
 
   constructor(
     array: Interpreter.Object,
     allElementRefs: Map<number, VisualElement>
   ) {
     this.self = array;
-    this.allElementRefs = allElementRefs;
+    this.allVisualElements = allElementRefs;
   }
 
   get length() {
@@ -39,12 +37,12 @@ export class ArrayWrapper {
     return this.map((e) => e.node);
   }
 
-  private get(index: number) {
+  get(index: number) {
     return this.self.properties[index];
   }
 
   getVisualElementByValue(value: number) {
-    return this.allElementRefs.get(value);
+    return this.allVisualElements.get(value);
   }
 
   getVisualElementByIndex(index: number) {
@@ -52,13 +50,15 @@ export class ArrayWrapper {
     return this.getVisualElementByValue(val);
   }
 
-  forEachByIndex(cb: (value: number, index: number, self: this) => void) {
+  forEachOverProperties(cb: (value: any, index: number, self: this) => void) {
     for (let i = 0; i < this.length; i++) {
       cb(this.get(i), i, this);
     }
   }
 
-  forEach(cb: (element: VisualElement, index: number, self: this) => void) {
+  forEachOverElements(
+    cb: (element: VisualElement, index: number, self: this) => void
+  ) {
     for (let i = 0; i < this.length; i++) {
       const el = this.getVisualElementByIndex(i);
       if (el) {

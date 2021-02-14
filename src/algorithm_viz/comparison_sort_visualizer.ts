@@ -295,7 +295,7 @@ export default class ComparisonSortsVisualizer {
       translateX: translateX + this.drawUtils.xScale(-1),
     });
 
-    ref.forEach((d, i) => {
+    ref.forEachOverElements((d, i) => {
       if (d != elFirst) {
         tl.add(
           {
@@ -316,15 +316,15 @@ export default class ComparisonSortsVisualizer {
     const ref = this.elementManager.getOrCreateArrayWrapper(array);
     let translateX, translateY;
 
-    const elFirst = ref.getVisualElementByIndex(0); 
+    const elFirst = ref.getVisualElementByIndex(0);
     const elLast = ref.getVisualElementByIndex(ref.length - 1);
 
     if (!elFirst || !elLast) {
       throw Error(`Ein unerwarteter Fehler ist aufgetreten. 
-      Die Elemente der Indizes [0, ${ref.length-1}] sollten definiert sein.`);
+      Die Elemente der Indizes [0, ${ref.length - 1}] sollten definiert sein.`);
     }
 
-    if(elFirst == elLast){     
+    if (elFirst == elLast) {
       const xy = this.elementManager.findFreePositionIn2DGrid(elFirst);
       translateY = this.drawUtils.yScale(xy.y);
       translateX = this.drawUtils.xScale(xy.x);
@@ -337,17 +337,24 @@ export default class ComparisonSortsVisualizer {
       targets: elLast.node,
       duration: 400,
       translateX,
-      translateY})
-    .add({
-      targets: elLast.rectNode,
-      duration: 200,
-      fill: this.colorMapping.push,
-      }, "-=400")
-    .add({
-      targets: elLast.node,
-      duration: 200,
-      opacity: 1,
-      },"-=200");
+      translateY,
+    })
+      .add(
+        {
+          targets: elLast.rectNode,
+          duration: 200,
+          fill: this.colorMapping.push,
+        },
+        "-=400"
+      )
+      .add(
+        {
+          targets: elLast.node,
+          duration: 200,
+          opacity: 1,
+        },
+        "-=200"
+      );
 
     await tl.continue();
   }
@@ -368,7 +375,7 @@ export default class ComparisonSortsVisualizer {
       fill: this.colorMapping.concat,
     });
 
-    ref.forEach((e, i) => {
+    ref.forEachOverElements((e, i) => {
       tl.add(
         {
           targets: e.node,

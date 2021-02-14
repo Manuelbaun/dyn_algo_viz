@@ -4,19 +4,21 @@ import type { VisualElement } from "./visual_element";
 
 export class ElementManager {
   /** A map,of value to visual svg elements */
-  private elements: Map<number, VisualElement> = new Map();
+  private allVisualElements: Map<number, VisualElement> = new Map();
   /** Map of the interpreter Array to the wrapped classes */
   private wrappedArrays: Map<Interpreter.Object, ArrayWrapper> = new Map();
 
   /**
    * A very simple algorithm to find a free space in a 2d grid.
    * Starting point it x=0 and y=0 and searches first vertically,
-   * 
+   *
    * Creates a 2d Array, where 0 represents the absents of an visual element
    * and 1 represents the present of an visual element
    */
-  findFreePositionIn2DGrid(first: VisualElement) {
-    const els = Array.from(this.elements.values()).filter((e) => e != first);
+  findFreePositionIn2DGrid(forElement: VisualElement) {
+    const els = Array.from(this.allVisualElements.values()).filter(
+      (e) => e != forElement
+    );
 
     // y-x 2d matrix
     const m = Array<number>(els.length)
@@ -24,7 +26,6 @@ export class ElementManager {
       .map((v, i) => Array<number>(els.length).fill(0));
 
     els.forEach(({ xIndex: x, yIndex: y }) => (m[y][x] = 1));
-
 
     let y: number, x: number;
 
@@ -37,14 +38,17 @@ export class ElementManager {
       }
     }
 
-    return { x: m[first.yIndex].findIndex((e) => e == 0), y: first.yIndex };
+    return {
+      x: m[forElement.yIndex].findIndex((e) => e == 0),
+      y: forElement.yIndex,
+    };
   }
 
   getOrCreateArrayWrapper(array: Interpreter.Object) {
     let arr = this.wrappedArrays.get(array);
 
     if (!arr) {
-      arr = new ArrayWrapper(array, this.elements);
+      arr = new ArrayWrapper(array, this.allVisualElements);
       this.wrappedArrays.set(array, arr);
     }
 
@@ -56,11 +60,11 @@ export class ElementManager {
    * @param ref  is the svg groupref of the rectangle bar and the text
    */
   setVisualElementRef(value: number, ref: VisualElement) {
-    this.elements.set(value, ref);
+    this.allVisualElements.set(value, ref);
   }
 
   forEachElement(cb: (element: VisualElement, index: number) => void) {
-    Array.from(this.elements.values()).forEach((e, i) => cb(e, i));
+    Array.from(this.allVisualElements.values()).forEach((e, i) => cb(e, i));
   }
 }
 
