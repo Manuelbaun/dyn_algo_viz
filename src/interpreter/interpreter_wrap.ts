@@ -166,22 +166,18 @@ export class InterpreterWrapper {
       self.ARRAY,
       "swap",
       function (i: number, j: number) {
-        /// swap the data
-        const arr = this.properties;
+        const props = this.properties;
 
-        // get real values;
-        const a = arr[i];
-        const b = arr[j];
-
-        if (!a || !b) {
+        if (props.length < Math.max(i, j)) {
           self.throwException(
             self.RANGE_ERROR,
-            `Cannot swap elements, since either element at index i:${i}=>${a} OR j:${j}=>${b} does not exist on this array`
+            `Accessed Index ${Math.max(i, j)} is out of bounce of used array with a length of ${props.length}`
           );
         }
         // swap
-        arr[i] = b;
-        arr[j] = a;
+        const a = props[i];
+        props[i] = props[j];
+        props[j] = a;
 
         // do animation by real values
         highlightAndScope(algorithm.colors.swap);
