@@ -30,7 +30,7 @@ export default class AnimationController {
 
   constructor(appState: AppState) {
     // update appstate with progress, current time and duration
-    this.algoTimeline.update = async (timeline) => {
+    this.algoTimeline.update = (timeline) => {
       appState.progress.set(timeline.progress);
       appState.currentTime.set(timeline.currentTime);
       appState.duration.set(timeline.duration);
