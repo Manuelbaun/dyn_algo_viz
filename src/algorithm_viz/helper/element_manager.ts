@@ -15,7 +15,7 @@ export class ElementManager {
   }
 
   /**
-   * Creates a 2d Array, where 0 represets the absents of an visual element
+   * Creates a 2d Array, where 0 represents the absents of an visual element
    * and 1 represents the present of an visual element
    * @param first
    */
@@ -61,14 +61,14 @@ export class ElementManager {
   }
 
   getArrayWrapper(array: Interpreter.Object) {
-    let arrClaa = this.wrappedArrays.get(array);
+    let arr = this.wrappedArrays.get(array);
 
-    if (!arrClaa) {
-      arrClaa = new ArrayWrapper(array, this.elements);
-      this.wrappedArrays.set(array, arrClaa);
+    if (!arr) {
+      arr = new ArrayWrapper(array, this.elements);
+      this.wrappedArrays.set(array, arr);
     }
 
-    return arrClaa;
+    return arr;
   }
 
   /**
