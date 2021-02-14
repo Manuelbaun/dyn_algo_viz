@@ -37,6 +37,7 @@ export class AppState {
     this.autofit.subscribe((data) => setItem("autofit", data));
     this.autoscroll.subscribe((data) => setItem("autoscroll", data));
     this.sourceCode.subscribe((data) => setItem("sourceCode", data));
+    this.animationSpeed.subscribe((data) => setItem("speed", data));
 
     /// Listen to time Series change!
     this.currentTime.subscribe((ts) => {
