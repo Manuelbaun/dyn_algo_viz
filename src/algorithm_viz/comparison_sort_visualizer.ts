@@ -1,8 +1,6 @@
-import type { G } from "@svgdotjs/svg.js";
 import type AnimationController from "../animation/animation_controller";
 import type Interpreter from "../interpreter/interpreter";
-import { generateData } from "../utils/helper_functions";
-import { DrawUtilities } from "./helper/draw_utilities";
+import type { DrawUtilities } from "./helper/draw_utilities";
 import { ElementManager } from "./helper/element_manager";
 import { VisualElement } from "./helper/visual_element";
 
@@ -50,16 +48,13 @@ export default class ComparisonSortsVisualizer {
 
   constructor(
     animationControl: AnimationController,
-    drawRoot: G,
-    width: number,
-    height: number,
-    length = 20
+    data: Array<number>,
+    drawUtils: DrawUtilities
   ) {
-    this.data = Array.from(new Set(generateData(length).map((e) => e + 1)));
-
+    this.data = data;
+    this.drawUtils = drawUtils;
     this.animationControl = animationControl;
 
-    this.drawUtils = new DrawUtilities(drawRoot, width, height, this.data);
     this.elementManager = new ElementManager();
 
     this.colorMapping = {
@@ -78,7 +73,7 @@ export default class ComparisonSortsVisualizer {
     // create and add the the refsManager
     this.data.forEach((value) => {
       const el = new VisualElement(value, this.drawUtils);
-      this.elementManager.setRef(value, el);
+      this.elementManager.mapValueToVisual(value, el);
     });
   }
 
@@ -118,7 +113,7 @@ export default class ComparisonSortsVisualizer {
 
   async visualizeSwap(array: Interpreter.Object, i: number, j: number) {
     const tl = this.animationControl.algoTimeline;
-    const ref = this.elementManager.getArrayWrapper(array);
+    const ref = this.elementManager.getOrCreateArrayWrapper(array);
 
     // get visual elements
     const el1 = ref.getByIndex(i);
@@ -174,7 +169,7 @@ export default class ComparisonSortsVisualizer {
     iGreaterJ: boolean
   ) {
     const tl = this.animationControl.algoTimeline;
-    const ref = this.elementManager.getArrayWrapper(array);
+    const ref = this.elementManager.getOrCreateArrayWrapper(array);
 
     // get visual objects
     const el1 = ref.getByIndex(i);
@@ -211,7 +206,7 @@ export default class ComparisonSortsVisualizer {
     timeCorrection: string = "-=0"
   ) {
     const tl = this.animationControl.algoTimeline;
-    const ref = this.elementManager.getArrayWrapper(array);
+    const ref = this.elementManager.getOrCreateArrayWrapper(array);
 
     // get visual objects
     const el1 = ref.getByValue(value);
@@ -234,7 +229,7 @@ export default class ComparisonSortsVisualizer {
     timeCorrection: string = "-=0"
   ) {
     const tl = this.animationControl.algoTimeline;
-    const ref = this.elementManager.getArrayWrapper(array);
+    const ref = this.elementManager.getOrCreateArrayWrapper(array);
 
     // get visual objects
     const el1 = ref.getByValue(value);
@@ -256,7 +251,7 @@ export default class ComparisonSortsVisualizer {
 
   async visualizeSplice(array: Interpreter.Object) {
     const tl = this.animationControl.algoTimeline;
-    const ref = this.elementManager.getArrayWrapper(array);
+    const ref = this.elementManager.getOrCreateArrayWrapper(array);
     const first = ref?.getByIndex(0);
 
     if (!first) return;
@@ -278,7 +273,7 @@ export default class ComparisonSortsVisualizer {
 
   async visualizeShift(array: Interpreter.Object) {
     const tl = this.animationControl.algoTimeline;
-    const ref = this.elementManager.getArrayWrapper(array);
+    const ref = this.elementManager.getOrCreateArrayWrapper(array);
 
     const first = ref?.getByIndex(0);
     if (!first) return;
@@ -316,7 +311,7 @@ export default class ComparisonSortsVisualizer {
   async visualizePush(array: Interpreter.Object) {
     const tl = this.animationControl.algoTimeline;
 
-    const ref = this.elementManager.getArrayWrapper(array);
+    const ref = this.elementManager.getOrCreateArrayWrapper(array);
 
     // get last element! since the value is already added by the interpreter!
     const group = ref.getByIndex(ref.length - 1);
@@ -365,7 +360,7 @@ export default class ComparisonSortsVisualizer {
   async visualizeConcat(array: Interpreter.Object) {
     const tl = this.animationControl.algoTimeline;
 
-    const ref = this.elementManager.getArrayWrapper(array);
+    const ref = this.elementManager.getOrCreateArrayWrapper(array);
     const first = ref?.getByIndex(0);
     if (!first) return;
 
@@ -395,7 +390,7 @@ export default class ComparisonSortsVisualizer {
 
   async visualizeSet(array: Interpreter.Object, i: number, value: number) {
     const tl = this.animationControl.algoTimeline;
-    const ref = this.elementManager.getArrayWrapper(array);
+    const ref = this.elementManager.getOrCreateArrayWrapper(array);
     const first = ref.getByIndex(0);
 
     if (!first) return;
@@ -423,7 +418,7 @@ export default class ComparisonSortsVisualizer {
 
   async visualizeGet(array: Interpreter.Object, i: number) {
     const tl = this.animationControl.algoTimeline;
-    const ref = this.elementManager.getArrayWrapper(array);
+    const ref = this.elementManager.getOrCreateArrayWrapper(array);
 
     // get visual objects
     const group = ref.getByIndex(i);

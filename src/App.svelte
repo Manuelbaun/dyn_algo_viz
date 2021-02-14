@@ -10,6 +10,9 @@
 
   import { InterpreterWrapper } from "./interpreter/interpreter_wrap";
   import { AppState } from "./service/app_state";
+  import { generateData } from "./utils/helper_functions";
+  import { DrawUtilities } from "./algorithm_viz/helper/draw_utilities";
+  import { draw } from "svelte/transition";
 
   // get the reference of the svgDraw, to get the needed references!
   let svgDraw: VisualArea;
@@ -25,6 +28,7 @@
   let algorithm: ComparisonSorts;
   let interpreter: InterpreterWrapper;
 
+  // could be set by the appState? and use a slider?
   let count: number = 20;
 
   // wait, till children are mounted
@@ -52,13 +56,16 @@
   async function initAlgoViz() {
     animationController = new AnimationController(appState);
 
-    algorithm = new ComparisonSorts(
-      animationController,
+    const data = Array.from(new Set(generateData(count).map((e) => e + 1)));
+
+    const drawUtils = new DrawUtilities(
       svgDraw.getDrawRoot(),
       width,
       height,
-      count
+      data
     );
+
+    algorithm = new ComparisonSorts(animationController, data, drawUtils);
     await algorithm.setup();
 
     svgDraw.center();

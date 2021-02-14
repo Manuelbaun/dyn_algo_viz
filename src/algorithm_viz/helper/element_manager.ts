@@ -51,11 +51,7 @@ export class ElementManager {
     return { x: m[first.yIndex].findIndex((e) => e == 0), y: first.yIndex };
   }
 
-  has(array: Interpreter.Object) {
-    return this.wrappedArrays.has(array);
-  }
-
-  getArrayWrapper(array: Interpreter.Object) {
+  getOrCreateArrayWrapper(array: Interpreter.Object) {
     let arr = this.wrappedArrays.get(array);
 
     if (!arr) {
@@ -70,7 +66,7 @@ export class ElementManager {
    * @param value the value is the hight of the rectangle bar
    * @param ref  is the svg groupref of the rectangle bar and the text
    */
-  setRef(value: number, ref: VisualElement) {
+  mapValueToVisual(value: number, ref: VisualElement) {
     this.elements.set(value, ref);
   }
 
