@@ -27,17 +27,7 @@ export class DrawUtilities {
 
   drawRoot: G;
 
-  margin = {
-    top: 50,
-    bottom: 50,
-    left: 20,
-    right: 20,
-  };
-
-  drawHeight: number;
-  drawWidth: number;
   bottomLine: number;
-
   elementWidth: number;
 
   /**
@@ -80,12 +70,9 @@ export class DrawUtilities {
 
   constructor(drawRoot: G, width: number, height: number, data: number[]) {
     this.drawRoot = drawRoot;
+    this.bottomLine = height - 50;
 
-    this.drawHeight = height - this.margin.top - this.margin.bottom;
-    this.drawWidth = width - this.margin.left - this.margin.right;
-    this.bottomLine = height - this.margin.bottom;
-
-    this.elementWidth = this.drawWidth / data.length - 2.5;
+    this.elementWidth = (width - 100) / data.length - 2.5;
 
     this.xScale = scaleLinear().domain([0, data.length]).range([0, width]);
     this.yScale = scaleLinear()
@@ -102,6 +89,6 @@ export class DrawUtilities {
 
     this.elementHeightScale = scaleLinear()
       .domain([0, max(data)] as number[]) // the max value of the data
-      .range([0, height / 2 - this.margin.top - 20]); // height minus bottom margin open
+      .range([0, height / 2 - 50]); // height minus bottom margin open
   }
 }
