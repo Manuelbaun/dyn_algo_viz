@@ -32,7 +32,7 @@ export class AppState {
   }
 
   constructor() {
-    // auto save speed to localstorage
+    // auto save speed to local-storage
     this.breakPoints.subscribe((data) => setItem("breakPoints", data));
     this.autofit.subscribe((data) => setItem("autofit", data));
     this.autoscroll.subscribe((data) => setItem("autoscroll", data));
@@ -49,6 +49,9 @@ export class AppState {
     });
   }
 
+  /**
+   * All Attributes/Stores
+   */
   readonly progress = writable<number>(0);
   readonly currentTime = writable<number>(0);
   readonly duration = writable<number>(0);
@@ -73,7 +76,7 @@ export class AppState {
   readonly autofit = writable<boolean>(getItem("autofit") || false);
   readonly autoscroll = writable<boolean>(getItem("autoscroll") || false);
 
-  // need a helper class(Set), since breakPoints wont trigger
+  // need a helper class(Set), since breakPoints wont trigger because ref wont change
   private readonly breakPointsSet = new Set<number>(
     getItem("breakPoints") || []
   );
