@@ -3,13 +3,11 @@ import { ArrayWrapper } from "./array_wrapper";
 import type { VisualElement } from "./visual_element";
 
 export class ElementManager {
+  /** A map,of value to visual svg elements */
+  private elements: Map<number, VisualElement> = new Map();
   /** Map of the interpreter Array to the wrapped classes */
   private wrappedArrays: Map<Interpreter.Object, ArrayWrapper> = new Map();
 
-  /** A map,of value to visual svg elements */
-  private elements: Map<number, VisualElement> = new Map();
-
-  // todo memoize
   private get elementsAsList() {
     return Array.from(this.elements.values());
   }
@@ -19,7 +17,7 @@ export class ElementManager {
    * and 1 represents the present of an visual element
    * @param first
    */
-  private helpMatrix(first: VisualElement) {
+  private buildCurrent2DGrid(first: VisualElement) {
     const els = Array.from(this.elements.values()).filter((e) => e != first);
 
     // y-x 2d matrix
@@ -35,20 +33,17 @@ export class ElementManager {
   /**
    * A very simple algorithm to find a free space in a 2d grid.
    * Starting point it x=0 and y=0 and searches first vertically,
-   * This algorithm needs more checks
    */
-  findFree(first: VisualElement, findFreeSpot: boolean = false) {
-    const m = this.helpMatrix(first);
+  findFreePositionIn2DGrid(first: VisualElement) {
+    const m = this.buildCurrent2DGrid(first);
 
     let y: number, x: number;
 
-    if (findFreeSpot) {
-      for (x = 0; x < m.length; x++) {
-        for (y = 0; y < m.length; y++) {
-          // check also one on the left..
-          if (m[y][x] == 0 && m[y][x + 1] == 0) {
-            return { x, y };
-          }
+    for (x = 0; x < m.length; x++) {
+      for (y = 0; y < m.length; y++) {
+        // check also one on the left..
+        if (m[y][x] == 0 && m[y][x + 1] == 0) {
+          return { x, y };
         }
       }
     }

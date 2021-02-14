@@ -326,7 +326,7 @@ export default class ComparisonSortsVisualizer {
 
     const newArray = ref.length == 1;
 
-    const xy = this.elementManager.findFree(first, newArray);
+    const xy = this.elementManager.findFreePositionIn2DGrid(first);
 
     const translateY = newArray
       ? this.drawUtils.yScale(xy.y)
