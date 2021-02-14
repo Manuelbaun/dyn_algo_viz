@@ -26,14 +26,12 @@ export class DrawUtilities {
   };
 
   drawRoot: G;
-  width: number;
-  height: number;
 
-  margin: {
-    top: number;
-    bottom: number;
-    left: number;
-    right: number;
+  margin = {
+    top: 50,
+    bottom: 50,
+    left: 20,
+    right: 20,
   };
 
   drawHeight: number;
@@ -81,16 +79,7 @@ export class DrawUtilities {
   elementHeightScale: ScaleLinear<number, number, never>;
 
   constructor(drawRoot: G, width: number, height: number, data: number[]) {
-    this.margin = {
-      top: 50,
-      bottom: 50,
-      left: 20,
-      right: 20,
-    };
-
     this.drawRoot = drawRoot;
-    this.height = height;
-    this.width = width;
 
     this.drawHeight = height - this.margin.top - this.margin.bottom;
     this.drawWidth = width - this.margin.left - this.margin.right;
