@@ -8,13 +8,14 @@ export class ElementManager {
   /** Map of the interpreter Array to the wrapped classes */
   private wrappedArrays: Map<Interpreter.Object, ArrayWrapper> = new Map();
 
-
   /**
+   * A very simple algorithm to find a free space in a 2d grid.
+   * Starting point it x=0 and y=0 and searches first vertically,
+   * 
    * Creates a 2d Array, where 0 represents the absents of an visual element
    * and 1 represents the present of an visual element
-   * @param first
    */
-  private buildCurrent2DGrid(first: VisualElement) {
+  findFreePositionIn2DGrid(first: VisualElement) {
     const els = Array.from(this.elements.values()).filter((e) => e != first);
 
     // y-x 2d matrix
@@ -24,15 +25,6 @@ export class ElementManager {
 
     els.forEach(({ xIndex: x, yIndex: y }) => (m[y][x] = 1));
 
-    return m;
-  }
-
-  /**
-   * A very simple algorithm to find a free space in a 2d grid.
-   * Starting point it x=0 and y=0 and searches first vertically,
-   */
-  findFreePositionIn2DGrid(first: VisualElement) {
-    const m = this.buildCurrent2DGrid(first);
 
     let y: number, x: number;
 
@@ -67,8 +59,8 @@ export class ElementManager {
     this.elements.set(value, ref);
   }
 
-  forEachElement(callbackfn: (element: VisualElement, index: number) => void) {
-    Array.from(this.elements.values()).forEach((e, i) => callbackfn(e, i));
+  forEachElement(cb: (element: VisualElement, index: number) => void) {
+    Array.from(this.elements.values()).forEach((e, i) => cb(e, i));
   }
 }
 
