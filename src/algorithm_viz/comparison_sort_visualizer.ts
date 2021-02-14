@@ -86,9 +86,9 @@ export default class ComparisonSortsVisualizer {
     this.elementManager = undefined;
   }
 
-  setupDone: Promise<void> = Promise.resolve();
+  initializeDone: Promise<void> = Promise.resolve();
   /** * must await setup! */
-  setup() {
+  initialize() {
     const tl = this.animationControl.initTimeline;
 
     // position
@@ -107,8 +107,8 @@ export default class ComparisonSortsVisualizer {
     });
 
     /// wait till timeline animation is done
-    this.setupDone = tl.continue();
-    return this.setupDone;
+    this.initializeDone = tl.continue();
+    return this.initializeDone;
   }
 
   async visualizeSwap(array: Interpreter.Object, i: number, j: number) {
@@ -116,11 +116,14 @@ export default class ComparisonSortsVisualizer {
     const ref = this.elementManager.getOrCreateArrayWrapper(array);
 
     // get visual elements
-    const el1 = ref.getByIndex(i);
-    const el2 = ref.getByIndex(j);
+    const el1 = ref.getVisualElementByIndex(i);
+    const el2 = ref.getVisualElementByIndex(j);
 
     // at this point, the js interpreter would have thrown an error
-    if (!el1 || !el2) return;
+    if (!el1 || !el2) {
+      throw Error(`Ein unerwarteter Fehler ist aufgetreten. 
+      Die Elemente der Indizes [${i}, ${j}] sollten definiert sein.`);
+    }
 
     // get the svg elements to be animated
     const rects = [el1.rectNode, el2.rectNode];
@@ -172,8 +175,8 @@ export default class ComparisonSortsVisualizer {
     const ref = this.elementManager.getOrCreateArrayWrapper(array);
 
     // get visual objects
-    const el1 = ref.getByIndex(i);
-    const el2 = ref.getByIndex(j);
+    const el1 = ref.getVisualElementByIndex(i);
+    const el2 = ref.getVisualElementByIndex(j);
 
     // if an element at pos i or j does not exist, the interpreter would have thrown error
     if (!el1 || !el2) return;
@@ -209,7 +212,7 @@ export default class ComparisonSortsVisualizer {
     const ref = this.elementManager.getOrCreateArrayWrapper(array);
 
     // get visual objects
-    const el1 = ref.getByValue(value);
+    const el1 = ref.getVisualElementByValue(value);
     if (!el1) return;
 
     // Highligh rects
@@ -232,7 +235,7 @@ export default class ComparisonSortsVisualizer {
     const ref = this.elementManager.getOrCreateArrayWrapper(array);
 
     // get visual objects
-    const el1 = ref.getByValue(value);
+    const el1 = ref.getVisualElementByValue(value);
     if (!el1) return;
 
     // Highligh rects
@@ -252,7 +255,7 @@ export default class ComparisonSortsVisualizer {
   async visualizeSplice(array: Interpreter.Object) {
     const tl = this.animationControl.algoTimeline;
     const ref = this.elementManager.getOrCreateArrayWrapper(array);
-    const first = ref?.getByIndex(0);
+    const first = ref?.getVisualElementByIndex(0);
 
     if (!first) return;
 
@@ -275,25 +278,25 @@ export default class ComparisonSortsVisualizer {
     const tl = this.animationControl.algoTimeline;
     const ref = this.elementManager.getOrCreateArrayWrapper(array);
 
-    const first = ref?.getByIndex(0);
-    if (!first) return;
+    const elFirst = ref.getVisualElementByIndex(0);
+    if (!elFirst) return;
 
-    const translateX = first.xPixel;
+    const translateX = elFirst.xPixel;
 
     // move all elements to the left by 1 position, that are in that array
     tl.add({
-      targets: first.rectNode,
+      targets: elFirst.rectNode,
       fill: this.colorMapping.shift,
       duration: 200,
     }).add({
-      targets: first.node,
+      targets: elFirst.node,
       duration: 500,
       opacity: 0,
       translateX: translateX + this.drawUtils.xScale(-1),
     });
 
     ref.forEach((d, i) => {
-      if (d != first) {
+      if (d != elFirst) {
         tl.add(
           {
             targets: d.node,
@@ -310,49 +313,41 @@ export default class ComparisonSortsVisualizer {
 
   async visualizePush(array: Interpreter.Object) {
     const tl = this.animationControl.algoTimeline;
-
     const ref = this.elementManager.getOrCreateArrayWrapper(array);
+    let translateX, translateY;
 
-    // get last element! since the value is already added by the interpreter!
-    const group = ref.getByIndex(ref.length - 1);
-    const first = ref.getByIndex(0);
+    const elFirst = ref.getVisualElementByIndex(0); 
+    const elLast = ref.getVisualElementByIndex(ref.length - 1);
 
-    if (!group || !first) return;
+    if (!elFirst || !elLast) {
+      throw Error(`Ein unerwarteter Fehler ist aufgetreten. 
+      Die Elemente der Indizes [0, ${ref.length-1}] sollten definiert sein.`);
+    }
 
-    const newArray = ref.length == 1;
-
-    const xy = this.elementManager.findFreePositionIn2DGrid(first);
-
-    const translateY = newArray
-      ? this.drawUtils.yScale(xy.y)
-      : this.drawUtils.yScale(first.yIndex);
-
-    const translateX = newArray
-      ? this.drawUtils.xScale(xy.x)
-      : first.xPixel + this.drawUtils.xScale(ref.length - 1);
+    if(elFirst == elLast){     
+      const xy = this.elementManager.findFreePositionIn2DGrid(elFirst);
+      translateY = this.drawUtils.yScale(xy.y);
+      translateX = this.drawUtils.xScale(xy.x);
+    } else {
+      translateX = elFirst.xPixel + this.drawUtils.xScale(ref.length - 1);
+      translateY = elFirst.yPixel;
+    }
 
     tl.add({
-      targets: group.node,
+      targets: elLast.node,
       duration: 400,
       translateX,
-      translateY,
-    })
-      .add(
-        {
-          targets: group.rectNode,
-          duration: 200,
-          fill: this.colorMapping.push,
-        },
-        "-=200"
-      )
-      .add(
-        {
-          targets: group.node,
-          duration: 200,
-          opacity: 1,
-        },
-        "-=200"
-      );
+      translateY})
+    .add({
+      targets: elLast.rectNode,
+      duration: 200,
+      fill: this.colorMapping.push,
+      }, "-=400")
+    .add({
+      targets: elLast.node,
+      duration: 200,
+      opacity: 1,
+      },"-=200");
 
     await tl.continue();
   }
@@ -361,7 +356,7 @@ export default class ComparisonSortsVisualizer {
     const tl = this.animationControl.algoTimeline;
 
     const ref = this.elementManager.getOrCreateArrayWrapper(array);
-    const first = ref?.getByIndex(0);
+    const first = ref?.getVisualElementByIndex(0);
     if (!first) return;
 
     const translateX = first.xPixel;
@@ -391,12 +386,12 @@ export default class ComparisonSortsVisualizer {
   async visualizeSet(array: Interpreter.Object, i: number, value: number) {
     const tl = this.animationControl.algoTimeline;
     const ref = this.elementManager.getOrCreateArrayWrapper(array);
-    const first = ref.getByIndex(0);
+    const first = ref.getVisualElementByIndex(0);
 
     if (!first) return;
 
     // get visual objects
-    const group = ref.getByValue(value);
+    const group = ref.getVisualElementByValue(value);
 
     // if an element at pos i or j does not exist, the interpreter would have thrown error
     if (!group) return;
@@ -421,7 +416,7 @@ export default class ComparisonSortsVisualizer {
     const ref = this.elementManager.getOrCreateArrayWrapper(array);
 
     // get visual objects
-    const group = ref.getByIndex(i);
+    const group = ref.getVisualElementByIndex(i);
 
     // if an element at pos i or j does not exist, the interpreter would have thrown error
     if (!group) return;

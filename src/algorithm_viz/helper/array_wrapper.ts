@@ -3,7 +3,7 @@ import { genID } from "../../utils/helper_functions";
 import type { VisualElement } from "./visual_element";
 
 /**
- * Utilityclass to wrap the interpreter.object (array)
+ * Utility class to wrap the interpreter.object (array)
  * and gives some utility methods
  */
 export class ArrayWrapper {
@@ -28,7 +28,7 @@ export class ArrayWrapper {
   }
 
   // Access the rectangle svg nodes directly to only color them!!!
-  // do not tranlate them here
+  // do not translate them here
   get rectNodes() {
     return this.map((e) => e.rectNode);
   }
@@ -43,16 +43,16 @@ export class ArrayWrapper {
     return this.self.properties[index];
   }
 
-  getByValue(value: number) {
+  getVisualElementByValue(value: number) {
     return this.allElementRefs.get(value);
   }
 
-  getByIndex(index: number) {
+  getVisualElementByIndex(index: number) {
     const val = this.get(index);
-    return this.getByValue(val);
+    return this.getVisualElementByValue(val);
   }
 
-  forEachByIndex(cb: (element: number, index: number, self: this) => void) {
+  forEachByIndex(cb: (value: number, index: number, self: this) => void) {
     for (let i = 0; i < this.length; i++) {
       cb(this.get(i), i, this);
     }
@@ -60,7 +60,7 @@ export class ArrayWrapper {
 
   forEach(cb: (element: VisualElement, index: number, self: this) => void) {
     for (let i = 0; i < this.length; i++) {
-      const el = this.getByIndex(i);
+      const el = this.getVisualElementByIndex(i);
       if (el) {
         cb(el, i, this);
       } else {
@@ -72,7 +72,7 @@ export class ArrayWrapper {
   map<T>(cb: (element: VisualElement, index: number, array: T[]) => T): T[] {
     const result: T[] = [];
     for (let i = 0; i < this.length; i++) {
-      const el = this.getByIndex(i);
+      const el = this.getVisualElementByIndex(i);
 
       if (el) {
         result.push(cb(el, i, result));

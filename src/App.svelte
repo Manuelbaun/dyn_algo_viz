@@ -66,7 +66,7 @@
     );
 
     algorithm = new ComparisonSorts(animationController, data, drawUtils);
-    await algorithm.setup();
+    await algorithm.initialize();
 
     svgDraw.center();
 
