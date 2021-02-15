@@ -39,7 +39,7 @@ export class InterpreterWrapper {
     if ("start" === event) {
       this.interpreter.appendCode(this.appState.sourceCodeValue);
       this.mainExecutingLoop();
-    } else if ("pause" === event) {
+    } else if ("pause" === event || "reset" === event) {
       this.paused = true;
     } else if ("continue" === event) {
       this.paused = false;
@@ -171,7 +171,10 @@ export class InterpreterWrapper {
         if (props.length < Math.max(i, j)) {
           self.throwException(
             self.RANGE_ERROR,
-            `Accessed Index ${Math.max(i, j)} is out of bounce of used array with a length of ${props.length}`
+            `Accessed Index ${Math.max(
+              i,
+              j
+            )} is out of bounce of used array with a length of ${props.length}`
           );
         }
         // swap
