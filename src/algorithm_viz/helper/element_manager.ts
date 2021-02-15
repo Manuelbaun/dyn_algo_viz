@@ -25,16 +25,33 @@ export class ElementManager {
       .fill(0)
       .map((v, i) => Array<number>(els.length).fill(0));
 
-    els.forEach(({ xIndex: x, yIndex: y }) => (m[y][x] = 1));
+    const easyLineCounter: number[] = Array<number>(els.length).fill(0);
 
-    let y: number, x: number;
+    els.forEach(({ xIndex: x, yIndex: y }) => {
+      m[y][x] = 1;
+      easyLineCounter[y] += 1;
+    });
+
+    let y: number = 0,
+      x: number = 0;
 
     for (y = 0; y < m.length; y++) {
+      // check if line is to full > 50%
+      if (easyLineCounter[y] / m.length > 0.6) continue;
+
+      let spots = 0;
+
+      // check also one on the right..
       for (x = 0; x < m.length; x++) {
-        // check also one on the left..
-        if (m[y][x] == 0 && m[y][x + 1] == 0) {
-          return { x, y };
-        }
+        if (m[y][x] == 0) spots += 1;
+        else if (m[y][x] != 0) spots = 0;
+
+        if (spots >= 2) break;
+      }
+
+      console.log(spots, length, { x: x - (spots - 1), y });
+      if (spots >= 2) {
+        return { x: x - (spots - 1), y };
       }
     }
 

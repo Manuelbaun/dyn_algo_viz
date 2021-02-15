@@ -314,15 +314,17 @@ export default class ComparisonSortsVisualizer {
 
   async visualizePush(array: Interpreter.Object) {
     const tl = this.animationControl.algoTimeline;
-    const ref = this.elementManager.getOrCreateArrayWrapper(array);
+    const arrRef = this.elementManager.getOrCreateArrayWrapper(array);
     let translateX, translateY;
 
-    const elFirst = ref.getVisualElementByIndex(0);
-    const elLast = ref.getVisualElementByIndex(ref.length - 1);
+    const elFirst = arrRef.getVisualElementByIndex(0);
+    const elLast = arrRef.getVisualElementByIndex(arrRef.length - 1);
 
     if (!elFirst || !elLast) {
       throw Error(`Ein unerwarteter Fehler ist aufgetreten. 
-      Die Elemente der Indizes [0, ${ref.length - 1}] sollten definiert sein.`);
+      Die Elemente der Indizes [0, ${
+        arrRef.length - 1
+      }] sollten definiert sein.`);
     }
 
     if (elFirst == elLast) {
@@ -330,7 +332,7 @@ export default class ComparisonSortsVisualizer {
       translateY = this.drawUtils.yScale(xy.y);
       translateX = this.drawUtils.xScale(xy.x);
     } else {
-      translateX = elFirst.xPixel + this.drawUtils.xScale(ref.length - 1);
+      translateX = elFirst.xPixel + this.drawUtils.xScale(arrRef.length - 1);
       translateY = elFirst.yPixel;
     }
 
@@ -412,7 +414,7 @@ export default class ComparisonSortsVisualizer {
     }).add({
       targets: group.rootNode,
       translateX: first.xPixel + this.drawUtils.xScale(i),
-      translateY: 0,
+      translateY: first.yPixel,
       duration: 200,
     });
 

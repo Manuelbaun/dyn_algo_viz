@@ -61,7 +61,6 @@ export class InterpreterWrapper {
     this.paused = true;
 
     this.asyncCallStack.push(func());
-    console.log("Async Call", func);
 
     // must await all promises in that stack
     await Promise.all(this.asyncCallStack);
