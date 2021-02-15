@@ -49,7 +49,6 @@ export class ElementManager {
         if (spots >= 2) break;
       }
 
-      console.log(spots, length, { x: x - (spots - 1), y });
       if (spots >= 2) {
         return { x: x - (spots - 1), y };
       }
