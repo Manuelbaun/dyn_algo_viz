@@ -110,6 +110,7 @@ export class AppState {
    * and trigger all other components to reset
    */
   reset() {
+    console.log("Reset AppState");
     this.event.set("reset");
 
     // reset all things

@@ -84,6 +84,7 @@ export default class ComparisonSortsVisualizer {
   dispose() {
     // @ts-ignore
     this.elementManager = undefined;
+    console.log("Dispose ComparisonSort visu");
   }
 
   initializeDone: Promise<void> = Promise.resolve();

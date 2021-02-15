@@ -77,6 +77,7 @@ export default class AnimationController {
   private unsubscriber: Function[] = [];
   public dispose() {
     console.log("Dispose Animation Controller");
+
     this._initTimeline.pause();
     this._algoTimeline.pause();
     // unsubscribe

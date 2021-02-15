@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import ComparisonSorts from "./algorithm_viz/comparison_sort_visualizer";
   import AnimationController from "./animation/animation_controller";
 
@@ -31,11 +31,12 @@
   let count: number = 20;
 
   // wait, till children are mounted
-  onMount(() => initAlgoViz());
+  const unsub = event.subscribe((event) => {
+    if (event == "reset") reset();
+  });
 
-  // autosubscribe to the reset event
-  $: if ($event == "reset") reset();
-  $: if ($event == "init") initAlgoViz();
+  onMount(() => initAlgoViz());
+  onDestroy(() => unsub());
 
   /**
    * Reset function does two things:
@@ -43,7 +44,7 @@
    * 2. it reinits the algoviz
    */
   function reset() {
-    console.log("reset");
+    console.log("-------- reset");
     interpreter?.dispose();
     algorithm?.dispose();
     animationController?.dispose();
@@ -51,14 +52,13 @@
     interpreter = undefined;
     algorithm = undefined;
     animationController = undefined;
+
+    initAlgoViz();
   }
 
   // init the algoviz components
   async function initAlgoViz() {
-    // if svgDraw is undefined, ths initAlgoViz was called to early
-    // by the event== init
-    if (!svgDraw) return;
-
+    console.log("INIT AlgoViz", svgDraw);
     svgDraw?.clearAndInit();
 
     animationController = new AnimationController(appState);
