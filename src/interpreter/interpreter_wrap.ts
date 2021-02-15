@@ -3,7 +3,6 @@ import Interpreter from "./interpreter";
 import type { AppState } from "../service/app_state";
 import type { EVENTS } from "../service/store_types";
 import type ComparisonSortsVisualizer from "../algorithm_viz/comparison_sort_visualizer";
-import { stack } from "d3";
 
 export class InterpreterWrapper {
   private algorithm: ComparisonSortsVisualizer;
@@ -36,7 +35,7 @@ export class InterpreterWrapper {
     this.unsubscriber.push(appState.event.subscribe(this.handleEvents));
   }
 
-  private async handleEvents(event: EVENTS) {
+  private handleEvents(event: EVENTS) {
     if ("start" === event) {
       this.interpreter.appendCode(this.appState.sourceCodeValue);
       this.mainExecutingLoop();
@@ -51,26 +50,21 @@ export class InterpreterWrapper {
     }
   }
 
-  asyncCallCounter = 0;
   /**
    * A utility function to stop the interpreter running and await async functions, then continue
    * when the interpreter was in running state!
    * It is expected, that the func returns a promise, or Array of Promises
    */
+  allAsyncCalls: Promise<any>[] = [];
   private async asyncCall(func: () => Promise<any>) {
-    this.asyncCallCounter++;
-    console.log("async call: Counter", this.asyncCallCounter, func);
     const paused = this.paused;
     this.paused = true;
 
-    if (!func) {
-      console.log(func);
-      throw Error("Why is func undefined?");
-    }
+    this.allAsyncCalls.push(func());
 
-    await func();
+    // must await all promises in Case race condition
+    await Promise.all(this.allAsyncCalls);
     this.paused = paused;
-    console.log("async call:after");
 
     /**
      * If interpreter was in running mode, => continue to execute
@@ -80,8 +74,6 @@ export class InterpreterWrapper {
     if (this.appState.isRunning && paused === false) {
       this.mainExecutingLoop();
     }
-    this.asyncCallCounter--;
-    console.log("async call: Counter", this.asyncCallCounter);
   }
 
   /**
@@ -374,29 +366,18 @@ export class InterpreterWrapper {
    * This is the main execution loop, that steps through the tree.
    * It does basically the same, as the interpreter.run() method.
    */
-  private isCurrentlyExecuting = false;
-  mainExeLoopCounter = 0;
+
   private async mainExecutingLoop() {
-
-    this.mainExeLoopCounter++;
-    
-    // wait fill animation is finished!!!
-    await this.algorithm.awaitAnimation()
-
-    let executed = true;
-    console.log("MAIN LOOP:ENTER", this.mainExeLoopCounter);
-
-    if (this.isCurrentlyExecuting) {
-      throw Error("Race Condition!, this should not be allowed");
-    }
-
-    this.isCurrentlyExecuting = true;
+    /// VERY VERY Importent!!: here await to all asyncCalls used by this.asyncCall method
+    /// otherwise animation gets not finished before another animation starts.
+    /// this is due the async nature
+    await Promise.all(this.allAsyncCalls);
+    this.allAsyncCalls = [];
 
     var stackCounter = 0;
-
+    let executed = true;
     while (!this.paused && this.appState.isRunning && executed) {
       executed = this.executeInterpreterStep();
-      console.log("MAIN LOOP:LOOP");
       stackCounter++;
 
       if (stackCounter > 2000 || this.interpreter.stateStack.length > 100) {
@@ -414,10 +395,6 @@ export class InterpreterWrapper {
     if (state.done) {
       this.appState.setDone();
     }
-    this.isCurrentlyExecuting = false;
-    this.mainExeLoopCounter--;
-
-    console.log("MAIN LOOP:EXIT", this.mainExeLoopCounter);
   }
 
   /**
