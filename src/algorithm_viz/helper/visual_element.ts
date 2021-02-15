@@ -4,7 +4,7 @@ import type { DrawUtilities } from "./draw_utilities";
 export class VisualElement {
   // the root group, which contains the text and rectangle
   readonly value: number;
-  private root: G;
+  private rootEl: G;
   private rectEl: Rect;
   private textEl: Text;
   private draw: DrawUtilities;
@@ -13,7 +13,7 @@ export class VisualElement {
     this.draw = draw;
     // set initial transform of Y
     // create group element, to group rect and text together => less work
-    this.root = draw.drawRoot.group().attr({ opacity: 0.0 });
+    this.rootEl = draw.drawRoot.group().attr({ opacity: 0.0 });
     this.value = value;
 
     /// create rect in previous created group
@@ -21,20 +21,20 @@ export class VisualElement {
     /// since coordinate systems start from top left corner
     const height = this.draw.elementHeightScale(value);
 
-    this.rectEl = this.root
+    this.rectEl = this.rootEl
       .rect(this.draw.elementWidth, height)
       .attr({ fill: this.draw.colors.Silver })
       .dy(this.draw.bottomLine - height);
 
     /// create text in previous created group
-    this.textEl = this.root
+    this.textEl = this.rootEl
       .text(value.toString())
       .font({ size: 10 })
       .dy(this.draw.bottomLine);
   }
 
-  get node() {
-    return this.root.node;
+  get rootNode() {
+    return this.rootEl.node;
   }
 
   get rectNode() {
@@ -67,12 +67,12 @@ export class VisualElement {
   /**
    * Unfortunately, the SVGjs lib does not work 100% with the animation
    * of animejs. The Transform property of the svg elements from a group
-   * uses a matrix. Animejs uses the style.transfrom
+   * uses a matrix. Animejs uses the style.transform
    *
    * this is a workaround
    */
   private get transformMatrix() {
-    const matrix = new WebKitCSSMatrix(this.node.style.transform);
+    const matrix = new WebKitCSSMatrix(this.rootNode.style.transform);
     return { translateX: matrix.e, translateY: matrix.f };
   }
 }

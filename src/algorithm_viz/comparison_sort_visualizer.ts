@@ -97,7 +97,7 @@ export default class ComparisonSortsVisualizer {
       const correct = i ? 50 : 0;
       tl.add(
         {
-          targets: d.node,
+          targets: d.rootNode,
           duration: 50,
           translateX: this.drawUtils.xScale(i),
           opacity: 1,
@@ -139,13 +139,13 @@ export default class ComparisonSortsVisualizer {
 
     await tl
       .add({
-        targets: el1.node,
+        targets: el1.rootNode,
         translateX: el2.xPixel, // move {groupI} by i
         duration: 400,
       })
       .add(
         {
-          targets: el2.node,
+          targets: el2.rootNode,
           translateX: el1.xPixel, // move {groupJ} by j
           duration: 400,
         },
@@ -289,7 +289,7 @@ export default class ComparisonSortsVisualizer {
       fill: this.colorMapping.shift,
       duration: 200,
     }).add({
-      targets: elFirst.node,
+      targets: elFirst.rootNode,
       duration: 500,
       opacity: 0,
       translateX: translateX + this.drawUtils.xScale(-1),
@@ -299,7 +299,7 @@ export default class ComparisonSortsVisualizer {
       if (d != elFirst) {
         tl.add(
           {
-            targets: d.node,
+            targets: d.rootNode,
             duration: 400,
             translateX: translateX + this.drawUtils.xScale(i - 1),
           },
@@ -334,7 +334,7 @@ export default class ComparisonSortsVisualizer {
     }
 
     tl.add({
-      targets: elLast.node,
+      targets: elLast.rootNode,
       duration: 400,
       translateX,
       translateY,
@@ -349,7 +349,7 @@ export default class ComparisonSortsVisualizer {
       )
       .add(
         {
-          targets: elLast.node,
+          targets: elLast.rootNode,
           duration: 200,
           opacity: 1,
         },
@@ -378,7 +378,7 @@ export default class ComparisonSortsVisualizer {
     ref.forEachOverElements((e, i) => {
       tl.add(
         {
-          targets: e.node,
+          targets: e.rootNode,
           duration: 500,
           translateX: translateX + this.drawUtils.xScale(i),
           translateY,
@@ -409,7 +409,7 @@ export default class ComparisonSortsVisualizer {
       fill: this.colorMapping.set,
       duration: 100,
     }).add({
-      targets: group.node,
+      targets: group.rootNode,
       translateX: first.xPixel + this.drawUtils.xScale(i),
       translateY: first.yPixel,
       duration: 200,
@@ -434,7 +434,7 @@ export default class ComparisonSortsVisualizer {
       fill: this.colorMapping.get,
       duration: 100,
     }).add({
-      targets: group.node,
+      targets: group.rootNode,
       translateY: group.yPixel + this.drawUtils.yScale(1),
       duration: 200,
     });

@@ -21,20 +21,16 @@ export class ArrayWrapper {
     return this.self.properties.length;
   }
 
-  get properties() {
-    return this.self.properties;
-  }
-
   // Access the rectangle svg nodes directly to only color them!!!
   // do not translate them here
   get rectNodes() {
-    return this.map((e) => e.rectNode);
+    return this.mapOverElements((e) => e.rectNode);
   }
 
   // access the svg group node, to translate etc the group
   // setting color on the group element wont work
   get groupNodes() {
-    return this.map((e) => e.node);
+    return this.mapOverElements((e) => e.rootNode);
   }
 
   get(index: number) {
@@ -69,7 +65,7 @@ export class ArrayWrapper {
     }
   }
 
-  map<T>(cb: (element: VisualElement, index: number, array: T[]) => T): T[] {
+  mapOverElements<T>(cb: (element: VisualElement, index: number, self: T[]) => T): T[] {
     const result: T[] = [];
     for (let i = 0; i < this.length; i++) {
       const el = this.getVisualElementByIndex(i);
