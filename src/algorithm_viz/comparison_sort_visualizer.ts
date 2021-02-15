@@ -411,7 +411,7 @@ export default class ComparisonSortsVisualizer {
     }).add({
       targets: group.rootNode,
       translateX: first.xPixel + this.drawUtils.xScale(i),
-      translateY: first.yPixel,
+      translateY: 0,
       duration: 200,
     });
 
@@ -420,22 +420,26 @@ export default class ComparisonSortsVisualizer {
 
   async visualizeGet(array: Interpreter.Object, i: number) {
     const tl = this.animationControl.algoTimeline;
-    const ref = this.elementManager.getOrCreateArrayWrapper(array);
+    const arrRef = this.elementManager.getOrCreateArrayWrapper(array);
 
     // get visual objects
-    const group = ref.getVisualElementByIndex(i);
+    const el = arrRef.getVisualElementByIndex(i);
 
     // if an element at pos i or j does not exist, the interpreter would have thrown error
-    if (!group) return;
+    if (!el) return;
 
+    const xy = this.elementManager.findFreePositionIn2DGrid(el);
+    const translateY = this.drawUtils.yScale(xy.y);
+    const translateX = this.drawUtils.xScale(xy.x);
     // Highligh rects
     tl.add({
-      targets: group.rectNode,
+      targets: el.rectNode,
       fill: this.colorMapping.get,
       duration: 100,
     }).add({
-      targets: group.rootNode,
-      translateY: group.yPixel + this.drawUtils.yScale(1),
+      targets: el.rootNode,
+      translateY: translateY, //0 + this.drawUtils.yScale(1),
+      translateX,
       duration: 200,
     });
 
@@ -444,7 +448,7 @@ export default class ComparisonSortsVisualizer {
     // when this animation is changed with the following one => leave as is
 
     tl.add({
-      targets: group.rectNode,
+      targets: el.rectNode,
       fill: this.colorMapping.default,
       duration: 100,
     });

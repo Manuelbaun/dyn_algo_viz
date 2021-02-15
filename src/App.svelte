@@ -12,7 +12,6 @@
   import { AppState } from "./service/app_state";
   import { generateData } from "./utils/helper_functions";
   import { DrawUtilities } from "./algorithm_viz/helper/draw_utilities";
-  import { draw } from "svelte/transition";
 
   // get the reference of the svgDraw, to get the needed references!
   let svgDraw: VisualArea;
@@ -24,9 +23,9 @@
   const width = 600;
   const height = 400;
 
-  let animationController: AnimationController;
-  let algorithm: ComparisonSorts;
-  let interpreter: InterpreterWrapper;
+  let animationController: AnimationController | undefined;
+  let algorithm: ComparisonSorts | undefined;
+  let interpreter: InterpreterWrapper | undefined;
 
   // could be set by the appState? and use a slider?
   let count: number = 20;
@@ -36,6 +35,7 @@
 
   // autosubscribe to the reset event
   $: if ($event == "reset") reset();
+  $: if ($event == "init") initAlgoViz();
 
   /**
    * Reset function does two things:
@@ -43,17 +43,24 @@
    * 2. it reinits the algoviz
    */
   function reset() {
-    svgDraw?.clearAndInit();
+    console.log("reset");
     interpreter?.dispose();
     algorithm?.dispose();
     animationController?.dispose();
 
-    // re init
-    initAlgoViz();
+    interpreter = undefined;
+    algorithm = undefined;
+    animationController = undefined;
   }
 
   // init the algoviz components
   async function initAlgoViz() {
+    // if svgDraw is undefined, ths initAlgoViz was called to early
+    // by the event== init
+    if (!svgDraw) return;
+
+    svgDraw?.clearAndInit();
+
     animationController = new AnimationController(appState);
 
     const data = Array.from(new Set(generateData(count).map((e) => e + 1)));

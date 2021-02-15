@@ -29,8 +29,8 @@ export class ElementManager {
 
     let y: number, x: number;
 
-    for (x = 0; x < m.length; x++) {
-      for (y = 0; y < m.length; y++) {
+    for (y = 0; y < m.length; y++) {
+      for (x = 0; x < m.length; x++) {
         // check also one on the left..
         if (m[y][x] == 0 && m[y][x + 1] == 0) {
           return { x, y };

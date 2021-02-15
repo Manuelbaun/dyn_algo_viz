@@ -3,6 +3,7 @@ import Interpreter from "./interpreter";
 import type { AppState } from "../service/app_state";
 import type { EVENTS } from "../service/store_types";
 import type ComparisonSortsVisualizer from "../algorithm_viz/comparison_sort_visualizer";
+import { stack } from "d3";
 
 export class InterpreterWrapper {
   private algorithm: ComparisonSortsVisualizer;
@@ -35,7 +36,7 @@ export class InterpreterWrapper {
     this.unsubscriber.push(appState.event.subscribe(this.handleEvents));
   }
 
-  private handleEvents(event: EVENTS) {
+  private async handleEvents(event: EVENTS) {
     if ("start" === event) {
       this.interpreter.appendCode(this.appState.sourceCodeValue);
       this.mainExecutingLoop();
@@ -50,16 +51,26 @@ export class InterpreterWrapper {
     }
   }
 
+  asyncCallCounter = 0;
   /**
    * A utility function to stop the interpreter running and await async functions, then continue
    * when the interpreter was in running state!
    * It is expected, that the func returns a promise, or Array of Promises
    */
   private async asyncCall(func: () => Promise<any>) {
+    this.asyncCallCounter++;
+    console.log("async call: Counter", this.asyncCallCounter, func);
     const paused = this.paused;
     this.paused = true;
+
+    if (!func) {
+      console.log(func);
+      throw Error("Why is func undefined?");
+    }
+
     await func();
     this.paused = paused;
+    console.log("async call:after");
 
     /**
      * If interpreter was in running mode, => continue to execute
@@ -69,6 +80,8 @@ export class InterpreterWrapper {
     if (this.appState.isRunning && paused === false) {
       this.mainExecutingLoop();
     }
+    this.asyncCallCounter--;
+    console.log("async call: Counter", this.asyncCallCounter);
   }
 
   /**
@@ -347,12 +360,11 @@ export class InterpreterWrapper {
     }
   }
 
-  private async executeInterpreterStep() {
+  private executeInterpreterStep() {
     const executed = this.interpreter.step();
     const state = this.interpreter.stateStack.getTop();
     this.handleBreakPoints(state);
-    await this.analyseCurrentStateExpression(state);
-
+    this.analyseCurrentStateExpression(state);
     /** Add step handlers as needed **/
 
     return executed;
@@ -362,11 +374,39 @@ export class InterpreterWrapper {
    * This is the main execution loop, that steps through the tree.
    * It does basically the same, as the interpreter.run() method.
    */
+  private isCurrentlyExecuting = false;
+  mainExeLoopCounter = 0;
   private async mainExecutingLoop() {
+
+    this.mainExeLoopCounter++;
+    
+    // wait fill animation is finished!!!
+    await this.algorithm.awaitAnimation()
+
     let executed = true;
+    console.log("MAIN LOOP:ENTER", this.mainExeLoopCounter);
+
+    if (this.isCurrentlyExecuting) {
+      throw Error("Race Condition!, this should not be allowed");
+    }
+
+    this.isCurrentlyExecuting = true;
+
+    var stackCounter = 0;
 
     while (!this.paused && this.appState.isRunning && executed) {
-      executed = await this.executeInterpreterStep();
+      executed = this.executeInterpreterStep();
+      console.log("MAIN LOOP:LOOP");
+      stackCounter++;
+
+      if (stackCounter > 2000 || this.interpreter.stateStack.length > 100) {
+        throw Error(
+          "Maximum Loop iteration exceeded!: Counter :" +
+            stackCounter +
+            " stackLength: " +
+            this.interpreter.stateStack.length
+        );
+      }
     }
 
     /** Check if the interpreter is done with executing the user code */
@@ -374,6 +414,10 @@ export class InterpreterWrapper {
     if (state.done) {
       this.appState.setDone();
     }
+    this.isCurrentlyExecuting = false;
+    this.mainExeLoopCounter--;
+
+    console.log("MAIN LOOP:EXIT", this.mainExeLoopCounter);
   }
 
   /**
@@ -388,7 +432,7 @@ export class InterpreterWrapper {
   /**
    * Analyses the current top expression of the stack
    */
-  private async analyseCurrentStateExpression(currentState: any) {
+  private analyseCurrentStateExpression(currentState: any) {
     if (SemantikAnalysis.isCompareExpression(currentState)) {
       const scopeObjectProp = currentState.scope.object.properties;
       const left = currentState.node.left;
@@ -406,13 +450,15 @@ export class InterpreterWrapper {
 
         this.highlightAndSetLocalScope(this.algorithm.colors.signal, true);
 
-        /// highlight current value of array
-        this.algorithm.visualizeHighlight(leftObj, leftValue);
-        this.algorithm.visualizeHighlight(rightObj, rightValue, "-=300");
-        await this.algorithm.awaitAnimation();
-        this.algorithm.visualizeUnHighlight(leftObj, leftValue);
-        this.algorithm.visualizeUnHighlight(rightObj, rightValue, "-=300");
-        await this.algorithm.awaitAnimation();
+        this.asyncCall(async () => {
+          /// highlight current value of array
+          this.algorithm.visualizeHighlight(leftObj, leftValue);
+          this.algorithm.visualizeHighlight(rightObj, rightValue, "-=300");
+          await this.algorithm.awaitAnimation();
+          this.algorithm.visualizeUnHighlight(leftObj, leftValue);
+          this.algorithm.visualizeUnHighlight(rightObj, rightValue, "-=300");
+          await this.algorithm.awaitAnimation();
+        });
       }
     }
   }

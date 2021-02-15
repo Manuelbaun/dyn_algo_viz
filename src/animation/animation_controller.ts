@@ -13,20 +13,28 @@ import anime from "./animejs/anime";
  *
  */
 export default class AnimationController {
-  public initTimeline = anime.timeline({
+  private _initTimeline = anime.timeline({
     easing: "easeInOutQuad",
     duration: 200,
     autoplay: false,
     shouldReset: false,
   });
 
-  public algoTimeline = anime.timeline({
+  get initTimeline() {
+    return this._initTimeline;
+  }
+
+  private _algoTimeline = anime.timeline({
     easing: "easeInOutQuad",
     duration: 200,
     autoplay: false,
     shouldReset: false,
     useDeltaTime: true,
   });
+
+  get algoTimeline() {
+    return this._algoTimeline;
+  }
 
   constructor(appState: AppState) {
     // update appstate with progress, current time and duration
@@ -68,12 +76,16 @@ export default class AnimationController {
    */
   private unsubscriber: Function[] = [];
   public dispose() {
+    console.log("Dispose Animation Controller");
+    this._initTimeline.pause();
+    this._algoTimeline.pause();
+    // unsubscribe
     this.unsubscriber.forEach((unsub) => unsub());
     /// so help the garbage collector
     // @ts-ignore
-    this.initTimeline = undefined;
+    this._initTimeline = undefined;
     // @ts-ignore
-    this.algoTimeline = undefined;
+    this._algoTimeline = undefined;
   }
 
   /** (0.1-10) */

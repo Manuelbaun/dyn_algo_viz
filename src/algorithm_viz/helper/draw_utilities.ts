@@ -75,7 +75,9 @@ export class DrawUtilities {
     this.elementWidth = (width - 100) / data.length - 2.5;
 
     this.xScale = scaleLinear().domain([0, data.length]).range([0, width]);
-    this.yScale = scaleLinear().domain([0, 1]).range([0, height / 2]);
+    this.yScale = scaleLinear()
+      .domain([0, 1])
+      .range([0, height / 2]);
 
     // WORK-Around: created step for inversion function!
     // somehow the d3 inverse does not work on y-axis

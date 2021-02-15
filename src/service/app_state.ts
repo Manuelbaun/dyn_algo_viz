@@ -38,6 +38,7 @@ export class AppState {
     this.autoscroll.subscribe((data) => setItem("autoscroll", data));
     this.sourceCode.subscribe((data) => setItem("sourceCode", data));
     this.animationSpeed.subscribe((data) => setItem("speed", data));
+    this.event.subscribe((data) => console.log(data));
 
     /// Listen to time Series change!
     this.currentTime.subscribe((ts) => {
@@ -109,16 +110,23 @@ export class AppState {
    * and trigger all other components to reset
    */
   reset() {
+    this.event.set("reset");
+
+    // reset all things
     this.currentTime.set(0);
     this.progress.set(0);
-    this.localScope.set({});
     this.duration.set(0);
 
-    // overrides the timeseries for markednodes and localScope
+    this.localScope.set({});
+    this.errors.set({});
+    this.markedNode.set({ node: undefined, color: "" });
+
+    // overrides the timeseries for marked nodes and localScope
     this.markedNodeSeries = new TimeSeries<MarkedNode>();
     this.localScopeSeries = new TimeSeries<object>();
 
-    this.event.set("reset");
+    // set event to init
+    this.event.set("init");
   }
 
   step() {
