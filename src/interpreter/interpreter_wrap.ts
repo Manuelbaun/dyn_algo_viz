@@ -445,6 +445,16 @@ class SemantikAnalysis {
     );
   }
 
+  static getVarName(node: any): string {
+    if (node.type == "MemberExpression") {
+      return node.object?.name;
+    } else if (node.type == "CallExpression") {
+      return this.getVarName(node.callee);
+    }
+
+    return "";
+  }
+
   static scanAndExtractArrays(state: any) {
     const scopeObjectProp = state.scope.object.properties;
     const left = state.node.left;
@@ -453,19 +463,22 @@ class SemantikAnalysis {
     const leftValue = state.leftValue_;
     const rightValue = state.value;
 
-    const leftObjName = left.object?.name;
-    const rightObjName = right.object?.name;
+    let leftObjName = this.getVarName(left);
+    let rightObjName = this.getVarName(right);
 
-    // if non of both are an array => no way to find out,
-    // if a visual element is compared
-    if (!leftObjName && !leftObjName) return;
 
     const leftSide = scopeObjectProp[leftObjName];
     const rightSide = scopeObjectProp[rightObjName];
 
     const isArray = leftSide?.class == "Array" || rightSide?.class == "Array";
+
     // if both are defined and non of thm is an array
     if (!isArray) return undefined;
+
+    // filter out misunderstood
+
+    if (leftSide?.class == "Array" && left.property?.name == "length") return;
+    if (rightSide?.class == "Array" && right.property?.name == "length") return;
 
     return {
       leftValue,
