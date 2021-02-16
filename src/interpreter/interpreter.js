@@ -319,7 +319,7 @@ Interpreter.prototype.appendCode = function (code) {
 Interpreter.prototype.step = function () {
   var stack = this.stateStack;
   do {
-    var state = stack.getTop();
+    var state = stack.peek();
 
     if (!state) {
       return false;
@@ -617,7 +617,7 @@ Interpreter.prototype.initFunction = function (globalObject) {
   };
 
   wrapper = function (thisArg, args) {
-    var state = thisInterpreter.stateStack.getTop();
+    var state = thisInterpreter.stateStack.peek();
     // Rewrite the current CallExpression state to apply a different function.
     state.func_ = this;
     // Assign the `this` object.
@@ -639,7 +639,7 @@ Interpreter.prototype.initFunction = function (globalObject) {
   this.setNativeFunctionPrototype(this.FUNCTION, "apply", wrapper);
 
   wrapper = function (thisArg /*, var_args */) {
-    var state = thisInterpreter.stateStack.getTop();
+    var state = thisInterpreter.stateStack.peek();
     // Rewrite the current CallExpression state to call a different function.
     state.func_ = this;
     // Assign the `this` object.
@@ -2981,7 +2981,7 @@ Interpreter.prototype.setAsyncFunctionPrototype = function (
  * @return {!Interpreter.Scope} Current scope.
  */
 Interpreter.prototype.getScope = function () {
-  var scope = this.stateStack.getTop().scope;
+  var scope = this.stateStack.peek().scope;
   if (!scope) {
     throw Error("No scope found.");
   }
@@ -3058,7 +3058,7 @@ Interpreter.prototype.getValueFromScope = function (name) {
     return this.getProperty(scope.object, name);
   }
   // Typeof operator is unique: it can safely look at non-defined variables.
-  var prevNode = this.stateStack.getTop().node;
+  var prevNode = this.stateStack.peek().node;
   if (
     prevNode["type"] === "UnaryExpression" &&
     prevNode["operator"] === "typeof"
@@ -3150,7 +3150,7 @@ Interpreter.prototype.populateScope_ = function (node, scope) {
  * @return {boolean} True if 'new foo()', false if 'foo()'.
  */
 Interpreter.prototype.calledWithNew = function () {
-  return this.stateStack.getTop().isConstructor;
+  return this.stateStack.peek().isConstructor;
 };
 
 /**
@@ -3228,7 +3228,7 @@ Interpreter.prototype.unwind = function (type, value, label) {
   }
 
   loop: for (var stack = this.stateStack; stack.getLength() > 0; stack.pop()) {
-    var state = stack.getTop();
+    var state = stack.peek();
     switch (state.node["type"]) {
       case "TryStatement":
         state.cv = { type: type, value: value, label: label };
@@ -3309,7 +3309,7 @@ Interpreter.prototype.createGetter_ = function (func, left) {
   var funcThis = Array.isArray(left) ? left[0] : left;
   var node = new this.nodeConstructor({ options: {} });
   node["type"] = "CallExpression";
-  var state = new Interpreter.State(node, this.stateStack.getTop().scope);
+  var state = new Interpreter.State(node, this.stateStack.peek().scope);
   state.doneCallee_ = true;
   state.funcThis_ = funcThis;
   state.func_ = func;
@@ -3337,7 +3337,7 @@ Interpreter.prototype.createSetter_ = function (func, left, value) {
   var funcThis = Array.isArray(left) ? left[0] : this.globalObject;
   var node = new this.nodeConstructor({ options: {} });
   node["type"] = "CallExpression";
-  var state = new Interpreter.State(node, this.stateStack.getTop().scope);
+  var state = new Interpreter.State(node, this.stateStack.peek().scope);
   state.doneCallee_ = true;
   state.funcThis_ = funcThis;
   state.func_ = func;
@@ -4686,7 +4686,7 @@ class Stack {
     return state;
   }
 
-  getTop() {
+  peek() {
     return this.elements[this.elements.length - 1];
   }
 

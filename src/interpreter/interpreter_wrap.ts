@@ -82,7 +82,7 @@ export class InterpreterWrapper {
    * @param {string} color
    */
   private highlightAndSetLocalScope(color: string, shouldTrack = true) {
-    const state = this.interpreter.stateStack.getTop();
+    const state = this.interpreter.stateStack.peek();
     this.appState.setMarkedNode(state.node, color, shouldTrack);
     this.appState.setLocalScope(this.getLocalScope(state.scope), shouldTrack);
   }
@@ -122,7 +122,7 @@ export class InterpreterWrapper {
       globalObject,
       "print",
       self.createNativeFunction(function (...args: any[]) {
-        const node = self.stateStack.getTop().node;
+        const node = self.stateStack.peek().node;
         const printLine = "print:" + node.loc.start.line;
         try {
           if (args instanceof Array) {
@@ -354,7 +354,7 @@ export class InterpreterWrapper {
 
   private executeInterpreterStep() {
     const executed = this.interpreter.step();
-    const state = this.interpreter.stateStack.getTop();
+    const state = this.interpreter.stateStack.peek();
     this.handleBreakPoints(state);
     this.analyseCurrentStateExpression(state);
     /** Add step handlers as needed **/
@@ -391,7 +391,7 @@ export class InterpreterWrapper {
     }
 
     /** Check if the interpreter is done with executing the user code */
-    const state = this.interpreter.stateStack.getTop();
+    const state = this.interpreter.stateStack.peek();
     if (state.done) {
       this.appState.setDone();
     }
