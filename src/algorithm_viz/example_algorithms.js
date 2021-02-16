@@ -31,7 +31,10 @@ function merge(left, right) {
   }
   return arr.concat(left).concat(right);
 }
-
+/**
+ * 
+ * @param {Array} root 
+ */
 function mergeSort(root) {
   var half = root.length / 2;
   if (root.length < 2) return root;

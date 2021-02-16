@@ -3490,7 +3490,12 @@ Interpreter.Object.prototype.valueOf = function () {
 ///////////////////////////////////////////////////////////////////////////////
 // Functions to handle each node type.
 ///////////////////////////////////////////////////////////////////////////////
-
+/**
+ * 
+ * @param {Stack} stack 
+ * @param {*} state 
+ * @param {*} node 
+ */
 Interpreter.prototype["stepArrayExpression"] = function (stack, state, node) {
   var elements = node["elements"];
   var n = state.n_ || 0;
@@ -3510,7 +3515,7 @@ Interpreter.prototype["stepArrayExpression"] = function (stack, state, node) {
     n++;
   }
   stack.pop();
-  stack.getTop().value = state.array_;
+  stack.peek().value = state.array_;
 };
 
 Interpreter.prototype["stepAssignmentExpression"] = function (
@@ -3549,7 +3554,7 @@ Interpreter.prototype["stepAssignmentExpression"] = function (
     // Setter method on property has completed.
     // Ignore its return value, and use the original set value instead.
     stack.pop();
-    stack.getTop().value = state.setterValue_;
+    stack.peek().value = state.setterValue_;
     return;
   }
   var value = state.leftValue_;
@@ -3602,7 +3607,7 @@ Interpreter.prototype["stepAssignmentExpression"] = function (
   }
   // Return if no setter function.
   stack.pop();
-  stack.getTop().value = value;
+  stack.peek().value = value;
 };
 
 Interpreter.prototype["stepBinaryExpression"] = function (stack, state, node) {
@@ -3702,7 +3707,7 @@ Interpreter.prototype["stepBinaryExpression"] = function (stack, state, node) {
       throw SyntaxError("Unknown binary operator: " + node["operator"]);
   }
 
-  stack.getTop().value = value;
+  stack.peek().value = value;
 };
 
 Interpreter.prototype["stepBlockStatement"] = function (stack, state, node) {
@@ -3886,11 +3891,11 @@ Interpreter.prototype["stepCallExpression"] = function (stack, state, node) {
     stack.pop();
     if (state.isConstructor && typeof state.value !== "object") {
       // Normal case for a constructor is to use the `this` value.
-      stack.getTop().value = state.funcThis_;
+      stack.peek().value = state.funcThis_;
     } else {
       // Non-constructors or constructions explicitly returning objects use
       // the return value.
-      stack.getTop().value = state.value;
+      stack.peek().value = state.value;
     }
   }
 };
@@ -3934,7 +3939,7 @@ Interpreter.prototype["stepConditionalExpression"] = function (
   }
   stack.pop();
   if (node["type"] === "ConditionalExpression") {
-    stack.getTop().value = state.value;
+    stack.peek().value = state.value;
   }
 };
 
@@ -3981,7 +3986,7 @@ Interpreter.prototype["stepEvalProgram_"] = function (stack, state, node) {
     return new Interpreter.State(expression, state.scope);
   }
   stack.pop();
-  stack.getTop().value = this.value;
+  stack.peek().value = this.value;
 };
 
 Interpreter.prototype["stepExpressionStatement"] = function (
@@ -4175,19 +4180,30 @@ Interpreter.prototype["stepFunctionDeclaration"] = function (
   stack.pop();
 };
 
+/**
+ * 
+ * @param {Stack} stack 
+ * @param {*} state 
+ * @param {*} node 
+ */
 Interpreter.prototype["stepFunctionExpression"] = function (
   stack,
   state,
   node
 ) {
   stack.pop();
-  stack.getTop().value = this.createFunction(node, state.scope);
+  stack.peek().value = this.createFunction(node, state.scope);
 };
 
+/**
+ * @param {Stack} stack 
+ * @param {*} state 
+ * @param {*} node 
+ */
 Interpreter.prototype["stepIdentifier"] = function (stack, state, node) {
   stack.pop();
   if (state.components) {
-    stack.getTop().value = [Interpreter.SCOPE_REFERENCE, node["name"]];
+    stack.peek().value = [Interpreter.SCOPE_REFERENCE, node["name"]];
     return;
   }
   var value = this.getValueFromScope(node["name"]);
@@ -4201,7 +4217,7 @@ Interpreter.prototype["stepIdentifier"] = function (stack, state, node) {
     var func = /** @type {!Interpreter.Object} */ (value);
     return this.createGetter_(func, this.globalObject);
   }
-  stack.getTop().value = value;
+  stack.peek().value = value;
 };
 
 Interpreter.prototype["stepIfStatement"] =
@@ -4226,7 +4242,7 @@ Interpreter.prototype["stepLiteral"] = function (stack, state, node) {
     this.populateRegExp(pseudoRegexp, value);
     value = pseudoRegexp;
   }
-  stack.getTop().value = value;
+  stack.peek().value = value;
 };
 
 Interpreter.prototype["stepLogicalExpression"] = function (stack, state, node) {
@@ -4244,14 +4260,14 @@ Interpreter.prototype["stepLogicalExpression"] = function (stack, state, node) {
     ) {
       // Shortcut evaluation.
       stack.pop();
-      stack.getTop().value = state.value;
+      stack.peek().value = state.value;
     } else {
       state.doneRight_ = true;
       return new Interpreter.State(node["right"], state.scope);
     }
   } else {
     stack.pop();
-    stack.getTop().value = state.value;
+    stack.peek().value = state.value;
   }
 };
 
@@ -4275,7 +4291,7 @@ Interpreter.prototype["stepMemberExpression"] = function (stack, state, node) {
   }
   stack.pop();
   if (state.components) {
-    stack.getTop().value = [state.object_, propName];
+    stack.peek().value = [state.object_, propName];
   } else {
     var value = this.getProperty(state.object_, propName);
     if (this.getterStep_) {
@@ -4283,7 +4299,7 @@ Interpreter.prototype["stepMemberExpression"] = function (stack, state, node) {
       var func = /** @type {!Interpreter.Object} */ (value);
       return this.createGetter_(func, state.object_);
     }
-    stack.getTop().value = value;
+    stack.peek().value = value;
   }
 };
 
@@ -4341,7 +4357,7 @@ Interpreter.prototype["stepObjectExpression"] = function (stack, state, node) {
     }
   }
   stack.pop();
-  stack.getTop().value = state.object_;
+  stack.peek().value = state.object_;
 };
 
 Interpreter.prototype["stepProgram"] = function (stack, state, node) {
@@ -4376,7 +4392,7 @@ Interpreter.prototype["stepSequenceExpression"] = function (
     return new Interpreter.State(expression, state.scope);
   }
   stack.pop();
-  stack.getTop().value = state.value;
+  stack.peek().value = state.value;
 };
 
 Interpreter.prototype["stepSwitchStatement"] = function (stack, state, node) {
@@ -4437,7 +4453,7 @@ Interpreter.prototype["stepSwitchStatement"] = function (stack, state, node) {
 
 Interpreter.prototype["stepThisExpression"] = function (stack, state, node) {
   stack.pop();
-  stack.getTop().value = this.getValueFromScope("this");
+  stack.peek().value = this.getValueFromScope("this");
 };
 
 Interpreter.prototype["stepThrowStatement"] = function (stack, state, node) {
@@ -4527,7 +4543,7 @@ Interpreter.prototype["stepUnaryExpression"] = function (stack, state, node) {
   } else {
     throw SyntaxError("Unknown unary operator: " + node["operator"]);
   }
-  stack.getTop().value = value;
+  stack.peek().value = value;
 };
 
 Interpreter.prototype["stepUpdateExpression"] = function (stack, state, node) {
@@ -4558,7 +4574,7 @@ Interpreter.prototype["stepUpdateExpression"] = function (stack, state, node) {
     // Setter method on property has completed.
     // Ignore its return value, and use the original set value instead.
     stack.pop();
-    stack.getTop().value = state.setterValue_;
+    stack.peek().value = state.setterValue_;
     return;
   }
   var leftValue = Number(state.leftValue_);
@@ -4579,7 +4595,7 @@ Interpreter.prototype["stepUpdateExpression"] = function (stack, state, node) {
   }
   // Return if no setter function.
   stack.pop();
-  stack.getTop().value = returnValue;
+  stack.peek().value = returnValue;
 };
 
 Interpreter.prototype["stepVariableDeclaration"] = function (

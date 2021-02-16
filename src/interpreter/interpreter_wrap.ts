@@ -365,31 +365,30 @@ export class InterpreterWrapper {
   /**
    * This is the main execution loop, that steps through the tree.
    * It does basically the same, as the interpreter.run() method.
+   * 
+   * VERY VERY Importent!!: here await to all asyncCalls used by this.asyncCall method
+   * otherwise animation gets not finished before another animation starts.
+   * this is due the async nature
+   if (stackCounter > 2000 || this.interpreter.stateStack.length > 100) {
+     throw Error(
+       "Maximum Loop iteration exceeded!: Counter :" +
+         stackCounter +
+         " stackLength: " +
+         this.interpreter.stateStack.length
+     );
+     var stackCounter = 0;
+     stackCounter++;
+   }
    */
 
   private async mainExecutingLoop() {
-    /// VERY VERY Importent!!: here await to all asyncCalls used by this.asyncCall method
-    /// otherwise animation gets not finished before another animation starts.
-    /// this is due the async nature
     await Promise.all(this.asyncCallAnimationStack);
     this.asyncCallAnimationStack = [];
 
-    var stackCounter = 0;
     let executed = true;
     while (!this.paused && this.appState.isRunning && executed) {
       executed = this.executeInterpreterStep();
-      stackCounter++;
-
-      if (stackCounter > 2000 || this.interpreter.stateStack.length > 100) {
-        throw Error(
-          "Maximum Loop iteration exceeded!: Counter :" +
-            stackCounter +
-            " stackLength: " +
-            this.interpreter.stateStack.length
-        );
-      }
     }
-
     /** Check if the interpreter is done with executing the user code */
     const state = this.interpreter.stateStack.peek();
     if (state.done) {
@@ -410,23 +409,23 @@ export class InterpreterWrapper {
   /**
    * Analyses the current top expression of the stack
    */
-  private analyseCurrentStateExpression(currentState: any) {
-    if (SemantikAnalysis.isCompareExpression(currentState)) {
-      SemantikAnalysis.areBothArray(
-        currentState,
-        ({ leftSide, rightSide, leftValue, rightValue }) => {
-          this.highlightAndSetLocalScope(this.algorithm.colors.signal, true);
-          this.asyncCall(async () => {
-            /// highlight current value of array
-            this.algorithm.visualizeHighlight(leftSide, leftValue);
-            this.algorithm.visualizeHighlight(rightSide, rightValue, "-=300");
-            await this.algorithm.awaitAnimation();
-            this.algorithm.visualizeUnHighlight(leftSide, leftValue);
-            this.algorithm.visualizeUnHighlight(rightSide, rightValue, "-=300");
-            await this.algorithm.awaitAnimation();
-          });
-        }
-      );
+  private analyseCurrentStateExpression(state: any) {
+    if (SemantikAnalysis.isCompareExpression(state)) {
+      const res = SemantikAnalysis.scanAndExtractArrays(state);
+      if (res) {
+        const { leftSide, rightSide, leftValue, rightValue } = res;
+
+        this.highlightAndSetLocalScope(this.algorithm.colors.signal, true);
+        this.asyncCall(async () => {
+          /// highlight current value of array
+          this.algorithm.visualizeHighlight(leftSide, leftValue);
+          this.algorithm.visualizeHighlight(rightSide, rightValue, "-=300");
+          await this.algorithm.awaitAnimation();
+          this.algorithm.visualizeUnHighlight(leftSide, leftValue);
+          this.algorithm.visualizeUnHighlight(rightSide, rightValue, "-=300");
+          await this.algorithm.awaitAnimation();
+        });
+      }
     }
   }
 }
@@ -434,33 +433,25 @@ export class InterpreterWrapper {
 class SemantikAnalysis {
   static compareOperators = ["<", "<=", ">", ">=", "==", "===", "!=", "!=="];
 
-  static isCompareExpression(expression: any) {
-    console.log(expression);
+  static isCompareExpression(state: any): boolean {
+    console.log(state.doneLeft_, state.doneRight_);
     return (
-      expression.node.type === "BinaryExpression" &&
-      this.compareOperators.includes(expression.node.operator) &&
-      // check if left evaluation is finshed
-      expression.doneLeft_ &&
-      // check if right evaluation is finshed
-      expression.doneRight_
+      state.node.type === "BinaryExpression" &&
+      this.compareOperators.includes(state.node.operator) &&
+      // check if left evaluation is finished
+      state.doneLeft_ &&
+      // check if right evaluation is finished
+      state.doneRight_
     );
   }
 
-  static areBothArray(
-    currentState: any,
-    onSuccess: (data: {
-      leftSide: Interpreter.Object;
-      leftValue: any;
-      rightSide: Interpreter.Object;
-      rightValue: any;
-    }) => void
-  ) {
-    const scopeObjectProp = currentState.scope.object.properties;
-    const left = currentState.node.left;
-    const right = currentState.node.left;
+  static scanAndExtractArrays(state: any) {
+    const scopeObjectProp = state.scope.object.properties;
+    const left = state.node.left;
+    const right = state.node.left;
 
-    const leftValue = currentState.leftValue_;
-    const rightValue = currentState.value;
+    const leftValue = state.leftValue_;
+    const rightValue = state.value;
 
     if (left.object && right.object) {
       const leftObjName = left.object?.name;
@@ -470,13 +461,14 @@ class SemantikAnalysis {
       const rightSide = scopeObjectProp[rightObjName];
 
       if (leftSide.class == rightSide.class && leftSide.class == "Array") {
-        onSuccess({
+        return {
           leftSide,
           rightSide,
           leftValue,
           rightValue,
-        });
+        };
       }
+      return undefined;
     }
   }
 }
