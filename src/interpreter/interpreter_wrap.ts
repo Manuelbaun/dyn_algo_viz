@@ -412,32 +412,21 @@ export class InterpreterWrapper {
    */
   private analyseCurrentStateExpression(currentState: any) {
     if (SemantikAnalysis.isCompareExpression(currentState)) {
-      const scopeObjectProp = currentState.scope.object.properties;
-      const left = currentState.node.left;
-      const right = currentState.node.left;
-
-      const leftValue = currentState.leftValue_;
-      const rightValue = currentState.value;
-
-      if (left.object && right.object) {
-        const leftObjName = left.object?.name;
-        const rightObjName = right.object?.name;
-
-        const leftObj = scopeObjectProp[leftObjName];
-        const rightObj = scopeObjectProp[rightObjName];
-
-        this.highlightAndSetLocalScope(this.algorithm.colors.signal, true);
-
-        this.asyncCall(async () => {
-          /// highlight current value of array
-          this.algorithm.visualizeHighlight(leftObj, leftValue);
-          this.algorithm.visualizeHighlight(rightObj, rightValue, "-=300");
-          await this.algorithm.awaitAnimation();
-          this.algorithm.visualizeUnHighlight(leftObj, leftValue);
-          this.algorithm.visualizeUnHighlight(rightObj, rightValue, "-=300");
-          await this.algorithm.awaitAnimation();
-        });
-      }
+      SemantikAnalysis.areBothArray(
+        currentState,
+        ({ leftSide, rightSide, leftValue, rightValue }) => {
+          this.highlightAndSetLocalScope(this.algorithm.colors.signal, true);
+          this.asyncCall(async () => {
+            /// highlight current value of array
+            this.algorithm.visualizeHighlight(leftSide, leftValue);
+            this.algorithm.visualizeHighlight(rightSide, rightValue, "-=300");
+            await this.algorithm.awaitAnimation();
+            this.algorithm.visualizeUnHighlight(leftSide, leftValue);
+            this.algorithm.visualizeUnHighlight(rightSide, rightValue, "-=300");
+            await this.algorithm.awaitAnimation();
+          });
+        }
+      );
     }
   }
 }
@@ -446,6 +435,7 @@ class SemantikAnalysis {
   static compareOperators = ["<", "<=", ">", ">=", "==", "===", "!=", "!=="];
 
   static isCompareExpression(expression: any) {
+    console.log(expression);
     return (
       expression.node.type === "BinaryExpression" &&
       this.compareOperators.includes(expression.node.operator) &&
@@ -454,5 +444,39 @@ class SemantikAnalysis {
       // check if right evaluation is finshed
       expression.doneRight_
     );
+  }
+
+  static areBothArray(
+    currentState: any,
+    onSuccess: (data: {
+      leftSide: Interpreter.Object;
+      leftValue: any;
+      rightSide: Interpreter.Object;
+      rightValue: any;
+    }) => void
+  ) {
+    const scopeObjectProp = currentState.scope.object.properties;
+    const left = currentState.node.left;
+    const right = currentState.node.left;
+
+    const leftValue = currentState.leftValue_;
+    const rightValue = currentState.value;
+
+    if (left.object && right.object) {
+      const leftObjName = left.object?.name;
+      const rightObjName = right.object?.name;
+
+      const leftSide = scopeObjectProp[leftObjName];
+      const rightSide = scopeObjectProp[rightObjName];
+
+      if (leftSide.class == rightSide.class && leftSide.class == "Array") {
+        onSuccess({
+          leftSide,
+          rightSide,
+          leftValue,
+          rightValue,
+        });
+      }
+    }
   }
 }
