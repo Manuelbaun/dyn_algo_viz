@@ -412,17 +412,18 @@ export class InterpreterWrapper {
   private analyseCurrentStateExpression(state: any) {
     if (SemantikAnalysis.isCompareExpression(state)) {
       const res = SemantikAnalysis.scanAndExtractArrays(state);
+
       if (res) {
-        const { leftSide, rightSide, leftValue, rightValue } = res;
+        const { leftValue, rightValue } = res;
 
         this.highlightAndSetLocalScope(this.algorithm.colors.signal, true);
         this.asyncCall(async () => {
           /// highlight current value of array
-          this.algorithm.visualizeHighlight(leftSide, leftValue);
-          this.algorithm.visualizeHighlight(rightSide, rightValue, "-=300");
+          this.algorithm.visualizeHighlight(leftValue);
+          this.algorithm.visualizeHighlight(rightValue, "-=300");
           await this.algorithm.awaitAnimation();
-          this.algorithm.visualizeUnHighlight(leftSide, leftValue);
-          this.algorithm.visualizeUnHighlight(rightSide, rightValue, "-=300");
+          this.algorithm.visualizeUnHighlight(leftValue);
+          this.algorithm.visualizeUnHighlight(rightValue, "-=300");
           await this.algorithm.awaitAnimation();
         });
       }
@@ -434,7 +435,6 @@ class SemantikAnalysis {
   static compareOperators = ["<", "<=", ">", ">=", "==", "===", "!=", "!=="];
 
   static isCompareExpression(state: any): boolean {
-    console.log(state.doneLeft_, state.doneRight_);
     return (
       state.node.type === "BinaryExpression" &&
       this.compareOperators.includes(state.node.operator) &&
@@ -448,27 +448,28 @@ class SemantikAnalysis {
   static scanAndExtractArrays(state: any) {
     const scopeObjectProp = state.scope.object.properties;
     const left = state.node.left;
-    const right = state.node.left;
+    const right = state.node.right;
 
     const leftValue = state.leftValue_;
     const rightValue = state.value;
 
-    if (left.object && right.object) {
-      const leftObjName = left.object?.name;
-      const rightObjName = right.object?.name;
+    const leftObjName = left.object?.name;
+    const rightObjName = right.object?.name;
 
-      const leftSide = scopeObjectProp[leftObjName];
-      const rightSide = scopeObjectProp[rightObjName];
+    // if non of both are an array => no way to find out,
+    // if a visual element is compared
+    if (!leftObjName && !leftObjName) return;
 
-      if (leftSide.class == rightSide.class && leftSide.class == "Array") {
-        return {
-          leftSide,
-          rightSide,
-          leftValue,
-          rightValue,
-        };
-      }
-      return undefined;
-    }
+    const leftSide = scopeObjectProp[leftObjName];
+    const rightSide = scopeObjectProp[rightObjName];
+
+    const isArray = leftSide?.class == "Array" || rightSide?.class == "Array";
+    // if both are defined and non of thm is an array
+    if (!isArray) return undefined;
+
+    return {
+      leftValue,
+      rightValue,
+    };
   }
 }

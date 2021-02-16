@@ -79,6 +79,10 @@ export class ElementManager {
     this.allVisualElements.set(value, ref);
   }
 
+  getVisualElementRef(value: number) {
+    return this.allVisualElements.get(value);
+  }
+
   forEachElement(cb: (element: VisualElement, index: number) => void) {
     Array.from(this.allVisualElements.values()).forEach((e, i) => cb(e, i));
   }

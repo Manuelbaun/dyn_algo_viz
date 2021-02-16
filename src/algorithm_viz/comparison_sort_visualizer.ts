@@ -204,16 +204,11 @@ export default class ComparisonSortsVisualizer {
     }
   }
 
-  async visualizeHighlight(
-    array: Interpreter.Object,
-    value: number,
-    timeCorrection: string = "-=0"
-  ) {
+  async visualizeHighlight(value: number, timeCorrection: string = "-=0") {
     const tl = this.animationControl.algoTimeline;
-    const ref = this.elementManager.getOrCreateArrayWrapper(array);
+    const el1 = this.elementManager.getVisualElementRef(value);
 
     // get visual objects
-    const el1 = ref.getVisualElementByValue(value);
     if (!el1) return;
 
     // Highligh rects
@@ -227,16 +222,11 @@ export default class ComparisonSortsVisualizer {
     );
   }
 
-  async visualizeUnHighlight(
-    array: Interpreter.Object,
-    value: number,
-    timeCorrection: string = "-=0"
-  ) {
+  async visualizeUnHighlight(value: number, timeCorrection: string = "-=0") {
     const tl = this.animationControl.algoTimeline;
-    const ref = this.elementManager.getOrCreateArrayWrapper(array);
+    const el1 = this.elementManager.getVisualElementRef(value);
 
     // get visual objects
-    const el1 = ref.getVisualElementByValue(value);
     if (!el1) return;
 
     // Highligh rects
