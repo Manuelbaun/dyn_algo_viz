@@ -55,15 +55,15 @@ export class InterpreterWrapper {
    * when the interpreter was in running state!
    * It is expected, that the func returns a promise, or Array of Promises
    */
-  asyncCallStack: Promise<any>[] = [];
+  asyncCallAnimationStack: Promise<any>[] = [];
   private async asyncCall(func: () => Promise<any>) {
     const paused = this.paused;
     this.paused = true;
 
-    this.asyncCallStack.push(func());
+    this.asyncCallAnimationStack.push(func());
 
     // must await all promises in that stack
-    await Promise.all(this.asyncCallStack);
+    await Promise.all(this.asyncCallAnimationStack);
     this.paused = paused;
 
     /**
@@ -371,8 +371,8 @@ export class InterpreterWrapper {
     /// VERY VERY Importent!!: here await to all asyncCalls used by this.asyncCall method
     /// otherwise animation gets not finished before another animation starts.
     /// this is due the async nature
-    await Promise.all(this.asyncCallStack);
-    this.asyncCallStack = [];
+    await Promise.all(this.asyncCallAnimationStack);
+    this.asyncCallAnimationStack = [];
 
     var stackCounter = 0;
     let executed = true;
