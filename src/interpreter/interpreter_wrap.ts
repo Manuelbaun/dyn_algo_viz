@@ -87,6 +87,8 @@ export class InterpreterWrapper {
     this.appState.setLocalScope(this.getLocalScope(state.scope), shouldTrack);
   }
 
+  getResults: () => any = () => {};
+
   private interpreterInitFunctions(
     self: Interpreter,
     globalObject: Interpreter.Object
@@ -99,21 +101,24 @@ export class InterpreterWrapper {
     // would not work, because of the scope of the used arrays
     const asyncCall = this.asyncCall;
     const highlightAndScope = this.highlightAndSetLocalScope;
+
+    // access the result variable from the interpreter
+    this.getResults = () => {
+      const root = self.getProperty(globalObject, "result");
+      return self.pseudoToNative(root);
+    };
+
     /** **************** **/
     /** Define Props     **/
     /** **************** **/
     const root = self.nativeToPseudo(algorithm.data);
+    const result = self.nativeToPseudo([]);
 
-    // should always exist =>extends with id
-    if (root) {
-      (root as any).id = "root";
-    } else {
-      throw Error(
-        "Cannot create the  initial value 'root'-array for the interpreter!"
-      );
-    }
+    (root as any).id = "root";
+    (result as any).id = "result";
 
     self.setProperty(globalObject, "root", root);
+    self.setProperty(globalObject, "result", result);
 
     /** **************** **/
     /** Define functions **/
@@ -393,6 +398,8 @@ export class InterpreterWrapper {
     const state = this.interpreter.stateStack.peek();
     if (state.done) {
       this.appState.setDone();
+      // set the result to the global algoviz object
+      (window as any)["algoviz"]["setResult"](this.getResults());
     }
   }
 
@@ -465,7 +472,6 @@ class SemantikAnalysis {
 
     let leftObjName = this.getVarName(left);
     let rightObjName = this.getVarName(right);
-
 
     const leftSide = scopeObjectProp[leftObjName];
     const rightSide = scopeObjectProp[rightObjName];

@@ -1,4 +1,5 @@
 import App from "./App.svelte";
+import "./api/algoviz_window_api";
 
 var app = new App({
   target: document.getElementById("algoviz-app") || document.body,
