@@ -240,20 +240,21 @@ export class AppState {
 function loadSourceCode(): string {
   return (
     localStorage.getItem("sourceCode") ||
-    `
-  function bubbleSort(array) {
-    var len = array.length;
-  
-    for (var i = 0; i < len; i++) {
-      for (var j = 0; j < len - i - 1; j++) {
-          if (array.compare(j, j + 1)) {
-            array.swap(j, j + 1);
-        }
+`function bubbleSort(array) {
+  var len = array.length;
+
+  for (var i = 0; i < len; i++) {
+    for (var j = 0; j < len - i - 1; j++) {
+      if (array.compare(j, j + 1)) {
+        array.swap(j, j + 1);
       }
     }
-    return array;
   }
-  bubbleSort(root);
-  `
+  return array;
+}
+
+bubbleSort(root);`
   );
 }
+
+
